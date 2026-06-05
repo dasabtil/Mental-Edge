@@ -370,6 +370,9 @@ img,video{max-width:100%}
 @media(max-width:760px){ .navlinks{display:none} }
 @media(max-width:640px){
   .wrap{padding-left:15px;padding-right:15px}
+  .nav{margin-left:-15px;margin-right:-15px;padding-left:15px;padding-right:15px}
+  .nav-in{gap:9px}
+  .brand .mark{width:26px;height:26px}
   .twocol{grid-template-columns:1fr}
   .imp{grid-template-columns:1fr}
   .dailycards{grid-template-columns:1fr}
@@ -387,7 +390,7 @@ img,video{max-width:100%}
     <svg class="mark" viewBox="0 0 48 48" fill="none"><path d="M24 44C24 30 18 20 14 6" stroke="#4f8a5f" stroke-width="2.6" stroke-linecap="round"/><path d="M24 44C24 32 28 22 33 9" stroke="#4f8a5f" stroke-width="2.6" stroke-linecap="round"/><path d="M24 44C24 34 24 24 24 12" stroke="#2f6a45" stroke-width="2.6" stroke-linecap="round"/><path d="M24 44l-5 3M24 44l5 3M24 44l-2 3.5" stroke="#c9952f" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="12" r="2.4" fill="#d8a64a"/></svg>
     <div><b>Mental</b><small>Edge</small></div>
   </div>
-  <nav class="navlinks" id="nav"><a href="#noyau">Accueil</a><a href="#matin">Matin</a><a href="#identite">Identité</a><a href="#visu">Visualisation</a><a href="#warmup">Warm-up</a><a href="#jeu">Jeu</a><a href="#bilan">Bilan</a><a href="#suivi">Suivi</a><a href="#outils">Outils</a><a href="#journal">Journal</a><a href="#vision">Vision</a><a href="#images">Images</a></nav>
+  <nav class="navlinks" id="nav"></nav>
   <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button>
     <button class="themebtn" id="themeBtn" title="Changer de thème" aria-label="Changer de thème">&#9728;</button>
     <button class="themebtn" id="logoutBtn" title="Déconnexion" style="display:none">&#9099;</button><div class="streak"><span class="fl">&#128293;</span><b id="streakN">0</b><span>j</span></div>
@@ -906,4 +909,4 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
   try{const {data:{session}}=await window.__sb.auth.getSession();if(session){await afterLogin(session);}else{applyTheme("light");showLogin();}}catch(e){applyTheme("light");showLogin();}
 })();
 </script>
-<script>(function(){var b=document.getElementById("menuBtn"),mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn");if(b&&mm&&inn){document.querySelectorAll("section.sec").forEach(function(s){if(s.closest(".foldbody"))return;var h=s.querySelector("h2");if(!h||!s.id)return;var a=document.createElement("a");a.href="#"+s.id;a.textContent=h.textContent.split("\u2014")[0].trim();a.addEventListener("click",function(e){e.preventDefault();mm.classList.remove("show");var t=document.getElementById(s.id);if(t)t.scrollIntoView({behavior:"smooth"});});inn.appendChild(a);});b.addEventListener("click",function(){mm.classList.toggle("show");});mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});}document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var el=document.getElementById(t.getAttribute("data-fold"));if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script></body></html>
+<script>(function(){var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl)nl.innerHTML="";function mk(href,label){var a=document.createElement("a");a.href=href;a.textContent=label;a.addEventListener("click",function(e){e.preventDefault();if(mm)mm.classList.remove("show");var t=document.getElementById(href.slice(1));if(t)t.scrollIntoView({behavior:"smooth"});});return a;}function add(href,label){if(nl)nl.appendChild(mk(href,label));if(inn)inn.appendChild(mk(href,label));}if(document.getElementById("noyau"))add("#noyau","Accueil");document.querySelectorAll("section.sec").forEach(function(s){if(s.closest(".foldbody"))return;if(s.id==="noyau")return;var h=s.querySelector("h2");if(!h||!s.id)return;add("#"+s.id,h.textContent.split("\u2014")[0].trim());});if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var el=document.getElementById(t.getAttribute("data-fold"));if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script></body></html>
