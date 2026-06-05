@@ -353,6 +353,11 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .mobmenu-in a{display:block;padding:13px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:16px;border-bottom:1px solid var(--line)}
 .mobmenu-in a:active{background:var(--bg)}
 @media(max-width:760px){ .menubtn{display:inline-flex} }
+.sesstoggle{appearance:none;cursor:pointer;border:1px dashed var(--accent);background:transparent;color:var(--accent);font-size:15px;padding:12px 16px;border-radius:12px;width:100%;max-width:420px;transition:.2s}
+.sesstoggle:hover{background:var(--surface)}
+.sessbody,.foldbody{display:none;margin-top:10px}
+.sessbody.open,.foldbody.open{display:block}
+.sessbody > section.sec{padding-top:6px;margin-top:0}
 /* mobile responsive hardening */
 html,body{overflow-x:hidden;max-width:100%}
 img,video{max-width:100%}
@@ -434,6 +439,11 @@ img,video{max-width:100%}
 
 <div class="sessband"><span>Ma session</span><small>de l'avant-match au débrief</small></div>
 
+<section class="sec" id="masession">
+  <div class="sec-h"><span class="no">02</span><h2>Ma session</h2></div>
+  <p class="sec-desc">Déplie quand tu t'installes : qui je suis, visualisation, warm-up, jeu, et le cool-down.</p>
+  <button class="sesstoggle" data-fold="sessBody" data-closed="+ Déplier ma session" data-open="− Replier ma session">+ Déplier ma session</button>
+  <div class="sessbody" id="sessBody">
 <section class="sec" id="identite">
   <div class="sec-h"><span class="no">02</span><h2>Qui je suis à table</h2></div>
   <p class="sec-desc">Mes trois piliers. La performance suit l'image de soi : je joue au niveau de l'homme que je me crois être. Touche un pilier pour l'ouvrir.</p>
@@ -488,7 +498,16 @@ img,video{max-width:100%}
     <div class="savebar" style="margin-top:8px"><button class="save" id="pmBtn">Lire mon bilan</button><span class="saved" id="pmSaved">Noté &#10003;</span></div>
     <div class="mres" id="pmRes"></div>
   </div>
-  <div class="panel-x">
+  
+  <div class="panel-x" style="margin-top:18px"><div class="lab"><span>Historique des sessions</span></div><p class="note">Jour après jour : ton objectif, ta météo et ton bilan. Clique pour déplier.</p><div class="hist" id="histList"></div></div>
+</section>
+  </div>
+</section>
+
+<section class="sec" id="debrief">
+  <div class="sec-h"><span class="no">03</span><h2>Le débrief du jour</h2></div>
+  <p class="sec-desc">En fin de journée, hors session : ce dont tu es fier, tes bonnes décisions, ce que tu as appris. Ta réussite rejoint ton journal.</p>
+<div class="panel-x">
     <div class="lab"><span>Mon débrief du jour</span></div>
     <p class="note">Valider l'après, c'est valider ma journée &mdash; et faire grandir la série. Ta réussite du jour rejoint ton journal.</p>
     <div class="twocol">
@@ -503,15 +522,12 @@ img,video{max-width:100%}
     </div>
     <div class="savebar"><button class="save" data-save="apres">Clôturer ma journée</button><span class="saved" id="savedApres">Journée validée &#10003;</span></div>
   </div>
-  <div class="panel-x" style="margin-top:18px"><div class="lab"><span>Historique des sessions</span></div><p class="note">Jour après jour : ton objectif, ta météo et ton bilan. Clique pour déplier.</p><div class="hist" id="histList"></div></div>
 </section>
 
-<section class="sec" id="suivi">
-  <div class="sec-h"><span class="no">07</span><h2>Suivi</h2></div>
-  <p class="sec-desc">Objectiver l'avancée. Mets à jour tes chiffres : la couleur te dit où tu en es (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
-
-  <div class="panel-x" style="margin-bottom:18px">
-    <h3 class="blockh">Mes objectifs</h3>
+<section class="sec" id="objectifs">
+  <div class="sec-h"><span class="no">04</span><h2>Mes objectifs</h2></div>
+  <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
+  <div class="panel-x">
     <p class="blocksub">Année, trimestre, semaine. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
     <div class="subtabs" id="goalTabs">
       <button class="subtab on" data-h="annee">Année</button>
@@ -526,10 +542,12 @@ img,video{max-width:100%}
       <button class="mini-add" id="goalAdd">Ajouter</button>
     </div>
   </div>
+</section>
 
+<section class="sec" id="habitudes">
+  <div class="sec-h"><span class="no">05</span><h2>Mes habitudes du jour</h2></div>
+  <p class="sec-desc">Coche au fil de la journée. Les points montrent tes 7 derniers jours et la série par habitude.</p>
   <div class="panel-x">
-    <h3 class="blockh">Mes habitudes du jour</h3>
-    <p class="blocksub">Coche au fil de la journée. Les points montrent tes 7 derniers jours, et la série par habitude.</p>
     <div id="habitList"></div>
     <div class="habitadd"><input type="text" id="habitInput" placeholder="Ajouter une habitude..."><button class="addb" id="habitAdd">Ajouter</button></div>
   </div>
@@ -564,8 +582,11 @@ img,video{max-width:100%}
 <section class="sec" id="images">
   <div class="sec-h"><span class="no">&#9733;</span><h2>Mes mantras en images</h2></div>
   <p class="sec-desc">Tes images de motivation et tes mantras. Une tourne chaque jour sur l'accueil ; touche une image pour l'agrandir. Tu peux en ajouter d'autres.</p>
+  <button class="sesstoggle" data-fold="imgFold" data-closed="+ Afficher mes images" data-open="− Masquer mes images">+ Afficher mes images</button>
+  <div class="foldbody" id="imgFold">
   <label class="upl">Ajouter des images<input type="file" id="imgFile" accept="image/*" multiple></label>
   <div class="imgwall" id="imgWall"></div>
+</div>
 </section>
 
 <div class="foot">Mental Edge &middot; espace de <b id="footName"></b> &middot; ancrée sur Bassham, Grover, Ericsson, Csikszentmihalyi &middot; tes mots, ton image, chaque jour.</div>
@@ -878,4 +899,4 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
   try{const {data:{session}}=await window.__sb.auth.getSession();if(session){await afterLogin(session);}else{applyTheme("light");showLogin();}}catch(e){applyTheme("light");showLogin();}
 })();
 </script>
-<script>(function(){var b=document.getElementById("menuBtn"),mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn");if(!b||!mm||!inn)return;document.querySelectorAll("section.sec").forEach(function(s){var h=s.querySelector("h2");if(!h||!s.id)return;var a=document.createElement("a");a.href="#"+s.id;a.textContent=h.textContent.split("\u2014")[0].trim();a.addEventListener("click",function(e){e.preventDefault();mm.classList.remove("show");var t=document.getElementById(s.id);if(t)t.scrollIntoView({behavior:"smooth"});});inn.appendChild(a);});b.addEventListener("click",function(){mm.classList.toggle("show");});mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});})();</script></body></html>
+<script>(function(){var b=document.getElementById("menuBtn"),mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn");if(b&&mm&&inn){document.querySelectorAll("section.sec").forEach(function(s){if(s.closest(".sessbody"))return;var h=s.querySelector("h2");if(!h||!s.id)return;var a=document.createElement("a");a.href="#"+s.id;a.textContent=h.textContent.split("\u2014")[0].trim();a.addEventListener("click",function(e){e.preventDefault();mm.classList.remove("show");var t=document.getElementById(s.id);if(t)t.scrollIntoView({behavior:"smooth"});});inn.appendChild(a);});b.addEventListener("click",function(){mm.classList.toggle("show");});mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});}document.querySelectorAll(".sesstoggle").forEach(function(t){t.addEventListener("click",function(){var el=document.getElementById(t.getAttribute("data-fold"));if(!el)return;var o=el.classList.toggle("open");t.textContent=o?t.getAttribute("data-open"):t.getAttribute("data-closed");});});})();</script></body></html>
