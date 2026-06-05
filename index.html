@@ -353,11 +353,16 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .mobmenu-in a{display:block;padding:13px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:16px;border-bottom:1px solid var(--line)}
 .mobmenu-in a:active{background:var(--bg)}
 @media(max-width:760px){ .menubtn{display:inline-flex} }
-.sesstoggle{appearance:none;cursor:pointer;border:1px dashed var(--accent);background:transparent;color:var(--accent);font-size:15px;padding:12px 16px;border-radius:12px;width:100%;max-width:420px;transition:.2s}
-.sesstoggle:hover{background:var(--surface)}
-.sessbody,.foldbody{display:none;margin-top:10px}
-.sessbody.open,.foldbody.open{display:block}
-.sessbody > section.sec{padding-top:6px;margin-top:0}
+.foldhead{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 18px;margin-top:10px;color:var(--text);font-family:"Fraunces",serif;font-size:16px;text-align:left;transition:.18s}
+.foldhead:hover{border-color:var(--accent);background:var(--surface2);transform:translateY(-1px)}
+.foldhead .foldchev{font-size:22px;color:var(--accent);transition:transform .25s;line-height:1}
+.foldhead.open .foldchev{transform:rotate(90deg)}
+.foldhead.session{background:linear-gradient(120deg,var(--surface),var(--surface2));border-color:var(--accent-bright);font-size:18px;padding:18px 20px}
+.foldhead.session .foldtitle{font-weight:600}
+.foldbody{display:none;margin-top:8px}
+.foldbody.open{display:block}
+.foldbody > section.sec{padding-top:6px;margin-top:0}
+.foldcard{margin-top:6px}
 /* mobile responsive hardening */
 html,body{overflow-x:hidden;max-width:100%}
 img,video{max-width:100%}
@@ -437,27 +442,27 @@ img,video{max-width:100%}
 
 </section>
 
-<div class="sessband"><span>Ma session</span><small>de l'avant-match au débrief</small></div>
+
 
 <section class="sec" id="masession">
   <div class="sec-h"><span class="no">02</span><h2>Ma session</h2></div>
-  <p class="sec-desc">Déplie quand tu t'installes : qui je suis, visualisation, warm-up, jeu, et le cool-down.</p>
-  <button class="sesstoggle" data-fold="sessBody" data-closed="+ Déplier ma session" data-open="− Replier ma session">+ Déplier ma session</button>
-  <div class="sessbody" id="sessBody">
+  <p class="sec-desc">Ton rituel complet, à portée de clic : qui je suis, visualisation, warm-up, jeu, et le cool-down.</p>
+  <button class="foldhead session" data-fold="sessBody"><span class="foldtitle">Commencer ma session</span><span class="foldchev">&#8250;</span></button>
+  <div class="foldbody" id="sessBody">
 <section class="sec" id="identite">
-  <div class="sec-h"><span class="no">02</span><h2>Qui je suis à table</h2></div>
+  <div class="sec-h"><span class="no">1</span><h2>Qui je suis à table</h2></div>
   <p class="sec-desc">Mes trois piliers. La performance suit l'image de soi : je joue au niveau de l'homme que je me crois être. Touche un pilier pour l'ouvrir.</p>
   <div class="pillars" id="pillars"></div>
 </section>
 
 <section class="sec" id="visu">
-  <div class="sec-h"><span class="no">03</span><h2>Visualisation</h2></div>
+  <div class="sec-h"><span class="no">2</span><h2>Visualisation</h2></div>
   <p class="sec-desc">Juste avant de lancer : projette-toi. Vois-le, ressens-le, en première personne.</p>
   <div class="viz"><div class="lab"><span>Visualisation du jour</span><button class="rbtn" data-rot="viz" title="Autre">&#8635;</button></div><p id="vizTxt"></p><div class="hint">Ferme les yeux 30 secondes.</div></div>
 </section>
 
 <section class="sec" id="warmup">
-  <div class="sec-h"><span class="no">04</span><h2>Warm-up</h2></div>
+  <div class="sec-h"><span class="no">3</span><h2>Warm-up</h2></div>
   <p class="sec-desc">Lance ton rituel d'avant-session en plein écran : vidéo, affirmations, respiration.</p>
   <button id="wuLaunch" class="wulaunch" onclick="document.getElementById('wuModal').classList.add('show')">&#9654;&nbsp; Lancer mon warm-up</button>
   <div class="panel-x" style="margin-top:16px">
@@ -483,13 +488,13 @@ img,video{max-width:100%}
 </div>
 
 <section class="sec" id="jeu">
-  <div class="sec-h"><span class="no">05</span><h2>Jeu &mdash; E + R&sup2; = R</h2></div>
+  <div class="sec-h"><span class="no">4</span><h2>Jeu &mdash; E + R&sup2; = R</h2></div>
   <p class="sec-desc">L'événement, je ne le contrôle pas. Ma réaction, oui. Et c'est elle qui fait le résultat. Mes protocoles, prêts quand un coup tape.</p>
   <div class="reacts" id="reacts"></div>
 </section>
 
 <section class="sec" id="bilan">
-  <div class="sec-h"><span class="no">06</span><h2>Bilan &mdash; après la session</h2></div>
+  <div class="sec-h"><span class="no">5</span><h2>Bilan &mdash; après la session</h2></div>
   <p class="sec-desc">Le cool-down. Je renforce le processus, pas le score. Une bonne décision compte, même si le coup est perdu.</p>
   <div class="meteo" id="meteoPM">
     <div class="lab"><span>Météo du soir</span></div>
@@ -528,11 +533,11 @@ img,video{max-width:100%}
   <div class="sec-h"><span class="no">04</span><h2>Mes objectifs</h2></div>
   <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
   <div class="panel-x">
-    <p class="blocksub">Année, trimestre, semaine. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
+    <p class="blocksub">Semaine, trimestre, année. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
     <div class="subtabs" id="goalTabs">
-      <button class="subtab on" data-h="annee">Année</button>
+      <button class="subtab on" data-h="sem">Semaine</button>
       <button class="subtab" data-h="trim">Trimestre</button>
-      <button class="subtab" data-h="sem">Semaine</button>
+      <button class="subtab" data-h="annee">Année</button>
     </div>
     <div id="goalList"></div>
     <div class="goaladd">
@@ -554,40 +559,42 @@ img,video{max-width:100%}
 </section>
 
 <section class="sec" id="outils">
-  <div class="sec-h"><span class="no">08</span><h2>Boîte à outils</h2></div>
+  <div class="sec-h"><span class="no">06</span><h2>Boîte à outils</h2></div>
   <p class="sec-desc">Les protocoles de Lolo et de la science, prêts à l'emploi. Ta météo du matin t'y renvoie quand ça coince &mdash; mais tu peux les ouvrir quand tu veux.</p>
   <div class="tools-grid" id="toolList"></div>
 </section>
 
-<section class="sec" id="journal">
-  <div class="sec-h"><span class="no">09</span><h2>Mon journal</h2></div>
-  <p class="sec-desc">Ta base, depuis 2025. Le dossier de preuves contre tes croyances limitantes &mdash; relis-le quand le doute monte.</p>
-  <div class="jtabs"><button class="jtab on" data-j="grat">Gratitudes</button><button class="jtab" data-j="win">Réussites</button></div>
+<section class="sec" id="vision">
+  <div class="sec-h"><span class="no">07</span><h2>Ma vision</h2></div>
+  <p class="sec-desc">Le sens, en arrière-plan de tout. Déplie ce dont tu as besoin.</p>
+  <div class="foldcard"><button class="foldhead" data-fold="fold1"><span class="foldtitle">Ma lettre de Papi &mdash; mon moi futur</span><span class="foldchev">&#8250;</span></button>
+  <div class="foldbody" id="fold1">
+<div class="letter"><div class="lab"><span>La lettre de Papi &mdash; mon moi futur</span></div><p id="letter"></p></div>
+  </div></div>
+  <div class="foldcard"><button class="foldhead" data-fold="fold2"><span class="foldtitle">Mon journal</span><span class="foldchev">&#8250;</span></button>
+  <div class="foldbody" id="fold2">
+<div class="jtabs"><button class="jtab on" data-j="grat">Gratitudes</button><button class="jtab" data-j="win">Réussites</button></div>
   <div class="jadd"><input type="text" id="jInput" placeholder="Ajouter une entrée..."><button class="addb" id="jAdd">Ajouter</button></div>
   <p class="jmeta" id="jMeta"></p>
   <div class="jlist" id="jList"></div>
+  </div></div>
+  <div class="foldcard"><button class="foldhead" data-fold="fold3"><span class="foldtitle">Mes mantras en images</span><span class="foldchev">&#8250;</span></button>
+  <div class="foldbody" id="fold3">
+<label class="upl">Ajouter des images<input type="file" id="imgFile" accept="image/*" multiple></label>
+  <div class="imgwall" id="imgWall"></div>
+  </div></div>
 </section>
 
-<section class="sec" id="vision">
-  <div class="sec-h"><span class="no">10</span><h2>Ma vision</h2></div>
-  <p class="sec-desc">Le sens, en arrière-plan de tout. La lettre de mon moi futur à mes petits-enfants.</p>
-  <div class="letter"><div class="lab"><span>La lettre de Papi &mdash; mon moi futur</span></div><p id="letter"></p></div>
-</section>
+
+
+
 
 <section class="socle">
   <div class="lab"><span>Le socle &mdash; pourquoi ça marche</span></div>
   <div class="ngrid" id="neuro"></div>
 </section>
 
-<section class="sec" id="images">
-  <div class="sec-h"><span class="no">&#9733;</span><h2>Mes mantras en images</h2></div>
-  <p class="sec-desc">Tes images de motivation et tes mantras. Une tourne chaque jour sur l'accueil ; touche une image pour l'agrandir. Tu peux en ajouter d'autres.</p>
-  <button class="sesstoggle" data-fold="imgFold" data-closed="+ Afficher mes images" data-open="− Masquer mes images">+ Afficher mes images</button>
-  <div class="foldbody" id="imgFold">
-  <label class="upl">Ajouter des images<input type="file" id="imgFile" accept="image/*" multiple></label>
-  <div class="imgwall" id="imgWall"></div>
-</div>
-</section>
+
 
 <div class="foot">Mental Edge &middot; espace de <b id="footName"></b> &middot; ancrée sur Bassham, Grover, Ericsson, Csikszentmihalyi &middot; tes mots, ton image, chaque jour.</div>
 <div class="lightbox" id="lightbox"><img id="lightboxImg" src=""></div>
@@ -747,7 +754,7 @@ async function bumpStreak(){let s=await getJSON("streak",{count:0,last:null});if
 $$(".save[data-save]").forEach(b=>b.addEventListener("click",()=>saveBlock(b.dataset.save)));
 
 // OBJECTIVES
-let goalH="annee";
+let goalH="sem";
 function goalColor(p){return p>=80?"var(--green)":(p>=40?"#d8a64a":"#c2603f");}
 async function renderGoals(){
   let goals=await getJSON("userGoals",null);
@@ -899,4 +906,4 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
   try{const {data:{session}}=await window.__sb.auth.getSession();if(session){await afterLogin(session);}else{applyTheme("light");showLogin();}}catch(e){applyTheme("light");showLogin();}
 })();
 </script>
-<script>(function(){var b=document.getElementById("menuBtn"),mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn");if(b&&mm&&inn){document.querySelectorAll("section.sec").forEach(function(s){if(s.closest(".sessbody"))return;var h=s.querySelector("h2");if(!h||!s.id)return;var a=document.createElement("a");a.href="#"+s.id;a.textContent=h.textContent.split("\u2014")[0].trim();a.addEventListener("click",function(e){e.preventDefault();mm.classList.remove("show");var t=document.getElementById(s.id);if(t)t.scrollIntoView({behavior:"smooth"});});inn.appendChild(a);});b.addEventListener("click",function(){mm.classList.toggle("show");});mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});}document.querySelectorAll(".sesstoggle").forEach(function(t){t.addEventListener("click",function(){var el=document.getElementById(t.getAttribute("data-fold"));if(!el)return;var o=el.classList.toggle("open");t.textContent=o?t.getAttribute("data-open"):t.getAttribute("data-closed");});});})();</script></body></html>
+<script>(function(){var b=document.getElementById("menuBtn"),mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn");if(b&&mm&&inn){document.querySelectorAll("section.sec").forEach(function(s){if(s.closest(".foldbody"))return;var h=s.querySelector("h2");if(!h||!s.id)return;var a=document.createElement("a");a.href="#"+s.id;a.textContent=h.textContent.split("\u2014")[0].trim();a.addEventListener("click",function(e){e.preventDefault();mm.classList.remove("show");var t=document.getElementById(s.id);if(t)t.scrollIntoView({behavior:"smooth"});});inn.appendChild(a);});b.addEventListener("click",function(){mm.classList.toggle("show");});mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});}document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var el=document.getElementById(t.getAttribute("data-fold"));if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script></body></html>
