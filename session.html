@@ -338,7 +338,11 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .authmsg{margin-top:12px;color:var(--accent);font-size:13px;min-height:16px}
 
 :root{--maxw:1320px}
-.brand b{text-transform:none}
+.brand .mark{display:none!important}
+.brand>div{display:flex;align-items:center;gap:5px;font-family:"Space Grotesk",sans-serif;line-height:1}
+.brand>div::before{content:"";width:9px;height:9px;background:var(--accent-bright);transform:rotate(45deg);border-radius:2px;margin-right:8px;flex:none}
+.brand b{font-weight:700;font-size:18px;color:var(--text);letter-spacing:-.01em;text-transform:none}
+.brand small{font-size:18px;font-weight:500;color:var(--accent-bright)}
 .wulaunch{appearance:none;cursor:pointer;border:1px solid var(--accent-bright);background:linear-gradient(120deg,var(--surface),var(--surface2));color:var(--text);font-family:"Space Grotesk",serif;font-size:17px;padding:16px 22px;border-radius:14px;width:100%;max-width:420px;transition:.2s}
 .wulaunch:hover{border-color:var(--accent);color:var(--accent)}
 .wumodal{position:fixed;inset:0;background:var(--bg);z-index:120;display:none;flex-direction:column;overflow:auto}
@@ -463,7 +467,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 
 
 <section class="sec" id="masession">
-  <div class="sec-h"><span class="no">02</span><h2>Ma session</h2></div>
+  <div class="sec-h"><span class="no"></span><h2>Ma session</h2></div>
   <p class="sec-desc">Ton rituel complet, à portée de clic : qui je suis, visualisation, warm-up, jeu, et le cool-down.</p>
   <button class="foldhead session" data-fold="sessBody"><span class="foldtitle">Commencer ma session</span><span class="foldchev">&#8250;</span></button>
   <div class="foldbody" id="sessBody">
@@ -528,7 +532,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <section class="sec" id="debrief">
-  <div class="sec-h"><span class="no">03</span><h2>Le débrief du jour</h2></div>
+  <div class="sec-h"><span class="no">02</span><h2>Le débrief du jour</h2></div>
   <p class="sec-desc">En fin de journée, hors session : ce dont tu es fier, tes bonnes décisions, ce que tu as appris. Ta réussite rejoint ton journal.</p>
 <div class="panel-x">
     <div class="lab"><span>Mon débrief du jour</span></div>
@@ -548,7 +552,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <section class="sec" id="objectifs">
-  <div class="sec-h"><span class="no">04</span><h2>Mes objectifs</h2></div>
+  <div class="sec-h"><span class="no">03</span><h2>Mes objectifs</h2></div>
   <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
   <div class="panel-x">
     <p class="blocksub">Semaine, trimestre, année. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
@@ -568,7 +572,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <section class="sec" id="habitudes">
-  <div class="sec-h"><span class="no">05</span><h2>Mes habitudes du jour</h2></div>
+  <div class="sec-h"><span class="no">04</span><h2>Mes habitudes du jour</h2></div>
   <p class="sec-desc">Coche au fil de la journée. Les points montrent tes 7 derniers jours et la série par habitude.</p>
   <div class="panel-x">
     <div id="habitList"></div>
@@ -577,13 +581,13 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <section class="sec" id="outils">
-  <div class="sec-h"><span class="no">06</span><h2>Boîte à outils</h2></div>
+  <div class="sec-h"><span class="no">05</span><h2>Boîte à outils</h2></div>
   <p class="sec-desc">Les protocoles de Lolo et de la science, prêts à l'emploi. Ta météo du matin t'y renvoie quand ça coince &mdash; mais tu peux les ouvrir quand tu veux.</p>
   <div class="tools-grid" id="toolList"></div>
 </section>
 
 <section class="sec" id="vision">
-  <div class="sec-h"><span class="no">07</span><h2>Ma vision</h2></div>
+  <div class="sec-h"><span class="no">06</span><h2>Ma vision</h2></div>
   <p class="sec-desc">Le sens, en arrière-plan de tout. Déplie ce dont tu as besoin.</p>
   <div class="foldcard"><button class="foldhead" data-fold="fold1"><span class="foldtitle">Ma lettre de Papi &mdash; mon moi futur</span><span class="foldchev">&#8250;</span></button>
   <div class="foldbody" id="fold1">
