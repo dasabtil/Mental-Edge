@@ -927,15 +927,22 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
 })();
 </script>
 <script>(function(){try{history.scrollRestoration="manual";}catch(e){}setTimeout(function(){window.scrollTo(0,0);},0);var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var fid=t.getAttribute("data-fold");if(!fid)return;var el=document.getElementById(fid);if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script><script>(function(){
-var FEEDS=['https://positivr.fr/feed/','https://www.goodnewsnetwork.org/feed/'];
+var FEEDS=['https://www.bonnesnouvellesdujour.fr/feed/','https://www.lesgoodnews.fr/feed/','https://www.goodnewsnetwork.org/category/news/inspiring/feed/','https://www.goodnewsnetwork.org/category/news/heroes/feed/','https://www.debonnesnouvelles.fr/feed/'];
+var EXCL=/(tomate|agricol|r[ée]colte|potager|jardin|mara[îi]ch|verger|ferme\b|[ée]levage|pesticide|semence|l[ée]gume|\bfruit|vergers|culture\s|champ\b|r[ée]coltes)/i;
+var BONUS=/(h[ée]ros|sauve|sauv[ée]|sauvetage|exploit|record|d[ée]passement|solidarit|b[ée]n[ée]vol|gentillesse|courage|inspir|donne|aide|rescue|saves|kindness|hope|hero|first\b|premi[èe]re)/i;
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function fmtd(s){try{var x=new Date(s);return isNaN(x)?'':x.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});}catch(e){return '';}}
-function render(items){var box=document.getElementById('gnList');if(!box||!items||!items.length)return false;box.innerHTML=items.slice(0,4).map(function(it){return '<a class="gnitem" href="'+(it.link||'#')+'" target="_blank" rel="noopener"><span class="gnt">'+esc(it.title)+'</span><span class="gnd">'+fmtd(it.date)+'</span></a>';}).join('');return true;}
-async function viaProxy(feed){var r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(feed));var t=await r.text();var xml=new DOMParser().parseFromString(t,'text/xml');var out=[];xml.querySelectorAll('item').forEach(function(n){function g(tag){var e=n.querySelector(tag);return e?e.textContent:'';}out.push({title:g('title'),link:g('link'),date:g('pubDate')});});return out;}
-async function viaRss(feed){var r=await fetch('https://api.rss2json.com/v1/api.json?count=6&rss_url='+encodeURIComponent(feed));var j=await r.json();return (j&&j.items)?j.items.map(function(it){return {title:it.title,link:it.link,date:it.pubDate};}):[];}
+function parseXml(t){var xml=new DOMParser().parseFromString(t,'text/xml');var out=[];xml.querySelectorAll('item').forEach(function(n){function g(tag){var e=n.querySelector(tag);return e?e.textContent:'';}out.push({title:g('title'),link:g('link'),date:g('pubDate')});});return out;}
+async function viaProxy(feed){var r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(feed));return parseXml(await r.text());}
+async function viaRss(feed){var r=await fetch('https://api.rss2json.com/v1/api.json?count=8&rss_url='+encodeURIComponent(feed));var j=await r.json();return (j&&j.items)?j.items.map(function(it){return {title:it.title,link:it.link,date:it.pubDate};}):[];}
+async function getFeed(feed){try{var a=await viaProxy(feed);if(a&&a.length)return a;}catch(e){}try{var b=await viaRss(feed);if(b&&b.length)return b;}catch(e){}return [];}
+function render(items){var box=document.getElementById('gnList');if(!box||!items.length)return false;box.innerHTML=items.slice(0,5).map(function(it){return '<a class="gnitem" href="'+(it.link||'#')+'" target="_blank" rel="noopener"><span class="gnt">'+esc(it.title)+'</span><span class="gnd">'+fmtd(it.date)+'</span></a>';}).join('');return true;}
 async function load(){var box=document.getElementById('gnList');if(!box)return;box.textContent='Chargement des bonnes nouvelles\u2026';
-for(var i=0;i<FEEDS.length;i++){try{if(render(await viaProxy(FEEDS[i])))return;}catch(e){}try{if(render(await viaRss(FEEDS[i])))return;}catch(e){}}
-box.innerHTML='Impossible de charger les bonnes nouvelles pour le moment. <a href="https://positivr.fr" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Voir Positivr \u2192</a>';}
+var all=[],seen={};
+for(var i=0;i<FEEDS.length;i++){var items=await getFeed(FEEDS[i]);for(var k=0;k<items.length;k++){var it=items[k];if(!it.title)continue;var key=it.title.slice(0,40).toLowerCase();if(seen[key])continue;seen[key]=1;if(EXCL.test(it.title))continue;all.push(it);}if(all.length>=12)break;}
+if(!all.length){box.innerHTML='Impossible de charger les bonnes nouvelles pour le moment. <a href="https://www.bonnesnouvellesdujour.fr" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Voir le site \u2192</a>';return;}
+all.sort(function(a,b){var sa=BONUS.test(a.title)?1:0,sb=BONUS.test(b.title)?1:0;if(sb-sa)return sb-sa;var da=new Date(a.date||0),db=new Date(b.date||0);return db-da;});
+render(all);}
 var rb=document.getElementById('gnRefresh');if(rb)rb.addEventListener('click',load);
 window.addEventListener('load',load);
 })();</script></body></html>
