@@ -984,14 +984,17 @@ function nbOcc(x){if(!x||!x.recurrent||!x.date)return 1;var s=new Date(x.date);i
 function compute(){var prof=0,mise=0,vol=0;
  D.tournois.forEach(function(t){if(joue(t)&&inP(t.debut)){prof+=res(t);mise+=num(t.buyin);vol+=(num(t.nb)||1);}});
  var roi=mise>0?(prof/mise*100):0;
- var brutAll=0,depAll=0,recAll=0;
- D.tournois.forEach(function(t){if(joue(t))brutAll+=res(t);});
- D.depenses.forEach(function(x){depAll+=num(x.montant)*nbOcc(x);});
- (D.recettes||[]).forEach(function(x){recAll+=num(x.montant);});
+ var brutAll=0;D.tournois.forEach(function(t){if(joue(t))brutAll+=res(t);});
+ var depBR=0,depPerso=0;D.depenses.forEach(function(x){var m=num(x.montant)*nbOcc(x);if(x.payeur==="perso")depPerso+=m;else depBR+=m;});
+ var recBR=0,recPerso=0;(D.recettes||[]).forEach(function(x){var m=num(x.montant);if(x.enc==="perso")recPerso+=m;else recBR+=m;});
+ var depAll=depBR+depPerso,recAll=recBR+recPerso;
  var net=brutAll+recAll-depAll;
  var inj=0,ret=0;D.bankroll.forEach(function(m){if(m.sens==="out")ret+=num(m.montant);else inj+=num(m.montant);});
- var cpt=0;(D.comptes||[]).forEach(function(c){cpt+=num(c.solde);});
- return {prof:prof,mise:mise,vol:vol,roi:roi,brutAll:brutAll,depAll:depAll,recAll:recAll,net:net,inj:inj,ret:ret,cpt:cpt,bank:inj-ret+net+cpt};}
+ var rooms=0,persoRef=0,hasPerso=false;(D.comptes||[]).forEach(function(c){if(c.kind==="perso"){persoRef+=num(c.solde);hasPerso=true;}else rooms+=num(c.solde);});
+ var detteEff=persoRef-depPerso+recPerso;
+ var cpt=rooms+detteEff;
+ var bank=inj-ret+brutAll+recBR-depBR+rooms+detteEff;
+ return {prof:prof,mise:mise,vol:vol,roi:roi,brutAll:brutAll,depAll:depAll,recAll:recAll,net:net,inj:inj,ret:ret,cpt:cpt,bank:bank,depPerso:depPerso,recPerso:recPerso,persoRef:persoRef,detteEff:detteEff,rooms:rooms,hasPerso:hasPerso};}
 function kpi(l,v,c){return '<div class="kpi"><div class="kl">'+l+'</div><div class="kv '+(c||"")+'">'+v+'</div></div>';}
 function byD(a,b){var x=a.debut||a.date||"",y=b.debut||b.date||"";return x<y?1:x>y?-1:0;}
 function chartSVG(){var ev=[];D.tournois.forEach(function(t){if(joue(t)&&inP(t.debut))ev.push({d:t.debut||"",y:res(t)});});
@@ -1050,37 +1053,40 @@ function renderPlanning(){var host=$("planGrid");if(!host)return;$("planYear").t
  }).join("");
  host.querySelectorAll(".plitem").forEach(function(el){el.onclick=function(){var id=el.getAttribute("data-id");var t=D.tournois.filter(function(x){return x.id===id;})[0];if(t){setView("tour");showTour(t);}};});}
 function renderCompta(){var c=compute();$("comptaKpis").innerHTML=kpi("Résultat tournois",euro(c.brutAll),c.brutAll>=0?"pos":"neg")+kpi("Recettes",euro(c.recAll))+kpi("Dépenses",euro(c.depAll))+kpi("Solde net",euro(c.net),c.net>=0?"pos":"neg");
- var hd=$("depList"),ad=D.depenses.slice().sort(byD);hd.innerHTML=ad.length?"":'<div class="pkmsg">Aucune dépense.</div>';ad.forEach(function(x){var n=nbOcc(x),tot=num(x.montant)*n,sub=(x.date?fdate(x.date)+" · ":"")+esc(x.type||"");if(x.recurrent){var u={mensuelle:"mois",trimestrielle:"trim.",annuelle:"an"}[x.freq||"mensuelle"];sub+=" · "+euro(num(x.montant))+"/"+u+" × "+n+(x.fin?(" · fin "+fdate(x.fin)):"");}hd.appendChild(rowEl('<div><div class="rl">'+esc(x.label||x.type||"Dépense")+'</div><div class="rsub">'+sub+'</div></div><div class="rr"><div class="amt neg">-'+euro(tot)+'</div></div>',function(){showDep(x);}));});
- var hr=$("recList"),ar=(D.recettes||[]).slice().sort(byD);hr.innerHTML=ar.length?"":'<div class="pkmsg">Aucune recette annexe. Les gains de tournois sont déjà comptés dans « Résultat tournois ».</div>';ar.forEach(function(x){hr.appendChild(rowEl('<div><div class="rl">'+esc(x.label||"Recette")+'</div><div class="rsub">'+(x.date?fdate(x.date):"")+'</div></div><div class="rr"><div class="amt pos">+'+euro(num(x.montant))+'</div></div>',function(){showRec(x);}));});}
+ var hd=$("depList"),ad=D.depenses.slice().sort(byD);hd.innerHTML=ad.length?"":'<div class="pkmsg">Aucune dépense.</div>';ad.forEach(function(x){var n=nbOcc(x),tot=num(x.montant)*n,sub=(x.date?fdate(x.date)+" · ":"")+esc(x.type||"")+(x.payeur==="perso"?" · payé perso":"");if(x.recurrent){var u={mensuelle:"mois",trimestrielle:"trim.",annuelle:"an"}[x.freq||"mensuelle"];sub+=" · "+euro(num(x.montant))+"/"+u+" × "+n+(x.fin?(" · fin "+fdate(x.fin)):"");}hd.appendChild(rowEl('<div><div class="rl">'+esc(x.label||x.type||"Dépense")+'</div><div class="rsub">'+sub+'</div></div><div class="rr"><div class="amt neg">-'+euro(tot)+'</div></div>',function(){showDep(x);}));});
+ var hr=$("recList"),ar=(D.recettes||[]).slice().sort(byD);hr.innerHTML=ar.length?"":'<div class="pkmsg">Aucune recette annexe. Les gains de tournois sont déjà comptés dans « Résultat tournois ».</div>';ar.forEach(function(x){hr.appendChild(rowEl('<div><div class="rl">'+esc(x.label||"Recette")+'</div><div class="rsub">'+(x.date?fdate(x.date):"")+(x.enc==="perso"?" · encaissé perso":"")+'</div></div><div class="rr"><div class="amt pos">+'+euro(num(x.montant))+'</div></div>',function(){showRec(x);}));});}
 function showDep(x){x=x||{};editId=x.id||null;var f=$("depForm");$("recForm").style.display="none";f.style.display="grid";var ty=x.type||"transport";
  f.innerHTML='<div><label>Date</label><input type="date" id="d_date" value="'+(x.date||"")+'"></div>'
  +'<div><label>Type</label><select id="d_type">'+["transport","hôtel","coaching","logiciel","autre"].map(function(o){return '<option'+(ty===o?" selected":"")+'>'+o+'</option>';}).join("")+'</select></div>'
  +'<div class="full"><label>Libellé</label><input id="d_label" value="'+escA(x.label)+'" placeholder="ex : Vol Lisbonne-Barcelone"></div>'
  +'<div><label>Montant (€)</label><input type="number" id="d_montant" value="'+(x.montant!=null?x.montant:"")+'"></div>'
+ +'<div><label>Payé par</label><select id="d_payeur"><option value="br"'+(x.payeur!=="perso"?" selected":"")+'>Bankroll</option><option value="perso"'+(x.payeur==="perso"?" selected":"")+'>Perso</option></select></div>'
  +'<div><label>Récurrent</label><select id="d_rec">'+selOuiNon(x.recurrent)+'</select></div>'
  +'<div id="d_recwrap" style="grid-column:1/-1;'+(x.recurrent?"":"display:none;")+'"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div><label>Périodicité</label><select id="d_freq">'+["mensuelle","trimestrielle","annuelle"].map(function(o){return '<option'+((x.freq||"mensuelle")===o?" selected":"")+'>'+o+'</option>';}).join("")+'</select></div><div><label>Date de fin (facultatif)</label><input type="date" id="d_fin" value="'+(x.fin||"")+'"></div></div></div>'
  +'<div class="frow">'+(editId?'<button class="pkbtn del" id="d_del">Supprimer</button>':"")+'<button class="pkbtn ghost" id="d_cancel">Annuler</button><button class="pkbtn" id="d_save">Enregistrer</button></div>';
  $("d_cancel").onclick=function(){f.style.display="none";};
  $("d_rec").onchange=function(){$("d_recwrap").style.display=this.value==="1"?"":"none";};
- $("d_save").onclick=function(){var o={id:editId||uuid(),date:$("d_date").value,type:$("d_type").value,label:$("d_label").value,montant:$("d_montant").value,recurrent:$("d_rec").value==="1",freq:$("d_freq").value,fin:$("d_fin").value};if(editId){D.depenses=D.depenses.map(function(y){return y.id===editId?o:y;});}else{D.depenses.push(o);}save();f.style.display="none";renderAll();};
+ $("d_save").onclick=function(){var o={id:editId||uuid(),date:$("d_date").value,type:$("d_type").value,label:$("d_label").value,montant:$("d_montant").value,payeur:$("d_payeur").value,recurrent:$("d_rec").value==="1",freq:$("d_freq").value,fin:$("d_fin").value};if(editId){D.depenses=D.depenses.map(function(y){return y.id===editId?o:y;});}else{D.depenses.push(o);}save();f.style.display="none";renderAll();};
  if(editId)$("d_del").onclick=function(){D.depenses=D.depenses.filter(function(y){return y.id!==editId;});save();f.style.display="none";renderAll();};}
 function showRec(x){x=x||{};editId=x.id||null;var f=$("recForm");$("depForm").style.display="none";f.style.display="grid";
  f.innerHTML='<div><label>Date</label><input type="date" id="r_date" value="'+(x.date||"")+'"></div>'
  +'<div><label>Montant (€)</label><input type="number" id="r_montant" value="'+(x.montant!=null?x.montant:"")+'"></div>'
+ +'<div><label>Encaissé sur</label><select id="r_enc"><option value="br"'+(x.enc!=="perso"?" selected":"")+'>Bankroll</option><option value="perso"'+(x.enc==="perso"?" selected":"")+'>Perso</option></select></div>'
  +'<div class="full"><label>Libellé</label><input id="r_label" value="'+escA(x.label)+'" placeholder="ex : action vendue, prime, remboursement"></div>'
  +'<div class="frow">'+(editId?'<button class="pkbtn del" id="r_del">Supprimer</button>':"")+'<button class="pkbtn ghost" id="r_cancel">Annuler</button><button class="pkbtn" id="r_save">Enregistrer</button></div>';
  $("r_cancel").onclick=function(){f.style.display="none";};
- $("r_save").onclick=function(){if(!D.recettes)D.recettes=[];var o={id:editId||uuid(),date:$("r_date").value,label:$("r_label").value,montant:$("r_montant").value};if(editId){D.recettes=D.recettes.map(function(y){return y.id===editId?o:y;});}else{D.recettes.push(o);}save();f.style.display="none";renderAll();};
+ $("r_save").onclick=function(){if(!D.recettes)D.recettes=[];var o={id:editId||uuid(),date:$("r_date").value,label:$("r_label").value,montant:$("r_montant").value,enc:$("r_enc").value};if(editId){D.recettes=D.recettes.map(function(y){return y.id===editId?o:y;});}else{D.recettes.push(o);}save();f.style.display="none";renderAll();};
  if(editId)$("r_del").onclick=function(){D.recettes=D.recettes.filter(function(y){return y.id!==editId;});save();f.style.display="none";renderAll();};}
 function renderBank(){var c=compute();$("pkBankKpis").innerHTML=kpi("Bankroll totale",euro(c.bank))+kpi("Comptes & créances",euro(c.cpt))+kpi("Mouvements nets",euro(c.inj-c.ret))+kpi("Solde net poker",euro(c.net),c.net>=0?"pos":"neg");
- var hc=$("compteList"),ac=(D.comptes||[]).slice();hc.innerHTML=ac.length?"":'<div class="pkmsg">Aucun compte. Ajoute le solde de tes rooms online, et ce que ton perso doit à la bankroll.</div>';ac.forEach(function(x){hc.appendChild(rowEl('<div><div class="rl">'+esc(x.label||"Compte")+'</div></div><div class="rr"><div class="amt '+(num(x.solde)>=0?"pos":"neg")+'">'+euro(num(x.solde))+'</div></div>',function(){showCompte(x);}));});
+ var hc=$("compteList"),ac=(D.comptes||[]).slice();hc.innerHTML=ac.length?"":'<div class="pkmsg">Aucun compte. Ajoute le solde de tes rooms online, et une ligne « Dette du perso » pour ce que ton perso doit à la bankroll.</div>';ac.forEach(function(x){var isP=x.kind==="perso";var val=isP?(num(x.solde)-c.depPerso+c.recPerso):num(x.solde);var sub=isP?('réf '+euro(num(x.solde))+(c.depPerso?(' − payé perso '+euro(c.depPerso)):"")+(c.recPerso?(' + encaissé perso '+euro(c.recPerso)):"")):"";hc.appendChild(rowEl('<div><div class="rl">'+esc(x.label||(isP?"Perso (créance)":"Compte"))+'</div>'+(sub?'<div class="rsub">'+sub+'</div>':"")+'</div><div class="rr"><div class="amt '+(val>=0?"pos":"neg")+'">'+euro(val)+'</div></div>',function(){showCompte(x);}));});
  var h=$("movList"),a=D.bankroll.slice().sort(byD);h.innerHTML=a.length?"":'<div class="pkmsg">Aucun mouvement.</div>';a.forEach(function(m){var inn=m.sens!=="out";h.appendChild(rowEl('<div><div class="rl">'+(inn?"Injection":"Retrait (sortie perso)")+(m.note?(' · '+esc(m.note)):"")+'</div><div class="rsub">'+fdate(m.date||"")+'</div></div><div class="rr"><div class="amt '+(inn?"pos":"neg")+'">'+(inn?"+":"-")+euro(num(m.montant))+'</div></div>',function(){showMov(m);}));});}
 function showCompte(x){x=x||{};editId=x.id||null;var f=$("compteForm");f.style.display="grid";
- f.innerHTML='<div class="full"><label>Nom du compte</label><input id="cc_label" value="'+escA(x.label)+'" placeholder="ex : Winamax, PokerStars, Perso (créance)"></div>'
- +'<div class="full"><label>Solde (€)</label><input type="number" id="cc_solde" value="'+(x.solde!=null?x.solde:"")+'" placeholder="solde du compte, ou ce que le perso doit à la bankroll"></div>'
+ f.innerHTML='<div class="full"><label>Type</label><select id="cc_kind"><option value="room"'+(x.kind!=="perso"?" selected":"")+'>Room en ligne / solde</option><option value="perso"'+(x.kind==="perso"?" selected":"")+'>Dette du perso envers la bankroll</option></select></div>'
+ +'<div class="full"><label>Nom</label><input id="cc_label" value="'+escA(x.label)+'" placeholder="ex : Winamax, PokerStars, Perso (créance)"></div>'
+ +'<div class="full"><label>Solde / dette de référence (€)</label><input type="number" id="cc_solde" value="'+(x.solde!=null?x.solde:"")+'" placeholder="solde du compte, ou dette de départ du perso"></div>'
  +'<div class="frow">'+(editId?'<button class="pkbtn del" id="cc_del">Supprimer</button>':"")+'<button class="pkbtn ghost" id="cc_cancel">Annuler</button><button class="pkbtn" id="cc_save">Enregistrer</button></div>';
  $("cc_cancel").onclick=function(){f.style.display="none";};
- $("cc_save").onclick=function(){if(!D.comptes)D.comptes=[];var o={id:editId||uuid(),label:$("cc_label").value,solde:$("cc_solde").value};if(editId){D.comptes=D.comptes.map(function(y){return y.id===editId?o:y;});}else{D.comptes.push(o);}save();f.style.display="none";renderAll();};
+ $("cc_save").onclick=function(){if(!D.comptes)D.comptes=[];var o={id:editId||uuid(),kind:$("cc_kind").value,label:$("cc_label").value,solde:$("cc_solde").value};if(editId){D.comptes=D.comptes.map(function(y){return y.id===editId?o:y;});}else{D.comptes.push(o);}save();f.style.display="none";renderAll();};
  if(editId)$("cc_del").onclick=function(){D.comptes=D.comptes.filter(function(y){return y.id!==editId;});save();f.style.display="none";renderAll();};}
 function showMov(m){m=m||{};editId=m.id||null;var f=$("movForm");f.style.display="grid";var sens=m.sens||"in";
  f.innerHTML='<div><label>Date</label><input type="date" id="m_date" value="'+(m.date||today())+'"></div>'
