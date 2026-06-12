@@ -400,7 +400,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 #avaWrap{display:none}
 .hero{grid-template-columns:1fr}
 #imgDayImg{max-width:600px;width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;border-radius:14px}
-:root,[data-theme=dark]{--bg:#FBF7F0;--bg2:#F3ECDF;--surface:#FFFFFF;--surface2:#F5EEE2;--text:#2E2A22;--muted:#6E6353;--muted2:#A2937E;--line:rgba(46,42,34,.12);--line2:rgba(46,42,34,.06);--accent:#B07A2B;--accent-bright:#B07A2B;--on-accent:#FFFFFF;--tint1:rgba(176,122,43,.06);--tint2:rgba(176,122,43,.05)}body{background:linear-gradient(180deg,#FCF8F1 0%,#F4ECDD 60%,#EFE5D2 100%) fixed,#FBF7F0}#noyau,#goodnews,#matin,#masession,#debrief,#objectifs,#habitudes,#outils{display:none!important}#vision{padding-top:6px}#vision .sec-h{font-size:38px}</style></head><body>
+.nav{position:fixed!important;top:0!important;left:0!important;right:0!important;margin:0!important;transform:translateY(0);transition:transform .25s ease}.nav.navhide{transform:translateY(-110%)}#themeBtn{display:none!important}.flrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}.flbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;transition:.15s}.flbtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}.flsep{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px}:root,[data-theme=dark]{--bg:#FBF7F0;--bg2:#F3ECDF;--surface:#FFFFFF;--surface2:#F5EEE2;--text:#2E2A22;--muted:#6E6353;--muted2:#A2937E;--line:rgba(46,42,34,.12);--line2:rgba(46,42,34,.06);--accent:#B07A2B;--accent-bright:#B07A2B;--on-accent:#FFFFFF;--tint1:rgba(176,122,43,.06);--tint2:rgba(176,122,43,.05)}body{background:linear-gradient(180deg,#FCF8F1 0%,#F4ECDD 60%,#EFE5D2 100%) fixed,#FBF7F0}#noyau,#goodnews,#matin,#masession,#debrief,#objectifs,#habitudes,#outils{display:none!important}#vision{padding-top:6px}#vision .sec-h{font-size:38px}</style></head><body>
 <div id="authOverlay" class="authov" style="display:none"><div class="authbox"><div class="authlogo"><img src="assets/ef25df956b012609.png" alt=""></div><h2>Mental Edge</h2><p class="authsub">Connecte-toi pour accéder à ton espace. Tes données sont privées et synchronisées entre tes appareils.</p><input type="email" id="authEmail" placeholder="Ton e-mail" autocomplete="username"><input type="password" id="authPw" placeholder="Mot de passe" autocomplete="current-password"><div class="authbtns"><button id="authSignin">Se connecter</button><button id="authSignup">Créer un compte</button></div><div class="authmsg" id="authMsg"></div></div></div>
 <div id="mobMenu" class="mobmenu"><div class="mobmenu-in" id="mobMenuIn"></div></div><div class="nav"><div class="nav-in">
   <div class="brand">
@@ -766,7 +766,7 @@ async function saveBlock(kind){
   const map=kind==="avant"?avantFields:apresFields;const obj={};for(const k in map)obj[k]=$(map[k]).value;
   await store.set(kind+":"+TODAY,JSON.stringify(obj));
   if(kind==="avant")await feedJournal("userGrat",TODAY,[obj.g1,obj.g2,obj.g3]);
-  if(kind==="apres"){await feedJournal("userWin",TODAY,[obj.winday]);await bumpStreak();}
+  if(kind==="apres"){await feedJournal("userWin",TODAY,[obj.winday]);}
   renderJournal();
   const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800);
 }
@@ -825,7 +825,7 @@ $("#jInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#jAdd").click(
 async function loadDay(){
   const a=await store.get("avant:"+TODAY);if(a){try{const o=JSON.parse(a);for(const k in avantFields)if(o[k]!=null)$(avantFields[k]).value=o[k];}catch(e){}}
   const p=await store.get("apres:"+TODAY);if(p){try{const o=JSON.parse(p);for(const k in apresFields)if(o[k]!=null)$(apresFields[k]).value=o[k];}catch(e){}}
-  const s=await getJSON("streak",{count:0});$("#streakN").textContent=s.count||0;
+  
   const wo=await store.get("warmObj:"+TODAY);if(wo)$("#wuObj").value=wo;
   $("#wuObj").addEventListener("input",()=>store.set("warmObj:"+TODAY,$("#wuObj").value));
   const am=await store.get("meteoAM:"+TODAY);if(am){try{const v=JSON.parse(am);for(const d in v){const seg=document.querySelector('#amQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}amVals[d]=v[d];}renderAM(amVals);}catch(e){}}
@@ -926,4 +926,49 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
   try{const {data:{session}}=await window.__sb.auth.getSession();if(session){await afterLogin(session);}else{applyTheme("light");showLogin();}}catch(e){applyTheme("light");showLogin();}
 })();
 </script>
-<script>(function(){try{history.scrollRestoration="manual";}catch(e){}setTimeout(function(){window.scrollTo(0,0);},0);var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var fid=t.getAttribute("data-fold");if(!fid)return;var el=document.getElementById(fid);if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script></body></html>
+<script>(function(){try{history.scrollRestoration="manual";}catch(e){}setTimeout(function(){window.scrollTo(0,0);},0);var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});document.querySelectorAll(".foldhead").forEach(function(t){t.addEventListener("click",function(){var fid=t.getAttribute("data-fold");if(!fid)return;var el=document.getElementById(fid);if(!el)return;el.classList.toggle("open");t.classList.toggle("open");});});})();</script><script>(function(){
+var nav=document.querySelector('.nav');if(!nav)return;
+function pad(){var h=nav.offsetHeight||64;document.body.style.paddingTop=h+'px';document.documentElement.style.scrollPaddingTop=(h+8)+'px';}
+pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);
+var y=window.scrollY||0;
+window.addEventListener('scroll',function(){var ny=window.scrollY||0;
+if(ny<=10||ny<y-2)nav.classList.remove('navhide');
+else if(ny>y+2&&ny>70)nav.classList.add('navhide');
+y=ny;},{passive:true});
+(function tag(){var d=new Date(),q=Math.floor(d.getMonth()/3)+1,yy=d.getFullYear();
+var bt=document.querySelector('.subtab[data-h="trim"]');if(bt)bt.textContent='Trimestre \u00b7 T'+q+' '+yy;
+var ba=document.querySelector('.subtab[data-h="annee"]');if(ba)ba.textContent='Ann\u00e9e \u00b7 '+yy;})();
+})();</script><script>(function(){
+var loaded=false,uid=null;
+function $(id){return document.getElementById(id);}
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return JSON.parse(r.data.v);}catch(e){}return null;}
+async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:JSON.stringify(v)},{onConflict:"user_id,k"});}catch(e){}}
+function dayOk(log,ids,seuil,day){if(!ids.length)return false;var arr=log[day]||[];var n=0;ids.forEach(function(i){if(arr.indexOf(i)>=0)n++;});var need=(seuil==="all"||seuil==null)?ids.length:Math.min(parseInt(seuil,10)||ids.length,ids.length);return n>=need;}
+async function refresh(){if(!uid)return;
+var habits=await kvGet("userHabits")||[];var ids=habits.map(function(h){return h.id;});
+var log=await kvGet("habitsLog")||{};var off=await kvGet("offDays")||{};var seuil=await kvGet("flameSeuil");if(seuil==null)seuil="all";
+var s=0,d=new Date();
+for(var i=0;i<730;i++){var day=iso(d);
+ if(off[day]){d.setDate(d.getDate()-1);continue;}
+ if(dayOk(log,ids,seuil,day)){s++;}
+ else{if(i===0){d.setDate(d.getDate()-1);continue;}break;}
+ d.setDate(d.getDate()-1);}
+var el=$("streakN");if(el){el.textContent=s;var p=el.parentNode;if(p)p.title="Cha\u00eene d\u2019habitudes : "+s+" jour(s) cons\u00e9cutifs"+(seuil==="all"?" (toutes coch\u00e9es)":" (seuil "+seuil+")")+" \u00b7 jours off non comptés";}
+syncCtrl(off,seuil);}
+function syncCtrl(off,seuil){var t=$("flOffToday"),y=$("flOffYest"),sl=$("flSeuil");
+var td=iso(new Date());var yd=new Date();yd.setDate(yd.getDate()-1);yd=iso(yd);
+if(t){t.classList.toggle("on",!!off[td]);t.textContent=off[td]?"Aujourd\u2019hui : off \u2713":"Jour off aujourd\u2019hui";}
+if(y){y.classList.toggle("on",!!off[yd]);y.textContent=off[yd]?"Hier : off \u2713":"Hier \u00e9tait off";}
+if(sl&&sl.value!==String(seuil))sl.value=String(seuil);}
+async function toggleOff(back){var d=new Date();d.setDate(d.getDate()-back);var k=iso(d);
+var off=await kvGet("offDays")||{};if(off[k])delete off[k];else off[k]=true;await kvSet("offDays",off);refresh();}
+function wire(){var t=$("flOffToday"),y=$("flOffYest"),sl=$("flSeuil");
+if(t)t.addEventListener("click",function(){toggleOff(0);});
+if(y)y.addEventListener("click",function(){toggleOff(1);});
+if(sl)sl.addEventListener("change",async function(){await kvSet("flameSeuil",sl.value);refresh();});
+document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#habitList .hck"))setTimeout(refresh,500);});}
+async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;wire();refresh();}
+if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
+if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
+})();</script></body></html>
