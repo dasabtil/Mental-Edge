@@ -293,7 +293,7 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .imgday{margin:22px 0 0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;cursor:pointer;background:var(--bg2)}
 .imgday img{width:100%;display:block;max-height:360px;object-fit:cover}
 .imgday .cap{position:absolute;left:0;bottom:0;padding:6px 12px;background:rgba(0,0,0,.42);color:#fff;font-size:11px;letter-spacing:1px;text-transform:uppercase}
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;cursor:zoom-out}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:240;padding:20px;cursor:zoom-out}
 .lightbox.show{display:flex}
 .lightbox img{max-width:95%;max-height:90%;border-radius:8px}
 .upl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid var(--accent);color:var(--accent);border-radius:11px;padding:9px 16px;font-size:14px;transition:.2s}
@@ -493,14 +493,14 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <div class="wumodal" id="wuModal">
-  <div class="wumodal-bar"><span>Warm-up</span><button class="wuclose" id="wuClose" onclick="var m=document.getElementById('wuModal');m.classList.remove('show');m.querySelectorAll('video').forEach(function(v){v.pause();})">&times;</button></div>
+  <div class="wumodal-bar"><span>Warm-up</span><button id="wuClose" style="appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600;border-radius:10px;padding:8px 14px;cursor:pointer" onclick="var m=document.getElementById('wuModal');m.classList.remove('show');m.querySelectorAll('video').forEach(function(v){v.pause();})">&#8592;&nbsp;Retour &agrave; la session</button></div>
   <div class="wumodal-in">
     <div class="wustep-h"><span class="n">1</span> La vidéo</div>
     <div class="wuvid"><video controls preload="metadata" playsinline><source src="media/warmup1.mp4" type="video/mp4"></video><details class="wuvid2"><summary>Voir le second clip</summary><video controls preload="metadata" playsinline><source src="media/warmup2.mp4" type="video/mp4"></video></details></div>
     <div class="wustep-h"><span class="n">2</span> Les affirmations</div>
     <div class="slides">
       <div class="slidebox"><img id="slideImg" src="" alt="slide"></div>
-      <div class="snav"><button class="sbtn" id="sPrev">&#8249;</button><div class="sdots" id="sDots"></div><span class="scount" id="sCount"></span><button class="splay" id="sPlay">Lecture</button><button class="sbtn" id="sNext">&#8250;</button></div>
+      <div class="snav"><button class="sbtn" id="sPrev">&#8249;</button><div class="sdots" id="sDots"></div><span class="scount" id="sCount"></span><button class="splay" id="sPlay">Lecture</button><button class="splay" id="sFull">Plein &eacute;cran</button><button class="sbtn" id="sNext">&#8250;</button></div>
     </div>
     <div class="wustep-h"><span class="n">3</span> Respiration</div>
     <div class="panel-x" id="breathPanel"><div class="lab"><span>Respire</span></div></div>
@@ -971,4 +971,10 @@ document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.t
 async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;wire();refresh();}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
-})();</script></body></html>
+})();</script><script>(function(){
+function $(i){return document.getElementById(i);}
+function openSlideFull(){var im=$("slideImg");if(!im||!im.getAttribute("src"))return;var lb=$("lightbox"),li=$("lightboxImg");if(!lb||!li)return;li.src=im.src;lb.classList.add("show");}
+function wire(){var b=$("sFull");if(b)b.addEventListener("click",openSlideFull);var im=$("slideImg");if(im){im.style.cursor="zoom-in";im.addEventListener("click",openSlideFull);}}
+if(document.readyState!=="loading")wire();else window.addEventListener("DOMContentLoaded",wire);
+})();</script>
+</body></html>
