@@ -448,12 +448,10 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   </div>
   <div class="panel-x" style="margin-bottom:18px">
     <div class="lab"><span>Mon ouverture</span></div>
-    <p class="note">Trois gratitudes pour ouvrir, puis l'unique priorité du jour. Tes gratitudes rejoignent ton journal automatiquement.</p>
+    <p class="note">Une gratitude pour ouvrir, puis l'unique priorité du jour. Prends-en une seule, mais creuse-la — elle rejoint ton journal automatiquement.</p>
     <div class="twocol">
       <div>
-        <div class="fld"><label>Gratitude 1</label><textarea id="g1" placeholder="Ce dont je suis reconnaissant aujourd'hui..."></textarea></div>
-        <div class="fld"><label>Gratitude 2</label><textarea id="g2"></textarea></div>
-        <div class="fld"><label>Gratitude 3</label><textarea id="g3"></textarea></div>
+        <div class="fld"><label>Ma gratitude du jour</label><textarea id="g1" style="min-height:148px" placeholder="Une chose pour laquelle je suis reconnaissant — et pourquoi elle compte..."></textarea></div>
       </div>
       <div><div class="fld"><label>Ma tâche la plus importante aujourd'hui (le one thing)</label><textarea id="intent" style="min-height:148px" placeholder="La seule chose qui, faite, rendra la journée réussie..."></textarea></div></div>
     </div>
@@ -532,6 +530,38 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 <section class="sec" id="objectifs">
   <div class="sec-h"><span class="no">02</span><h2>Mes objectifs</h2></div>
   <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
+  <div class="card" id="stepCard" style="margin-bottom:18px">
+  <div class="lab" style="display:flex;align-items:center;gap:10px"><span>Mes pas accomplis</span><span id="stepTotal" style="margin-left:auto;color:var(--accent);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums">0</span></div>
+  <p class="note">Chaque petite action concrète vers un objectif = 1&nbsp;pas. Le compteur ne fait que monter : tu vois l'accumulation dans le temps.</p>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap">
+    <button id="stepAdd" style="appearance:none;border:none;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:600;border-radius:11px;padding:11px 20px;cursor:pointer">+1 pas</button>
+    <span id="stepToday" style="color:var(--muted);font-size:13px"></span>
+    <button id="stepUndo" style="margin-left:auto;appearance:none;border:none;background:none;color:var(--muted2);font-size:12.5px;cursor:pointer;text-decoration:underline">annuler le dernier</button>
+  </div>
+  <div id="stepSpark" style="margin-top:14px;display:flex;align-items:flex-end;gap:3px;height:40px"></div>
+</div>
+<script>(function(){
+var KEY="userSteps",D={total:0,days:{}},uid=null,loaded=false;
+function $(i){return document.getElementById(i);}
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return r.data.v;}catch(e){}return null;}
+async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:v},{onConflict:"user_id,k"});}catch(e){}}
+async function save(){if(uid)await kvSet(KEY,JSON.stringify(D));}
+function render(){var t=$("stepTotal");if(t)t.textContent=D.total;var today=iso(new Date());var nt=D.days[today]||0;
+ var st=$("stepToday");if(st)st.textContent=nt+" aujourd\u2019hui";
+ var sp=$("stepSpark");if(sp){var days=[];var d=new Date();for(var i=13;i>=0;i--){var x=new Date(d);x.setDate(x.getDate()-i);days.push(iso(x));}
+  var mx=Math.max(1,...days.map(function(k){return D.days[k]||0;}));
+  sp.innerHTML=days.map(function(k){var v=D.days[k]||0;var hh=Math.round(6+(34*v/mx));return '<div title="'+k+' : '+v+'" style="flex:1;height:'+hh+'px;border-radius:3px;background:'+(v?'var(--accent)':'var(--line2,#e8e8e8)')+'"></div>';}).join("");}}
+async function load(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;
+ var raw=await kvGet(KEY);if(raw){try{var p=JSON.parse(raw);D.total=p.total||0;D.days=p.days||{};}catch(e){}}render();}
+function add(n){var today=iso(new Date());D.total=Math.max(0,D.total+n);D.days[today]=Math.max(0,(D.days[today]||0)+n);if(D.days[today]===0)delete D.days[today];save();render();}
+function init(){var a=$("stepAdd"),u=$("stepUndo");if(!a)return;
+ a.addEventListener("click",function(){add(1);});
+ if(u)u.addEventListener("click",function(){add(-1);});
+ if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)load();});
+ load();}
+if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
+})();</script>
   <div class="panel-x">
     <p class="blocksub">Semaine, trimestre, année. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
     <div class="subtabs" id="goalTabs">
@@ -710,34 +740,59 @@ renderSlide();
 async function renderWall(){}
 
 // METEO AM
-const amQ=[["energie","Énergie / corps"],["humeur","Humeur / bien-être"],["motivation","Motivation / envie"],["focus","Clarté / focus"]];
+const amQ=[["humeur","Humeur (désagréable → agréable)"],["energie","Énergie (basse → haute)"],["sommeil","Sommeil cette nuit (mauvais → excellent)"],["tension","Tension / stress (détendu → tendu)"]];
 const amVals={};
-$("#amQ").innerHTML=amQ.map(([k,lab])=>`<div class="mq"><div class="qt"><span>${lab}</span><small>1 bas &middot; 5 au top</small></div><div class="seg" data-dim="${k}">${[1,2,3,4,5].map(n=>`<button data-v="${n}">${n}</button>`).join("")}</div></div>`).join("");
+$("#amQ").innerHTML=amQ.map(([k,lab])=>`<div class="mq"><div class="qt"><span>${lab}</span><small>1 à 5</small></div><div class="seg" data-dim="${k}">${[1,2,3,4,5].map(n=>`<button data-v="${n}">${n}</button>`).join("")}</div></div>`).join("");
 $$('#amQ .seg').forEach(seg=>{const dim=seg.dataset.dim;seg.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");amVals[dim]=+b.dataset.v;}));});
-const toolMap={};(DATA.tools||[]).forEach(t=>toolMap[t.id]=t);
-const dimTool={energie:"energie",humeur:"emotion",motivation:"motivation",focus:"focus"};
-const dimLabel={energie:"Énergie",humeur:"Humeur",motivation:"Motivation",focus:"Focus"};
-function renderAM(vals){
-  const dims=amQ.map(q=>q[0]);const present=dims.filter(d=>vals[d]!=null);
-  if(present.length<dims.length)return false;
-  const low=dims.filter(d=>vals[d]<=2).sort((a,b)=>vals[a]-vals[b]);
-  let html="";
-  if(low.length===0){
-    const mn=Math.min(...dims.map(d=>vals[d]));
-    if(mn>=4){const g=DATA.meteo.agame;html=`<h4>${g.title}</h4><p>${g.body}</p><div class="mant-one">${g.mantra}</div>`;}
-    else{const ld=dims.find(d=>vals[d]===mn);const g=DATA.meteo.dims[ld].low;const tl=toolMap[dimTool[ld]];
-      html=`<h4>${g.title}</h4><p>${g.body}</p><div class="mant-one">${g.mantra}</div>`+(tl?`<a class="mlink" href="#outils" onclick="openTool('${dimTool[ld]}');return false;">Outil : ${tl.title} &rarr;</a>`:"");}
-  } else {
-    html=`<h4>${low.length>1?'Plusieurs voyants sont bas &mdash; une technique pour chacun':'Un point à soigner aujourd\'hui'}</h4>`;
-    low.forEach(d=>{const g=DATA.meteo.dims[d].low;const tid=dimTool[d];const tl=toolMap[tid];
-      let block=`<div class="amtool"><div class="amtool-h">${dimLabel[d]} &middot; ${g.title}</div><p style="margin:0 0 8px;color:var(--text);font-size:14px;line-height:1.5">${g.body}</p><div class="mant-one" style="margin:8px 0">${g.mantra}</div>`;
-      if(tl){block+=`<ul>${tl.steps.slice(0,3).map(s=>`<li>${s}</li>`).join("")}</ul><a class="mlink" href="#outils" onclick="openTool('${tid}');return false;">Approfondir : ${tl.title} &rarr;</a>`;}
-      if(d==="motivation")block+=`<p class="why-one" style="margin-top:8px">&laquo; ${pick(DATA.whys,"why")} &raquo;</p>`;
-      block+=`</div>`;
-      html+=block;});
-  }
-  const res=$("#amRes");res.innerHTML=html;res.classList.add("show");return true;
-}
+const AMW="session.html";
+function amState(v){const val=v.humeur,act=v.energie,slp=v.sommeil,ten=v.tension;
+ if(val<=3&&(act>=4||ten>=4))return "tendu";
+ if(val>=4&&act>=4)return "agame";
+ if(val>=4&&act<=3)return "calme";
+ if(val<=2&&act<=3)return "eteint";
+ if(act<=2||slp<=2)return "eteint";
+ if(ten>=4)return "tendu";
+ return "neutre";}
+const AMC={
+ tendu:{t:"État tendu — activation haute, humeur sous tension",
+  b:"Ton corps est en alerte : haute activation, valence basse. C'est l'état d'où partent l'anxiété et l'agitation. Le bon levier n'est pas de « se motiver » mais de faire <b>redescendre l'activation</b>, puis de reformuler ce qui pèse.",
+  lev:"Respiration : 6 cycles en allongeant l'expiration (inspire 4&nbsp;s, expire 6-8&nbsp;s). Puis réévaluation : écris en une phrase ce qui te tend, et <b>une</b> action concrète et contrôlable que tu peux faire dans l'heure.",
+  link:"Lancer une respiration dans le warm-up",
+  m:"Je fais baisser le volume avant d'agir."},
+ eteint:{t:"État bas — peu d'énergie, humeur basse",
+  b:"Valence et activation basses : fatigue, retrait, peu d'allant. Le piège classique est d'attendre d'en avoir envie pour agir — or, dans cet état, <b>l'action précède l'envie</b>, jamais l'inverse.",
+  lev:"Active le corps avant le mental : expose-toi à la lumière (dehors ou à la fenêtre, 5-10&nbsp;min) et lance un mouvement léger. Choisis <b>une seule</b> petite action et enclenche-la maintenant — l'élan viendra du mouvement.",
+  link:"Lancer le warm-up (mouvement)",
+  m:"L'action précède l'envie."},
+ agame:{t:"A-game — énergie haute, humeur positive",
+  b:"Haute activation et valence positive : ton meilleur état, une vraie fenêtre de performance. Elle ne dure pas la journée entière — ce qui compte, c'est <b>ce que tu en fais maintenant</b>.",
+  lev:"Attaque immédiatement ta tâche la plus exigeante de la journée — la plus importante, pas la plus facile — pendant que la fenêtre est ouverte. Coupe les distractions pour la protéger.",
+  link:"",
+  m:"Je mets mon meilleur créneau sur ce qui compte le plus."},
+ calme:{t:"Calme positif — basse énergie, humeur agréable",
+  b:"Valence positive, activation basse : un état calme et agréable, <b>restaurateur</b>. Il n'a rien d'un problème — c'est ce qui prévient l'épuisement. Inutile de le brusquer.",
+  lev:"Pose une intention claire pour la matinée et démarre en douceur (warm-up léger). Si tu dois monter en régime pour jouer, ce sont le mouvement et la lumière qui élèveront ton activation, pas la contrainte.",
+  link:"Ouvrir le warm-up",
+  m:"Calme n'est pas faible : je pose une intention nette."},
+ neutre:{t:"État médian — à orienter activement",
+  b:"Pas de signal fort, ni haut ni bas : une journée « neutre ». C'est précisément l'état le plus malléable — il bascule facilement du bon côté si tu lui donnes une direction.",
+  lev:"Une activation douce (warm-up + lumière) fait souvent passer un état neutre vers le positif. Choisis ta priorité du jour et démarre petit, tout de suite.",
+  link:"Ouvrir le warm-up",
+  m:"Je donne la direction à ma journée."}
+};
+function renderAM(v){const dims=amQ.map(q=>q[0]);if(dims.some(d=>v[d]==null))return false;
+ const st=amState(v),c=AMC[st];
+ let html=`<h4>${c.t}</h4><p>${c.b}</p>`;
+ html+=`<div class="amtool"><div class="amtool-h">Ton levier maintenant</div><p style="margin:0 0 8px;color:var(--text);font-size:14px;line-height:1.55">${c.lev}</p>`;
+ if(c.link)html+=`<a class="mlink" href="${AMW}">${c.link} &rarr;</a>`;
+ html+=`</div>`;
+ let notes=[];
+ if(v.sommeil<=2)notes.push("Nuit courte : priorise la lumière du matin et le mouvement avant tout protocole mental, et sois indulgent sur ton niveau d'exigence aujourd'hui — le manque de sommeil pèse directement sur l'humeur et l'énergie.");
+ if(v.tension>=4&&st!=="tendu")notes.push("Tension corporelle élevée : insère 5-6 respirations lentes (expiration allongée) avant de démarrer.");
+ if(v.humeur>=4&&v.energie>=4&&v.sommeil>=4)notes.push("Tous les voyants au vert : note ce qui a produit cette journée (heure de coucher, charge, alimentation) pour la reproduire.");
+ if(notes.length)html+=`<div style="margin-top:10px;border-left:3px solid var(--accent);padding:2px 0 2px 12px">${notes.map(n=>`<p style="margin:6px 0;color:var(--muted);font-size:13px;line-height:1.5">${n}</p>`).join("")}</div>`;
+ html+=`<div class="mant-one">${c.m}</div>`;
+ const res=$("#amRes");res.innerHTML=html;res.classList.add("show");return true;}
 $("#amBtn").addEventListener("click",async()=>{if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Réponds aux quatre pour avoir ton plan.</p>";r.classList.add("show");return;}await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);});
 
 // METEO PM
@@ -759,13 +814,13 @@ function renderPM(v){
 $("#pmBtn").addEventListener("click",async()=>{if(renderPM(pmVals)){await store.set("meteoPM:"+TODAY,JSON.stringify(pmVals));const e=$("#pmSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);}});
 
 // daily text + journal feed
-const avantFields={g1:"#g1",g2:"#g2",g3:"#g3",intent:"#intent"};
+const avantFields={g1:"#g1",intent:"#intent"};
 const apresFields={proud:"#proud",decision:"#decision",learned:"#learned",winday:"#winday"};
 async function feedJournal(key,date,texts){let a=await getJSON(key,[]);a=a.filter(x=>!(x.auto&&x.d===date));texts.filter(t=>t&&t.trim()).forEach(t=>a.push({d:date,place:"",text:t.trim(),auto:true}));await setJSON(key,a);}
 async function saveBlock(kind){
   const map=kind==="avant"?avantFields:apresFields;const obj={};for(const k in map)obj[k]=$(map[k]).value;
   await store.set(kind+":"+TODAY,JSON.stringify(obj));
-  if(kind==="avant")await feedJournal("userGrat",TODAY,[obj.g1,obj.g2,obj.g3]);
+  if(kind==="avant")await feedJournal("userGrat",TODAY,[obj.g1]);
   if(kind==="apres"){await feedJournal("userWin",TODAY,[obj.winday]);}
   renderJournal();
   const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800);
@@ -1041,4 +1096,63 @@ function init(){var h=$("wtHead"),b=$("wtBody");if(h&&b)h.addEventListener("clic
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange){window.__sb.auth.onAuthStateChange(function(e,s){if(s)load();});}
 load();}
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
-})();</script></body></html>
+})();</script><script>(function(){
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+function frm(d){return d.getDate()+" "+["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."][d.getMonth()]+" "+d.getFullYear();}
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return JSON.parse(r.data.v);}catch(e){}return null;}
+var ov,grid,ttl,stat;
+function styleOnce(){if(document.getElementById("hcCss"))return;var s=document.createElement("style");s.id="hcCss";
+ s.textContent="#habCal{position:fixed;inset:0;background:rgba(8,11,16,.92);z-index:260;display:none;align-items:center;justify-content:center;padding:18px}"
+ +"#habCal.show{display:flex}"
+ +".hcBox{background:var(--surface,#fff);color:var(--text,#111);border-radius:16px;max-width:760px;width:100%;max-height:88vh;overflow:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.4)}"
+ +".hcHead{display:flex;align-items:center;gap:10px;margin-bottom:4px}"
+ +".hcHead h3{margin:0;font-size:17px}"
+ +".hcX{margin-left:auto;border:none;background:var(--line2,#eee);color:var(--text,#111);border-radius:9px;padding:7px 12px;font:inherit;font-weight:600;cursor:pointer}"
+ +".hcStat{color:var(--muted,#666);font-size:13px;margin-bottom:14px}"
+ +".hcStat b{color:var(--text,#111)}"
+ +".hcScroll{overflow-x:auto;padding-bottom:6px}"
+ +".hcGrid{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;grid-auto-columns:13px;gap:3px;width:max-content}"
+ +".hcCell{width:13px;height:13px;border-radius:3px;background:var(--line2,#ececec)}"
+ +".hcDone{background:var(--accent,#1f6f4f)}"
+ +".hcOff{background:repeating-linear-gradient(45deg,var(--line,#ccc),var(--line,#ccc) 2px,transparent 2px,transparent 4px)}"
+ +".hcMiss{background:transparent;border:1px solid var(--line2,#e3e3e3)}"
+ +".hcVoid{visibility:hidden}"
+ +".hcLeg{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;color:var(--muted,#666);font-size:12px;align-items:center}"
+ +".hcLeg span{display:inline-flex;align-items:center;gap:5px}"
+ +".hcLeg i{width:12px;height:12px;border-radius:3px;display:inline-block}";
+ document.head.appendChild(s);}
+function build(){styleOnce();ov=document.createElement("div");ov.id="habCal";
+ var box=document.createElement("div");box.className="hcBox";
+ box.innerHTML='<div class="hcHead"><h3 id="hcTtl"></h3><button class="hcX" id="hcX">Fermer</button></div>'
+ +'<div class="hcStat" id="hcStat"></div>'
+ +'<div class="hcScroll"><div class="hcGrid" id="hcGrid"></div></div>'
+ +'<div class="hcLeg"><span><i class="hcDone"></i>fait</span><span><i style="border:1px solid var(--line2,#e3e3e3)"></i>manqué</span><span><i class="hcOff"></i>jour off</span></div>';
+ ov.appendChild(box);document.body.appendChild(ov);
+ ttl=box.querySelector("#hcTtl");stat=box.querySelector("#hcStat");grid=box.querySelector("#hcGrid");
+ box.querySelector("#hcX").addEventListener("click",function(){ov.classList.remove("show");});
+ ov.addEventListener("click",function(e){if(e.target===ov)ov.classList.remove("show");});}
+function longest(done,off,start,end){var d=new Date(start),best=0,cur=0;while(d<=end){var k=iso(d);if(off.has(k)){}else if(done.has(k)){cur++;if(cur>best)best=cur;}else{cur=0;}d.setDate(d.getDate()+1);}return best;}
+async function open(id,label){if(!ov)build();
+ var log=await kvGet("habitsLog")||{},offd=await kvGet("offDays")||{};
+ var done=new Set(),off=new Set();
+ Object.keys(log).forEach(function(d){if((log[d]||[]).indexOf(id)>=0)done.add(d);});
+ Object.keys(offd).forEach(function(d){if(offd[d])off.add(d);});
+ var today=new Date();today.setHours(0,0,0,0);
+ var start=new Date(today);start.setDate(start.getDate()-364);
+ // compte sur la fenêtre
+ var cnt=0,d=new Date(start);while(d<=today){if(done.has(iso(d)))cnt++;d.setDate(d.getDate()+1);}
+ var best=longest(done,off,start,today);
+ ttl.textContent=label;
+ stat.innerHTML='Fait <b>'+cnt+'</b> fois sur les 365 derniers jours \u00b7 plus longue s\u00e9rie : <b>'+best+'</b> jour'+(best>1?'s':'');
+ // grille : aligner sur lundi
+ var first=new Date(start);var dow=(first.getDay()+6)%7; // lundi=0
+ var cells="";for(var i=0;i<dow;i++)cells+='<div class="hcCell hcVoid"></div>';
+ var c=new Date(start);
+ while(c<=today){var k=iso(c);var cls="hcMiss";if(off.has(k))cls="hcOff";else if(done.has(k))cls="hcDone";
+  cells+='<div class="hcCell '+cls+'" title="'+frm(c)+'"></div>';c.setDate(c.getDate()+1);}
+ grid.innerHTML=cells;ov.classList.add("show");}
+document.addEventListener("click",function(e){var hn=e.target.closest&&e.target.closest(".hname");if(!hn)return;var row=hn.closest(".habit");if(!row)return;var ck=row.querySelector(".hck");if(!ck)return;var id=ck.getAttribute("data-h");hn.style.cursor="pointer";open(id,hn.textContent);});
+// indice visuel : curseur main sur les noms
+var st2=document.createElement("style");st2.textContent=".hname{cursor:pointer}.hname:hover{text-decoration:underline}";document.head.appendChild(st2);
+})();</script>
+</body></html>
