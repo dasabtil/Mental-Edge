@@ -545,6 +545,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
       <input type="text" id="goalUnit" placeholder="Unité">
       <button class="mini-add" id="goalAdd">Ajouter</button>
     </div>
+    <div id="weekPanel" style="display:none"></div>
   </div>
 </section>
 
@@ -801,6 +802,9 @@ $$(".save[data-save]").forEach(b=>b.addEventListener("click",()=>saveBlock(b.dat
 let goalH="sem";
 function goalColor(p){return p>=80?"var(--green)":(p>=40?"#d8a64a":"#c2603f");}
 async function renderGoals(){
+  const _wp=document.getElementById("weekPanel"),_ga=document.querySelector("#objectifs .goaladd"),_gl=document.getElementById("goalList");
+  if(goalH==="sem"){if(_wp)_wp.style.display="";if(_ga)_ga.style.display="none";if(_gl)_gl.style.display="none";if(window.renderWeek)await window.renderWeek();return;}
+  if(_wp)_wp.style.display="none";if(_ga)_ga.style.display="";if(_gl)_gl.style.display="";
   let goals=await getJSON("userGoals",null);
   if(goals==null){goals=JSON.parse(JSON.stringify(DATA.objectives));await setJSON("userGoals",goals);}
   const list=goals.filter(g=>g.h===goalH);
@@ -1125,5 +1129,112 @@ async function open(id,label){if(!ov)build();
 document.addEventListener("click",function(e){var hn=e.target.closest&&e.target.closest(".hname");if(!hn)return;var row=hn.closest(".habit");if(!row)return;var ck=row.querySelector(".hck");if(!ck)return;var id=ck.getAttribute("data-h");hn.style.cursor="pointer";open(id,hn.textContent);});
 // indice visuel : curseur main sur les noms
 var st2=document.createElement("style");st2.textContent=".hname{cursor:pointer}.hname:hover{text-decoration:underline}";document.head.appendChild(st2);
+})();</script>
+<script>(function(){
+var CATS=[["mental","Mental"],["technique","Technique"],["physique","Physique"],["bienetre","Bien-être / détente"],["social","Famille / social"],["autre","Autre"]];
+var OBLIG=["mental","technique","physique","bienetre","social"];
+var MO=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+var reviewState={};
+function catLab(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i][1];return c;}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&new Date(now).getHours()<16)mon.setDate(mon.getDate()-7);return iso(mon);}
+function fmtRange(startIso){var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
+function $w(s){return document.querySelector(s);}
+function val(s){var e=$w(s);return e?e.value.trim():"";}
+function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.createElement("style");s.id="wkCss";
+ s.textContent=".wkwarn{background:rgba(212,120,23,.12);border:1px solid rgba(212,120,23,.35);color:#9c5a1f;border-radius:11px;padding:10px 13px;font-size:13px;margin-bottom:14px;font-weight:600}"
+ +".wkok{background:rgba(31,111,79,.1);border:1px solid rgba(31,111,79,.3);color:var(--accent);border-radius:11px;padding:9px 13px;font-size:13px;margin-bottom:14px;font-weight:600}"
+ +".wkcat{margin-bottom:16px}"
+ +".wkcat-h{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:8px}"
+ +".wkdone{color:var(--accent);font-weight:700}.wkmiss{color:#b5742a;font-size:11px;font-weight:600;text-transform:none;letter-spacing:0}"
+ +".wkempty{color:var(--muted);font-size:13px;padding:3px 0 6px}"
+ +".wkgoal{border-top:1px solid var(--line2);padding:9px 0}"
+ +".wkg-top{display:flex;align-items:center;gap:8px}"
+ +".wkg-label{flex:1;font-size:14.5px;color:var(--text)}"
+ +".wkg-nums{display:flex;align-items:center;gap:5px;flex:none}"
+ +".wkg-nums input{width:54px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:13px;text-align:right}"
+ +".wkg-if{font-size:12.5px;color:var(--muted);margin:5px 0 2px;font-style:italic}"
+ +".wkadd{border-top:1px solid var(--line);margin-top:12px;padding-top:12px;display:flex;flex-direction:column;gap:8px}"
+ +".wkadd-row{display:flex;gap:8px;flex-wrap:wrap}"
+ +".wkadd input,.wkadd select{flex:1;min-width:120px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:9px;padding:9px 11px;font:inherit;font-size:14px}"
+ +".wkifin{width:100%}"
+ +".wkreview{}"
+ +".wkreview h4{margin:0 0 6px;font-size:16px}"
+ +".wknote{color:var(--muted);font-size:13.5px;line-height:1.55;margin:0 0 16px}"
+ +".wkrev{border-top:1px solid var(--line2);padding:11px 0}"
+ +".wkrev-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}"
+ +".wkrev-top>span:first-child{flex:1;font-size:14.5px;color:var(--text)}"
+ +".wkrev-btns{display:flex;gap:6px;flex:none}"
+ +".wkrb{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:6px 11px;font:inherit;font-size:12.5px;cursor:pointer}"
+ +".wkrb.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}"
+ +".wkrb.bad.on{background:#b5483f;border-color:#b5483f;color:#fff}"
+ +".wkcause{width:100%;margin-top:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:9px;padding:9px 11px;font:inherit;font-size:13.5px;min-height:64px;line-height:1.5}"
+ +"#wkValid{margin-top:16px}";
+ document.head.appendChild(s);}
+async function updateBadge(){try{var stp=await getJSON("userSteps",{total:0});var sb=document.getElementById("stepBadge");if(sb)sb.textContent="Pas accomplis : "+(stp.total||0);}catch(e){}}
+function renderNormal(panel,W){
+ var filled=OBLIG.filter(function(c){return W.goals.some(function(g){return g.cat===c;});});
+ var missing=OBLIG.filter(function(c){return filled.indexOf(c)<0;});
+ var html="";
+ html+=missing.length?('<div class="wkwarn">Catégories obligatoires : '+filled.length+'/5 — il manque : '+missing.map(catLab).join(", ")+'.</div>'):'<div class="wkok">Tes 5 catégories obligatoires sont couvertes \u2713</div>';
+ CATS.forEach(function(p){var cid=p[0],clab=p[1];var items=W.goals.filter(function(g){return g.cat===cid;});
+  if(cid==="autre"&&items.length===0)return;
+  html+='<div class="wkcat"><div class="wkcat-h">'+clab+(OBLIG.indexOf(cid)>=0?(items.length?' <span class="wkdone">\u2713</span>':' <span class="wkmiss">à remplir</span>'):'')+'</div>';
+  if(items.length===0)html+='<div class="wkempty">Aucun objectif.</div>';
+  items.forEach(function(g){var tgt=Number(g.target)||0,cur=Number(g.current)||0,pct=tgt>0?Math.round(cur/tgt*100):0,w=Math.max(0,Math.min(100,pct));
+   html+='<div class="wkgoal"><div class="wkg-top"><span class="wkg-label">'+esc(g.label)+'</span><span class="wkg-nums"><input type="text" inputmode="decimal" data-wcur="'+g.id+'" value="'+esc(String(g.current))+'"><span class="gt">/ '+esc(String(g.target))+' '+esc(g.unit||"")+'</span></span><button class="gdel" data-wdel="'+g.id+'" title="Retirer">&times;</button></div>';
+   if(g.ifthen)html+='<div class="wkg-if">Si '+esc(g.ifthen)+', alors je m\'y tiens.</div>';
+   html+='<div class="bar"><i style="width:'+w+'%"></i></div></div>';});
+  html+='</div>';});
+ html+='<div class="wkadd"><div class="wkadd-row"><input id="wkLabel" placeholder="Nouvel objectif..."><select id="wkCat">'+CATS.map(function(p){return '<option value="'+p[0]+'">'+p[1]+'</option>';}).join("")+'</select></div>'
+  +'<div class="wkadd-row"><input id="wkTarget" placeholder="Cible (nb)"><input id="wkUnit" placeholder="Unité"></div>'
+  +'<input id="wkIf" class="wkifin" placeholder="Plan si-alors : quand / où je le ferai (ex : après le dîner, au club…)">'
+  +'<button class="mini-add" id="wkAdd">Ajouter l\'objectif</button></div>';
+ panel.innerHTML=html;
+}
+function renderReview(panel,W){
+ var html='<div class="wkreview"><h4>Bilan — '+fmtRange(W.weekStart)+'</h4>'
+  +'<p class="wknote">Avant de définir cette semaine, fais le point sur la précédente. Ce n\'est pas l\'échec qui fait progresser, mais le fait d\'en comprendre la cause — et de viser ce que tu peux réellement changer (ton plan, ton créneau, ta méthode), pas ce qui te dévalorise.</p>';
+ if(!W.goals.length)html+='<p class="wkempty">Aucun objectif la semaine passée.</p>';
+ W.goals.forEach(function(g){var st=reviewState[g.id];if(!st){st={reached:(Number(g.target)>0&&Number(g.current)>=Number(g.target)),cause:""};reviewState[g.id]=st;}
+  html+='<div class="wkrev"><div class="wkrev-top"><span>'+esc(g.label)+'</span><span class="wkrev-btns"><button class="wkrb '+(st.reached===true?'on':'')+'" data-reach="1:'+g.id+'">Atteint</button><button class="wkrb bad '+(st.reached===false?'on':'')+'" data-reach="0:'+g.id+'">Non atteint</button></span></div>';
+  if(st.reached===false)html+='<textarea class="wkcause" data-cause="'+g.id+'" placeholder="Qu\'est-ce qui a bloqué ? Et qu\'est-ce que tu changes la semaine prochaine ?">'+esc(st.cause||"")+'</textarea>';
+  html+='</div>';});
+ var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});
+ html+='<button class="mini-add" id="wkValid"'+(can?'':' disabled style="opacity:.45;cursor:not-allowed"')+'>Valider le bilan et démarrer la semaine</button></div>';
+ panel.innerHTML=html;
+}
+window.renderWeek=async function(){
+ styleOnce();var panel=document.getElementById("weekPanel");if(!panel)return;
+ var W=await getJSON("weekGoals",null);var curStart=weekStartIso(new Date());
+ if(!W){var ug=await getJSON("userGoals",[]);var imp=(ug||[]).filter(function(g){return g.h==="sem";}).map(function(g){return {id:g.id,cat:"autre",label:g.label,target:g.target,current:g.current,unit:g.unit,ifthen:""};});W={weekStart:curStart,goals:imp};await setJSON("weekGoals",W);}
+ if(W.weekStart!==curStart){renderReview(panel,W);} else {renderNormal(panel,W);}
+ updateBadge();
+};
+async function onCur(id,v){var W=await getJSON("weekGoals",null);if(!W)return;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
+ var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(v).replace(",",".");await setJSON("weekGoals",W);
+ if(nv>oldv){var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}
+ window.renderWeek();}
+async function addGoal(){var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
+ var W=await getJSON("weekGoals",null);if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await setJSON("weekGoals",W);window.renderWeek();}
+async function delGoal(id){var W=await getJSON("weekGoals",null);if(!W)return;W.goals=W.goals.filter(function(x){return x.id!==id;});await setJSON("weekGoals",W);window.renderWeek();}
+async function validate(){var W=await getJSON("weekGoals",null);if(!W)return;var curStart=weekStartIso(new Date());
+ var arch=await getJSON("weekArchive",[]);var review={items:{},done:new Date().toISOString()};
+ W.goals.forEach(function(g){var s=reviewState[g.id]||{};review.items[g.id]={label:g.label,reached:!!s.reached,cause:s.reached?"":((s.cause||"").trim())};});
+ arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await setJSON("weekArchive",arch);
+ await setJSON("weekGoals",{weekStart:curStart,goals:[]});reviewState={};window.renderWeek();}
+function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
+ panel.addEventListener("click",function(e){var t=e.target;
+  var d=t.getAttribute&&t.getAttribute("data-wdel");if(d){delGoal(d);return;}
+  if(t.id==="wkAdd"){addGoal();return;}
+  if(t.id==="wkValid"&&!t.disabled){validate();return;}
+  var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");getJSON("weekGoals",null).then(function(W){if(W)renderReview(panel2,W);});return;}});
+ panel.addEventListener("change",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-wcur");if(c)onCur(c,e.target.value);});
+ panel.addEventListener("input",function(e){var ca=e.target.getAttribute&&e.target.getAttribute("data-cause");if(ca){if(!reviewState[ca])reviewState[ca]={reached:false};reviewState[ca].cause=e.target.value;
+   var btn=document.getElementById("wkValid");if(btn){getJSON("weekGoals",null).then(function(W){if(!W)return;var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});btn.disabled=!can;btn.style.opacity=can?"1":".45";btn.style.cursor=can?"pointer":"not-allowed";});}}});
+ if(typeof goalH!=="undefined"&&goalH==="sem"&&window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s&&goalH==="sem")window.renderWeek();});
+}
+if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script>
 </body></html>
