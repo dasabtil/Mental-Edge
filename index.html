@@ -530,40 +530,9 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 <section class="sec" id="objectifs">
   <div class="sec-h"><span class="no">02</span><h2>Mes objectifs</h2></div>
   <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
-  <div class="card" id="stepCard" style="margin-bottom:18px">
-  <div class="lab" style="display:flex;align-items:center;gap:10px"><span>Mes pas accomplis</span><span id="stepTotal" style="margin-left:auto;color:var(--accent);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums">0</span></div>
-  <p class="note">Chaque petite action concrète vers un objectif = 1&nbsp;pas. Le compteur ne fait que monter : tu vois l'accumulation dans le temps.</p>
-  <div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap">
-    <button id="stepAdd" style="appearance:none;border:none;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:600;border-radius:11px;padding:11px 20px;cursor:pointer">+1 pas</button>
-    <span id="stepToday" style="color:var(--muted);font-size:13px"></span>
-    <button id="stepUndo" style="margin-left:auto;appearance:none;border:none;background:none;color:var(--muted2);font-size:12.5px;cursor:pointer;text-decoration:underline">annuler le dernier</button>
-  </div>
-  <div id="stepSpark" style="margin-top:14px;display:flex;align-items:flex-end;gap:3px;height:40px"></div>
-</div>
-<script>(function(){
-var KEY="userSteps",D={total:0,days:{}},uid=null,loaded=false;
-function $(i){return document.getElementById(i);}
-function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
-async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return r.data.v;}catch(e){}return null;}
-async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:v},{onConflict:"user_id,k"});}catch(e){}}
-async function save(){if(uid)await kvSet(KEY,JSON.stringify(D));}
-function render(){var t=$("stepTotal");if(t)t.textContent=D.total;var today=iso(new Date());var nt=D.days[today]||0;
- var st=$("stepToday");if(st)st.textContent=nt+" aujourd\u2019hui";
- var sp=$("stepSpark");if(sp){var days=[];var d=new Date();for(var i=13;i>=0;i--){var x=new Date(d);x.setDate(x.getDate()-i);days.push(iso(x));}
-  var mx=Math.max(1,...days.map(function(k){return D.days[k]||0;}));
-  sp.innerHTML=days.map(function(k){var v=D.days[k]||0;var hh=Math.round(6+(34*v/mx));return '<div title="'+k+' : '+v+'" style="flex:1;height:'+hh+'px;border-radius:3px;background:'+(v?'var(--accent)':'var(--line2,#e8e8e8)')+'"></div>';}).join("");}}
-async function load(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;
- var raw=await kvGet(KEY);if(raw){try{var p=JSON.parse(raw);D.total=p.total||0;D.days=p.days||{};}catch(e){}}render();}
-function add(n){var today=iso(new Date());D.total=Math.max(0,D.total+n);D.days[today]=Math.max(0,(D.days[today]||0)+n);if(D.days[today]===0)delete D.days[today];save();render();}
-function init(){var a=$("stepAdd"),u=$("stepUndo");if(!a)return;
- a.addEventListener("click",function(){add(1);});
- if(u)u.addEventListener("click",function(){add(-1);});
- if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)load();});
- load();}
-if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
-})();</script>
   <div class="panel-x">
     <p class="blocksub">Semaine, trimestre, année. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
+    <div id="stepBadge" style="font-size:13px;color:var(--muted);font-weight:600;margin:2px 0 10px">Pas accomplis : 0</div>
     <div class="subtabs" id="goalTabs">
       <button class="subtab on" data-h="sem">Semaine</button>
       <button class="subtab" data-h="trim">Trimestre</button>
@@ -839,8 +808,9 @@ async function renderGoals(){
     const tgt=Number(g.target)||0;const cur=Number(g.current)||0;const pct=tgt>0?Math.round(cur/tgt*100):0;const w=Math.max(0,Math.min(100,pct));
     return `<div class="goal"><div class="gtop"><span class="glabel">${g.label}</span><span class="gnums"><input type="text" inputmode="decimal" data-cur="${g.id}" value="${g.current}"><span class="gt">/ ${g.target} ${g.unit||""}</span></span><button class="gdel" data-del="${g.id}" title="Retirer">&times;</button></div><div class="bar"><i style="width:${w}%;background:${goalColor(pct)}"></i></div><div class="gpct">${pct}%</div></div>`;
   }).join("")||`<p class="blocksub">Aucun objectif ici pour l'instant — ajoute-en un.</p>`;
-  $$('#goalList input[data-cur]').forEach(inp=>inp.addEventListener("change",async()=>{const gs=await getJSON("userGoals",[]);const g=gs.find(x=>x.id===inp.dataset.cur);if(g){g.current=inp.value.replace(",",".");await setJSON("userGoals",gs);renderGoals();}}));
+  $$('#goalList input[data-cur]').forEach(inp=>inp.addEventListener("change",async()=>{const gs=await getJSON("userGoals",[]);const g=gs.find(x=>x.id===inp.dataset.cur);if(g){const oldv=Number(String(g.current).replace(",","."))||0;const nv=Number(inp.value.replace(",","."))||0;g.current=inp.value.replace(",",".");await setJSON("userGoals",gs);if(nv>oldv){const stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}renderGoals();}}));
   $$('#goalList [data-del]').forEach(b=>b.addEventListener("click",async()=>{let gs=await getJSON("userGoals",[]);gs=gs.filter(x=>x.id!==b.dataset.del);await setJSON("userGoals",gs);renderGoals();}));
+  const _stp=await getJSON("userSteps",{total:0});const _sb=$("#stepBadge");if(_sb)_sb.textContent="Pas accomplis : "+(_stp.total||0);
 }
 $$("#goalTabs .subtab").forEach(t=>t.addEventListener("click",()=>{$$("#goalTabs .subtab").forEach(x=>x.classList.remove("on"));t.classList.add("on");goalH=t.dataset.h;renderGoals();}));
 $("#goalAdd").addEventListener("click",async()=>{const l=$("#goalLabel").value.trim();if(!l)return;const t=parseFloat(($("#goalTarget").value||"").replace(",","."))||1;const u=$("#goalUnit").value.trim();const gs=await getJSON("userGoals",[]);gs.push({id:uid(),h:goalH,label:l,target:t,unit:u,current:0});await setJSON("userGoals",gs);$("#goalLabel").value="";$("#goalTarget").value="";$("#goalUnit").value="";renderGoals();});
@@ -992,7 +962,8 @@ else if(ny>y+2&&ny>70)nav.classList.add('navhide');
 y=ny;},{passive:true});
 (function tag(){var d=new Date(),q=Math.floor(d.getMonth()/3)+1,yy=d.getFullYear();
 var bt=document.querySelector('.subtab[data-h="trim"]');if(bt)bt.textContent='Trimestre \u00b7 T'+q+' '+yy;
-var ba=document.querySelector('.subtab[data-h="annee"]');if(ba)ba.textContent='Ann\u00e9e \u00b7 '+yy;})();
+var ba=document.querySelector('.subtab[data-h="annee"]');if(ba)ba.textContent='Ann\u00e9e \u00b7 '+yy;
+var bs=document.querySelector('.subtab[data-h="sem"]');if(bs){var nn=new Date();var z=new Date(nn);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&nn.getHours()<16)mon.setDate(mon.getDate()-7);var sun=new Date(mon);sun.setDate(mon.getDate()+6);var MO=["janv.","f\u00e9vr.","mars","avr.","mai","juin","juil.","ao\u00fbt","sept.","oct.","nov.","d\u00e9c."];bs.textContent=mon.getMonth()===sun.getMonth()?('Semaine \u00b7 '+mon.getDate()+'-'+sun.getDate()+' '+MO[sun.getMonth()]):('Semaine \u00b7 '+mon.getDate()+' '+MO[mon.getMonth()]+' - '+sun.getDate()+' '+MO[sun.getMonth()]);}})();
 })();</script><script>(function(){
 var loaded=false,uid=null;
 function $(id){return document.getElementById(id);}
