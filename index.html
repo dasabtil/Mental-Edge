@@ -407,7 +407,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
     <img class="mark" src="assets/ef25df956b012609.png" alt="">
     <div><b>Mental</b><small>Edge</small></div>
   </div>
-  <nav class="navlinks" id="nav"><a href="index.html" class="navon">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
+  <nav class="navlinks" id="nav"><a href="index.html" class="navon">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a></nav>
   <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button>
     <button class="themebtn" id="themeBtn" title="Changer de thème" aria-label="Changer de thème">&#9728;</button>
     <button class="themebtn" id="logoutBtn" title="Déconnexion" style="display:none">&#9099;</button><div class="streak"><span class="fl">&#128293;</span><b id="streakN">0</b><span>j</span></div>
@@ -967,7 +967,7 @@ y=ny;},{passive:true});
 (function tag(){var d=new Date(),q=Math.floor(d.getMonth()/3)+1,yy=d.getFullYear();
 var bt=document.querySelector('.subtab[data-h="trim"]');if(bt)bt.textContent='Trimestre \u00b7 T'+q+' '+yy;
 var ba=document.querySelector('.subtab[data-h="annee"]');if(ba)ba.textContent='Ann\u00e9e \u00b7 '+yy;
-var bs=document.querySelector('.subtab[data-h="sem"]');if(bs){var nn=new Date();var z=new Date(nn);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&nn.getHours()<16)mon.setDate(mon.getDate()-7);var sun=new Date(mon);sun.setDate(mon.getDate()+6);var MO=["janv.","f\u00e9vr.","mars","avr.","mai","juin","juil.","ao\u00fbt","sept.","oct.","nov.","d\u00e9c."];bs.textContent=mon.getMonth()===sun.getMonth()?('Semaine \u00b7 '+mon.getDate()+'-'+sun.getDate()+' '+MO[sun.getMonth()]):('Semaine \u00b7 '+mon.getDate()+' '+MO[mon.getMonth()]+' - '+sun.getDate()+' '+MO[sun.getMonth()]);}})();
+var bs=document.querySelector('.subtab[data-h="sem"]');if(bs){var nn=new Date();var z=new Date(nn);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&nn.getHours()<12)mon.setDate(mon.getDate()-7);var sun=new Date(mon);sun.setDate(mon.getDate()+6);var MO=["janv.","f\u00e9vr.","mars","avr.","mai","juin","juil.","ao\u00fbt","sept.","oct.","nov.","d\u00e9c."];bs.textContent=mon.getMonth()===sun.getMonth()?('Semaine \u00b7 '+mon.getDate()+'-'+sun.getDate()+' '+MO[sun.getMonth()]):('Semaine \u00b7 '+mon.getDate()+' '+MO[mon.getMonth()]+' - '+sun.getDate()+' '+MO[sun.getMonth()]);}})();
 })();</script><script>(function(){
 var loaded=false,uid=null;
 function $(id){return document.getElementById(id);}
@@ -986,6 +986,7 @@ for(var i=0;i<730;i++){var day=iso(d);
  d.setDate(d.getDate()-1);}
 var el=$("streakN");if(el){el.textContent=s;var p=el.parentNode;if(p)p.title="Cha\u00eene d\u2019habitudes : "+s+" jour(s) cons\u00e9cutifs"+(seuil==="all"?" (toutes coch\u00e9es)":" (seuil "+seuil+")")+" \u00b7 jours off non comptés";}
 syncCtrl(off,seuil);}
+window.__flameRefresh=refresh;
 function syncCtrl(off,seuil){var t=$("flOffToday"),y=$("flOffYest"),sl=$("flSeuil");
 var td=iso(new Date());var yd=new Date();yd.setDate(yd.getDate()-1);yd=iso(yd);
 if(t){t.classList.toggle("on",!!off[td]);t.textContent=off[td]?"Aujourd\u2019hui : off \u2713":"Jour off aujourd\u2019hui";}
@@ -1138,10 +1139,20 @@ var reviewState={};
 function catLab(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i][1];return c;}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
-function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&new Date(now).getHours()<16)mon.setDate(mon.getDate()-7);return iso(mon);}
+function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&new Date(now).getHours()<12)mon.setDate(mon.getDate()-7);return iso(mon);}
 function fmtRange(startIso){var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
 function $w(s){return document.querySelector(s);}
 function val(s){var e=$w(s);return e?e.value.trim():"";}
+// --- accès Supabase DIRECT (lecture fraîche, jamais le cache) pour ne jamais écraser par erreur ---
+async function getUid(){try{var s=(await window.__sb.auth.getSession()).data.session;return s?s.user.id:null;}catch(e){return null;}}
+async function kvRead(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.error)return{err:true,val:null};if(r&&r.data&&r.data.v!=null)return{err:false,val:JSON.parse(r.data.v)};return{err:false,val:null};}catch(e){return{err:true,val:null};}}
+async function kvWrite(k,obj){var u=await getUid();if(!u)return false;try{var r=await window.__sb.from("kv").upsert({user_id:u,k:k,v:JSON.stringify(obj)},{onConflict:"user_id,k"});return !(r&&r.error);}catch(e){return false;}}
+async function wgGet(){return await kvRead("weekGoals");}
+async function wgSet(o){return await kvWrite("weekGoals",o);}
+async function arGet(){var r=await kvRead("weekArchive");return Array.isArray(r.val)?r.val:[];}
+async function arSet(a){return await kvWrite("weekArchive",a);}
+async function ugGetSem(){var r=await kvRead("userGoals");return Array.isArray(r.val)?r.val.filter(function(g){return g.h==="sem";}):[];}
+function impMap(sem){return sem.map(function(g){return {id:g.id,cat:"autre",label:g.label,target:g.target,current:g.current,unit:g.unit,ifthen:""};});}
 function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.createElement("style");s.id="wkCss";
  s.textContent=".wkwarn{background:rgba(212,120,23,.12);border:1px solid rgba(212,120,23,.35);color:#9c5a1f;border-radius:11px;padding:10px 13px;font-size:13px;margin-bottom:14px;font-weight:600}"
  +".wkok{background:rgba(31,111,79,.1);border:1px solid rgba(31,111,79,.3);color:var(--accent);border-radius:11px;padding:9px 13px;font-size:13px;margin-bottom:14px;font-weight:600}"
@@ -1159,7 +1170,6 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
  +".wkadd-row{display:flex;gap:8px;flex-wrap:wrap}"
  +".wkadd input,.wkadd select{flex:1;min-width:120px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:9px;padding:9px 11px;font:inherit;font-size:14px}"
  +".wkifin{width:100%}"
- +".wkreview{}"
  +".wkreview h4{margin:0 0 6px;font-size:16px}"
  +".wknote{color:var(--muted);font-size:13.5px;line-height:1.55;margin:0 0 16px}"
  +".wkrev{border-top:1px solid var(--line2);padding:11px 0}"
@@ -1173,11 +1183,11 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
  +"#wkValid{margin-top:16px}";
  document.head.appendChild(s);}
 async function updateBadge(){try{var stp=await getJSON("userSteps",{total:0});var sb=document.getElementById("stepBadge");if(sb)sb.textContent="Pas accomplis : "+(stp.total||0);}catch(e){}}
-function renderNormal(panel,W){
+function renderNormal(panel,W,hasLegacy){
  var filled=OBLIG.filter(function(c){return W.goals.some(function(g){return g.cat===c;});});
  var missing=OBLIG.filter(function(c){return filled.indexOf(c)<0;});
  var html="";
- html+=missing.length?('<div class="wkwarn">Catégories obligatoires : '+filled.length+'/5 — il manque : '+missing.map(catLab).join(", ")+'.</div>'):'<div class="wkok">Tes 5 catégories obligatoires sont couvertes \u2713</div>';
+ html+='<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Objectifs de la '+fmtRange(W.weekStart)+'.</div>';if(hasLegacy)html+='<button class="mini-add" id="wkImport" style="margin-bottom:12px">Récupérer mes anciens objectifs de semaine</button>';html+=missing.length?('<div class="wkwarn">Catégories obligatoires : '+filled.length+'/5 — il manque : '+missing.map(catLab).join(", ")+'.</div>'):'<div class="wkok">Tes 5 catégories obligatoires sont couvertes \u2713</div>';
  CATS.forEach(function(p){var cid=p[0],clab=p[1];var items=W.goals.filter(function(g){return g.cat===cid;});
   if(cid==="autre"&&items.length===0)return;
   html+='<div class="wkcat"><div class="wkcat-h">'+clab+(OBLIG.indexOf(cid)>=0?(items.length?' <span class="wkdone">\u2713</span>':' <span class="wkmiss">à remplir</span>'):'')+'</div>';
@@ -1207,34 +1217,89 @@ function renderReview(panel,W){
 }
 window.renderWeek=async function(){
  styleOnce();var panel=document.getElementById("weekPanel");if(!panel)return;
- var W=await getJSON("weekGoals",null);var curStart=weekStartIso(new Date());
- if(!W){var ug=await getJSON("userGoals",[]);var imp=(ug||[]).filter(function(g){return g.h==="sem";}).map(function(g){return {id:g.id,cat:"autre",label:g.label,target:g.target,current:g.current,unit:g.unit,ifthen:""};});W={weekStart:curStart,goals:imp};await setJSON("weekGoals",W);}
- if(W.weekStart!==curStart){renderReview(panel,W);} else {renderNormal(panel,W);}
+ var uid_=await getUid();
+ if(!uid_){panel.innerHTML='<p class="wkempty" style="padding:10px 0">Connexion en cours…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1500);return;}
+ var curStart=weekStartIso(new Date());
+ var res=await wgGet();
+ if(res.err){ // lecture échouée : NE RIEN écraser, réessayer sous peu
+   panel.innerHTML='<p class="wkempty" style="padding:10px 0">Chargement de tes objectifs…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1500);return;
+ }
+ var W=res.val;
+ if(W===null){ // vraiment aucune donnée → migration sûre depuis l'ancien système, une seule fois
+   W={weekStart:curStart,goals:impMap(await ugGetSem())};await wgSet(W);
+ }
+ var legacy=(!W.goals||W.goals.length===0)?(await ugGetSem()):[];
+ if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);
  updateBadge();
 };
-async function onCur(id,v){var W=await getJSON("weekGoals",null);if(!W)return;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
- var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(v).replace(",",".");await setJSON("weekGoals",W);
- if(nv>oldv){var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}
+async function onCur(id,v){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
+ var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(v).replace(",",".");await wgSet(W);
+ if(nv>oldv){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}catch(e){}}
  window.renderWeek();}
+async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek();}
 async function addGoal(){var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
- var W=await getJSON("weekGoals",null);if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await setJSON("weekGoals",W);window.renderWeek();}
-async function delGoal(id){var W=await getJSON("weekGoals",null);if(!W)return;W.goals=W.goals.filter(function(x){return x.id!==id;});await setJSON("weekGoals",W);window.renderWeek();}
-async function validate(){var W=await getJSON("weekGoals",null);if(!W)return;var curStart=weekStartIso(new Date());
- var arch=await getJSON("weekArchive",[]);var review={items:{},done:new Date().toISOString()};
+ var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek();}
+async function delGoal(id){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek();}
+async function validate(){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var curStart=weekStartIso(new Date());
+ var arch=await arGet();var review={items:{},done:new Date().toISOString()};
  W.goals.forEach(function(g){var s=reviewState[g.id]||{};review.items[g.id]={label:g.label,reached:!!s.reached,cause:s.reached?"":((s.cause||"").trim())};});
- arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await setJSON("weekArchive",arch);
- await setJSON("weekGoals",{weekStart:curStart,goals:[]});reviewState={};window.renderWeek();}
+ arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await arSet(arch);
+ await wgSet({weekStart:curStart,goals:[]});reviewState={};window.renderWeek();}
 function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
  panel.addEventListener("click",function(e){var t=e.target;
   var d=t.getAttribute&&t.getAttribute("data-wdel");if(d){delGoal(d);return;}
   if(t.id==="wkAdd"){addGoal();return;}
+  if(t.id==="wkImport"){importLegacy();return;}
   if(t.id==="wkValid"&&!t.disabled){validate();return;}
-  var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");getJSON("weekGoals",null).then(function(W){if(W)renderReview(panel2,W);});return;}});
+  var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");wgGet().then(function(r){var W=r&&r.val;if(W)renderReview(panel2,W);});return;}});
  panel.addEventListener("change",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-wcur");if(c)onCur(c,e.target.value);});
  panel.addEventListener("input",function(e){var ca=e.target.getAttribute&&e.target.getAttribute("data-cause");if(ca){if(!reviewState[ca])reviewState[ca]={reached:false};reviewState[ca].cause=e.target.value;
-   var btn=document.getElementById("wkValid");if(btn){getJSON("weekGoals",null).then(function(W){if(!W)return;var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});btn.disabled=!can;btn.style.opacity=can?"1":".45";btn.style.cursor=can?"pointer":"not-allowed";});}}});
- if(typeof goalH!=="undefined"&&goalH==="sem"&&window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s&&goalH==="sem")window.renderWeek();});
+   var btn=document.getElementById("wkValid");if(btn){wgGet().then(function(r){var W=r&&r.val;if(!W)return;var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});btn.disabled=!can;btn.style.opacity=can?"1":".45";btn.style.cursor=can?"pointer":"not-allowed";});}}});
+ if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s&&typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();});
 }
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
+})();</script>
+<script>(function(){
+// --- Reset quotidien : recharge l'app au passage à un nouveau jour (vide gratitude + priorité du jour) ---
+function isoT(){var d=new Date(),m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+var base;try{base=(typeof TODAY!=="undefined"&&TODAY)?TODAY:isoT();}catch(e){base=isoT();}
+function check(){if(!document.hidden&&isoT()!==base)location.reload();}
+document.addEventListener("visibilitychange",check);window.addEventListener("focus",check);setInterval(check,60000);
+})();</script>
+<script>(function(){
+// --- Oubli d'hier : cocher une habitude pour la veille ---
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+function yday(){var d=new Date();d.setDate(d.getDate()-1);return iso(d);}
+function frd(s){var p=(s||"").split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:s;}
+var ov,listEl;
+function styleOnce(){if(document.getElementById("yhCss"))return;var s=document.createElement("style");s.id="yhCss";
+ s.textContent="#yhOv{position:fixed;inset:0;background:rgba(8,11,16,.9);z-index:260;display:none;align-items:center;justify-content:center;padding:18px}#yhOv.show{display:flex}"
+ +".yhBox{background:var(--surface,#fff);color:var(--text,#111);border-radius:16px;max-width:460px;width:100%;max-height:84vh;overflow:auto;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.4)}"
+ +".yhBox h3{margin:0 0 3px;font-size:16px}.yhSub{color:var(--muted,#666);font-size:13px;margin:0 0 14px}"
+ +".yhItem{display:flex;align-items:center;gap:11px;border-top:1px solid var(--line2,#eee);padding:10px 0;cursor:pointer}"
+ +".yhCk{width:26px;height:26px;flex:none;border-radius:8px;border:2px solid var(--line,#ccc);display:grid;place-items:center;color:#fff;font-size:15px;transition:.15s}"
+ +".yhItem.on .yhCk{background:var(--green,#1f6f4f);border-color:var(--green,#1f6f4f)}"
+ +".yhName{font-size:14.5px}"
+ +".yhClose{margin-top:16px;width:100%;border:none;background:var(--accent);color:var(--on-accent);border-radius:11px;padding:11px;font:inherit;font-weight:600;cursor:pointer}"
+ +".yhBtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}";
+ document.head.appendChild(s);}
+function build(){styleOnce();ov=document.createElement("div");ov.id="yhOv";
+ var box=document.createElement("div");box.className="yhBox";
+ box.innerHTML='<h3>Oubli d\u2019hier</h3><p class="yhSub" id="yhDate"></p><div id="yhList"></div><button class="yhClose" id="yhClose">Termin\u00e9</button>';
+ ov.appendChild(box);document.body.appendChild(ov);listEl=box.querySelector("#yhList");
+ box.querySelector("#yhDate").textContent="Coche ce que tu as fait le "+frd(yday())+".";
+ box.querySelector("#yhClose").addEventListener("click",close);
+ ov.addEventListener("click",function(e){if(e.target===ov)close();});}
+async function render(){var hs=await getJSON("userHabits",[]),lg=await getJSON("habitsLog",{}),arr=lg[yday()]||[];
+ listEl.innerHTML="";(hs||[]).forEach(function(h){var on=arr.indexOf(h.id)>=0;var row=document.createElement("div");row.className="yhItem"+(on?" on":"");
+  row.innerHTML='<div class="yhCk">'+(on?"\u2713":"")+'</div><div class="yhName">'+(h.label||"").replace(/</g,"&lt;")+'</div>';
+  row.addEventListener("click",function(){toggle(h.id);});listEl.appendChild(row);});
+ if(!hs||!hs.length)listEl.innerHTML='<p class="yhSub">Aucune habitude.</p>';}
+async function toggle(id){var lg=await getJSON("habitsLog",{}),y=yday(),arr=lg[y]||[],i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else arr.push(id);lg[y]=arr;await setJSON("habitsLog",lg);
+ render();if(typeof renderHabits==="function")renderHabits();if(window.__flameRefresh)window.__flameRefresh();}
+async function open(){if(!ov)build();await render();ov.classList.add("show");}
+function close(){if(ov)ov.classList.remove("show");}
+function mount(){var fl=document.querySelector(".flrow");if(fl&&!document.getElementById("yhBtn")){var b=document.createElement("button");b.id="yhBtn";b.className="yhBtn";b.type="button";b.textContent="Oubli\u00e9 hier ?";b.addEventListener("click",open);fl.appendChild(b);}}
+if(document.readyState!=="loading")mount();else window.addEventListener("DOMContentLoaded",mount);
 })();</script>
 </body></html>
