@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="fr" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mental Edge — Nutrition</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/e220a9bbb233eb75.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/359bfa88608fb72e.png">
+<link rel="apple-touch-icon" href="assets/c7cdbfa6e1e417d4.png">
+<meta name="theme-color" content="#2f6a45">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#f3eee3;--bg2:#ece4d5;--surface:#fbf8f1;--surface2:#f6f0e6;
+  --text:#272320;--muted:#5e5749;--muted2:#726957;
+  --line:rgba(40,32,16,.12);--line2:rgba(40,32,16,.07);
+  --green:#2f6a45;--green-soft:#4f8a5f;--accent:#8a5f10;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.05);--tint2:rgba(63,107,74,.05);--grain:.10;
+  --r:18px;--maxw:1080px;
+}
+[data-theme=dark]{
+  --bg:#14120d;--bg2:#1b1812;--surface:#211d15;--surface2:#272219;
+  --text:#ece6d8;--muted:#b3ab98;--muted2:#8c8370;
+  --line:rgba(216,166,74,.18);--line2:rgba(236,230,216,.08);
+  --green:#86b079;--green-soft:#6f9e6a;--accent:#e7c272;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.10);--tint2:rgba(63,107,74,.12);--grain:.14;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;background-image:radial-gradient(120% 80% at 50% -8%,var(--tint1),transparent 60%),radial-gradient(80% 60% at 92% 112%,var(--tint2),transparent 60%)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 90px}
+h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2px}
+.nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0 -22px;padding:11px 22px}
+.nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .mark{width:30px;height:30px;flex:none}
+.brand b{font-family:"Playfair Display",serif;font-weight:600;font-size:15px;letter-spacing:3px;color:var(--text)}
+.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.navlinks{display:flex;gap:2px;flex-wrap:wrap}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;padding:7px 9px;border-radius:999px;transition:.2s;white-space:nowrap}
+.navlinks a:hover{color:var(--text)}
+.navlinks a.on{color:var(--on-accent);background:var(--accent-bright);font-weight:600}
+.navright{display:flex;align-items:center;gap:12px}
+.themebtn{appearance:none;cursor:pointer;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--accent);font-size:15px;display:grid;place-items:center;transition:.2s}
+.themebtn:hover{border-color:var(--accent);color:var(--text)}
+.hero{padding:46px 0 8px}
+.hero .kicker{color:var(--accent);letter-spacing:4px;text-transform:uppercase;font-size:11.5px;margin:0 0 8px;font-weight:600}
+.hero h1{margin:0;font-size:clamp(34px,6vw,52px);line-height:1.05}.hero h1 em{font-style:italic;color:var(--green);font-weight:500}
+.hero .sub{margin:14px 0 0;color:var(--muted);font-size:16.5px;max-width:60ch}
+.sec{padding:42px 0 6px;scroll-margin-top:72px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:0 0 5px}
+.sec-h .no{font-family:"Playfair Display",serif;color:var(--accent);font-size:14px;letter-spacing:2px}
+.sec-h h2{margin:0;font-size:26px}
+.sec-desc{color:var(--muted);font-size:15px;margin:0 0 22px;max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 18px}
+.lab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.lab span,.lab>span{color:var(--accent);font-size:11px;letter-spacing:2.2px;text-transform:uppercase;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.step{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--line2);align-items:flex-start}
+.step:last-child{border-bottom:none}
+.step .n{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-family:"Playfair Display",serif;font-weight:700;font-size:15px;color:var(--on-accent);background:linear-gradient(150deg,#e6bd66,#caa23e)}
+.step b{font-weight:600}
+.step small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.5}
+ul.dots{list-style:none;padding:0;margin:0}
+ul.dots li{position:relative;padding:6px 0 6px 18px;font-size:14.5px;border-bottom:1px solid var(--line2)}
+ul.dots li:last-child{border-bottom:none}
+ul.dots li::before{content:"";position:absolute;left:0;top:15px;width:6px;height:6px;border-radius:50%;background:var(--green-soft)}
+ul.dots li b{font-weight:600}
+ul.dots li small{color:var(--muted)}
+.rulecard{border-left:3px solid var(--accent-bright)}
+.mini{color:var(--accent);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;font-weight:600}
+.mini:first-child{margin-top:0}
+/* check-in */
+.ckq{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.ckq:last-of-type{border-bottom:none}
+.ckq .q{font-size:14.5px;line-height:1.4}
+.ckq .q small{display:block;color:var(--muted);font-size:12.5px}
+.ynbtns{display:flex;gap:6px;flex:none}
+.ynbtns button{appearance:none;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 16px;font:inherit;font-size:13px;transition:.15s}
+.ynbtns button.on-yes{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.ynbtns button.on-no{background:#b0522b;border-color:#b0522b;color:#fff;font-weight:600}
+.cknote{width:100%;box-sizing:border-box;margin-top:14px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--text);font:inherit;font-size:14px;resize:vertical;min-height:60px}
+.cksave{appearance:none;cursor:pointer;margin-top:12px;border-radius:11px;padding:11px 22px;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--accent);background:var(--accent-bright);color:var(--on-accent);transition:.2s}
+.cksave:disabled{opacity:.45;cursor:default}
+.ckmsg{margin-top:10px;color:var(--green);font-size:13px;min-height:16px}
+.ckwt{margin-top:4px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;font-size:14px;color:var(--muted)}
+.ckwt b{color:var(--text)}
+.cklock{padding:14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:14px;margin-bottom:10px}
+.ckhist .row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13.5px;flex-wrap:wrap}
+.ckhist .row:last-child{border-bottom:none}
+.ckhist .wk{font-family:"Playfair Display",serif;font-weight:600;color:var(--accent);min-width:118px}
+.ckhist .pill4{display:flex;gap:4px}
+.ckhist .p{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;color:#fff}
+.ckhist .p.y{background:var(--green)}.ckhist .p.n{background:#b0522b}.ckhist .p.u{background:var(--line);color:var(--muted)}
+.ckhist .wtd{margin-left:auto;color:var(--muted)}
+.authov{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.authbox{max-width:380px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.authlogo{width:56px;height:56px;margin:0 auto 12px;border-radius:14px;overflow:hidden}
+.authlogo img{width:100%;height:100%;object-fit:cover}
+.authbox h2{font-family:"Playfair Display",serif;margin:0 0 6px;color:var(--text);font-size:24px}
+.authsub{color:var(--muted);font-size:13.5px;margin:0 0 18px;line-height:1.5}
+.authbox input{width:100%;box-sizing:border-box;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--text);font-size:15px}
+.authbtns{display:flex;gap:10px;margin-top:6px}
+.authbtns button{flex:1;cursor:pointer;border-radius:11px;padding:12px;font-size:14px;border:1px solid var(--accent);background:transparent;color:var(--accent);transition:.2s}
+.authbtns button:hover{background:var(--accent);color:var(--on-accent)}
+.authmsg{margin-top:12px;color:var(--accent);font-size:13px;min-height:16px}
+.footer{margin-top:70px;color:var(--muted2);font-size:12.5px;text-align:center}
+</style></head><body>
+<div id="authOverlay" class="authov"><div class="authbox"><div class="authlogo"><img src="assets/ef25df956b012609.png" alt=""></div><h2>Mental Edge</h2><p class="authsub">Connecte-toi pour accéder à ton espace. Tes données sont privées et synchronisées entre tes appareils.</p><input type="email" id="authEmail" placeholder="Ton e-mail" autocomplete="username"><input type="password" id="authPw" placeholder="Mot de passe" autocomplete="current-password"><div class="authbtns"><button id="authSignin">Se connecter</button><button id="authSignup">Créer un compte</button></div><div class="authmsg" id="authMsg"></div></div></div>
+
+<div class="wrap">
+<div class="nav"><div class="nav-in">
+  <div class="brand">
+    <img class="mark" src="assets/ef25df956b012609.png" alt="">
+    <div><b>Mental</b><small>Edge</small></div>
+  </div>
+  <nav class="navlinks" id="nav"><a href="index.html">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html" class="on">Nutrition</a></nav>
+  <div class="navright"><button class="themebtn" id="themeBtn" title="Thème">☾</button></div>
+</div></div>
+
+<section class="hero">
+  <p class="kicker">Carburant &amp; cadre</p>
+  <h1>Nutrition — <em>le corps qui porte le mental</em></h1>
+  <p class="sub">Un cadre, pas un régime. Les quantités sont fixées d'avance, les décisions sont déjà prises. Objectif : 100 kg, énergie stable en session, zéro prison alimentaire.</p>
+</section>
+
+<section class="sec" id="cadresoir">
+  <div class="sec-h"><span class="no">01</span><h2>Le cadre du soir</h2></div>
+  <p class="sec-desc">Tous les soirs, week-end inclus. Assiette portionnée, repas terminé, je me lève de table. Le plat fixe la quantité — pas la volonté.</p>
+  <div class="card">
+    <div class="step"><div class="n">1</div><div><b>Soupe de légumes</b> — un bol (300 ml), avant le plat<small>Soupe fraîche du rayon frais (viser &lt; 0,6 g de sel / 100 ml). Elle remplit, elle coupe l'envie de se resservir.</small></div></div>
+    <div class="step"><div class="n">2</div><div><b>Plat portionné</b> — mangé à part, à mon rythme<small>Comme J'aime (stock ~2 mois), puis transition Food4Fitness si le test est concluant. Une seule assiette, le repas a un début et une fin.</small></div></div>
+    <div class="step"><div class="n">3</div><div><b>Skyr nature 250 g + 1 fruit</b> — la clôture<small>250 g maximum : c'est la fin du repas, pas un deuxième service. Fruit sucré : banane, pomme gala, fraises.</small></div></div>
+    <div class="step"><div class="n">✓</div><div><b>Je me lève de table</b><small>Présent avec la famille, mais mon repas est clos. Pas d'exposition prolongée au plat commun — c'est le design du comportement, pas de la privation.</small></div></div>
+  </div>
+</section>
+
+<section class="sec" id="journee">
+  <div class="sec-h"><span class="no">02</span><h2>La journée type</h2></div>
+  <p class="sec-desc">Semaine. Les horaires de repas sont fixes quel que soit le planning de session : déjeuner ~12h, dîner 19-20h (ou ~20h en pause de session le mardi).</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="mini">Petit-déjeuner</div>
+      <ul class="dots">
+        <li>Pain au levain grillé <b>60 g</b> + jambon blanc <b>80 g</b></li>
+        <li>Skyr nature <b>200 g</b> + muesli chocolat <b>30 g</b></li>
+        <li>Thé · <small>D3 + K2 avec ce repas (le gras aide l'absorption)</small></li>
+      </ul>
+      <div class="mini">Déjeuner ~12h</div>
+      <ul class="dots">
+        <li>Crudités en entrée : tomates + salade + <b>1 c. à s.</b> d'huile d'olive</li>
+        <li>Plat portionné (CJ / F4F) ou plat batch cooking</li>
+        <li>Skyr <b>150-250 g</b> en fin de repas si faim</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="mini">Goûter ~16h</div>
+      <ul class="dots">
+        <li>1 fruit (2ᵉ de la journée) + noix ou noisettes <b>30 g</b> <small>(une poignée fermée)</small></li>
+      </ul>
+      <div class="mini">Dîner 19-20h</div>
+      <ul class="dots">
+        <li>Le cadre du soir : soupe → plat → skyr + fruit</li>
+      </ul>
+      <div class="mini">Soir · complément</div>
+      <ul class="dots">
+        <li>Magnésium bisglycinate <b>300-400 mg</b>, ~1h avant le coucher</li>
+      </ul>
+      <div class="mini">Fringale après 22h (session tardive)</div>
+      <ul class="dots">
+        <li>Skyr 200 g <b>ou</b> noix 30 g — pas de féculents, pas de sucré</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="weekend">
+  <div class="sec-h"><span class="no">03</span><h2>Les 3 règles du week-end</h2></div>
+  <p class="sec-desc">La semaine est solide — le week-end décide du résultat. Trois règles binaires, vérifiables par oui/non. Pas de comptage.</p>
+  <div class="grid2">
+    <div class="card rulecard">
+      <div class="mini">Règle 1 — Samedi borné</div>
+      <p style="margin:0;font-size:14.5px"><b>1 repas libre le samedi soir</b>, pas 1 journée libre. Jusqu'à 20h, journée normale (cadre habituel, snacks de session). La soirée est libre et sans culpabilité. Dimanche matin, c'est terminé.</p>
+      <div class="mini">Règle 2 — Mono-alcool</div>
+      <p style="margin:0;font-size:14.5px">Un seul type d'alcool sur la soirée : vin <b>ou</b> bière <b>ou</b> spiritueux. Clair de préférence (vin blanc, bière blonde). Testé et validé : le lendemain n'a rien à voir.</p>
+      <div class="mini">Règle 3 — Dimanche cadré</div>
+      <p style="margin:0;font-size:14.5px">Jour de cadre strict, pas de « récup molle » : petit-déj salé protéiné, repas structure normale avec féculents réduits, <b>zéro alcool</b>, marche 45-60 min. C'est lui qui absorbe le samedi.</p>
+    </div>
+    <div class="card">
+      <div class="mini">Protocole dimanche</div>
+      <ul class="dots">
+        <li><b>Pas de pesée</b> dimanche ni lundi <small>(rétention d'eau normale, reprise mardi)</small></li>
+        <li>500 ml d'eau au lever · <b>2,5-3 L</b> sur la journée</li>
+        <li>Petit-déj : 3 œufs brouillés + jambon 80 g + pain 60 g + 1 banane</li>
+        <li>Marche <b>45-60 min</b>, bord de mer si possible</li>
+        <li>Féculents réduits (~150 g de pommes de terre le soir), légumes en volume</li>
+        <li>Coucher tôt — la nuit de dimanche répare la fin de semaine</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="checkin">
+  <div class="sec-h"><span class="no">04</span><h2>Check-in du dimanche</h2></div>
+  <p class="sec-desc">2 minutes, une fois par semaine, le dimanche soir (rattrapage possible lundi). Quatre oui/non + la tendance de poids calculée automatiquement. C'est la lecture objective des week-ends.</p>
+  <div class="card">
+    <div id="ckLock" class="cklock" style="display:none"></div>
+    <div id="ckForm">
+      <div class="ckq"><div class="q">Samedi soir borné ?<small>1 repas libre le soir, journée normale avant 20h</small></div><div class="ynbtns" data-k="q1"><button data-v="1">Oui</button><button data-v="0">Non</button></div></div>
+      <div class="ckq"><div class="q">Mono-alcool respecté ?<small>Un seul type d'alcool sur la soirée</small></div><div class="ynbtns" data-k="q2"><button data-v="1">Oui</button><button data-v="0">Non</button></div></div>
+      <div class="ckq"><div class="q">Dimanche cadré ?<small>Zéro alcool, marche, féculents réduits</small></div><div class="ynbtns" data-k="q3"><button data-v="1">Oui</button><button data-v="0">Non</button></div></div>
+      <div class="ckq"><div class="q">Semaine dans le cadre ?<small>Rien hors cadre en semaine (repas, apéros improvisés)</small></div><div class="ynbtns" data-k="q4"><button data-v="1">Oui</button><button data-v="0">Non</button></div></div>
+      <div class="ckwt" id="ckWt">Tendance poids : calcul en cours…</div>
+      <textarea class="cknote" id="ckNote" placeholder="Une note libre sur la semaine (optionnel)…"></textarea>
+      <button class="cksave" id="ckSave">Valider ma semaine</button>
+      <div class="ckmsg" id="ckMsg"></div>
+    </div>
+    <div class="mini" style="margin-top:22px">Historique</div>
+    <div class="ckhist" id="ckHist"><p style="color:var(--muted);font-size:13.5px;margin:6px 0">Aucun check-in pour l'instant.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="pauses">
+  <div class="sec-h"><span class="no">05</span><h2>Repas rapides — pauses de session</h2></div>
+  <p class="sec-desc">Pour la pause de 5-15 min (déjeuner en session, dîner du mardi soir). La formule est toujours la même — seuls les ingrédients tournent.</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="mini">La formule</div>
+      <ul class="dots">
+        <li><b>Protéine</b> : 120-180 g (steak, poulet, poisson, thon)</li>
+        <li><b>Féculent modéré</b> : 60-80 g de riz cuit, 1 tortilla ou 60 g de pain</li>
+        <li><b>Légumes</b> : en abondance, crus ou cuits</li>
+        <li><b>Gras de qualité</b> : ½ avocat ou 1 c. à s. d'huile d'olive</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="mini">Options prêtes en 3 min</div>
+      <ul class="dots">
+        <li>Plat batch cooking réchauffé (protéine + riz + légumes rôtis)</li>
+        <li>Plat portionné CJ / F4F + crudités</li>
+        <li>Wrap : tortilla + poulet 120 g + salade + ½ avocat</li>
+        <li>Salade composée préparée le matin (thon + tomates + ½ avocat)</li>
+      </ul>
+      <div class="mini">Snacks de session</div>
+      <ul class="dots">
+        <li>Noix / noisettes 30 g · fruit · skyr 200 g · chocolat noir 70 % (2-3 carrés)</li>
+        <li>Eau : 1 verre toutes les 45-60 min</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="festival">
+  <div class="sec-h"><span class="no">06</span><h2>Mode festival &amp; vacances</h2></div>
+  <p class="sec-desc">Mode dégradé, pas abandon. Cinq garde-fous qui ne coûtent aucun plaisir — et la reprise du cadre le lendemain du retour, sans compensation punitive.</p>
+  <div class="card">
+    <ul class="dots">
+      <li><b>Petit-déj protéiné maintenu</b> tous les jours (œufs + pain + jambon, ou skyr + muesli + fruit)</li>
+      <li><b>1,5 L d'eau minimum</b> par jour, en plus du reste</li>
+      <li><b>Mono-alcool par soirée</b> — on peut changer d'un soir à l'autre, pas dans la même soirée</li>
+      <li><b>Zéro alcool la veille d'un Day important</b> — argument financier, pas santé</li>
+      <li><b>Marche 15 min le matin</b> + étirement psoas matin et soir (8-10 h assis par jour)</li>
+      <li>Kit sac : noix 250 g, 4-6 barres protéinées (≥ 15 g prot, ≤ 5 g sucres), D3 + magnésium + B-complex</li>
+      <li>Au retour : courses + batch cooking le jour même, reprise du cadre le lendemain. La balance remonte de 1-3 kg d'eau — <b>pas de pesée pendant 4-5 jours</b>.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="complements">
+  <div class="sec-h"><span class="no">07</span><h2>Compléments — la routine</h2></div>
+  <p class="sec-desc">Trois produits ciblés, rien d'autre. Pas de Berocca (édulcorants synthétiques), pas de multivitamine générique. Doses à ajuster après le bilan sanguin.</p>
+  <div class="card">
+    <ul class="dots">
+      <li><b>Matin</b> (avec le petit-déj) : Vitamine D3 + K2 — 2000 UI <small>· avec un repas gras</small></li>
+      <li><b>Soir</b> (~1h avant coucher) : Magnésium bisglycinate 300-400 mg</li>
+      <li><b>Festival uniquement</b> : B-complex le matin, pendant la durée du festival</li>
+    </ul>
+  </div>
+</section>
+
+<p class="footer">Mental Edge · Nutrition — le cadre fait le déficit, la balance tranche. Révision du plan toutes les 3-4 semaines.</p>
+</div>
+
+<script>
+(function(){
+const SB_URL="https://ibaltsrmocodbdljaqmw.supabase.co";
+const SB_KEY="sb_publishable_1iUxnH_DNsn9N7Y7xzDsEg_Al6YUF3T";
+window.__sb=(window.supabase&&typeof window.supabase.createClient==="function")?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}}):null;
+function $(id){return document.getElementById(id);}
+var uid=null;
+
+/* theme */
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return r.data.v;}catch(e){}return null;}
+async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:v},{onConflict:"user_id,k"});}catch(e){}}
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);$("themeBtn").innerHTML=(t==="dark")?"\u2600":"\u263e";}
+$("themeBtn").addEventListener("click",async function(){var cur=document.documentElement.getAttribute("data-theme");var nt=cur==="dark"?"light":"dark";applyTheme(nt);if(uid)await kvSet("theme",nt);try{localStorage.setItem("mm_theme",nt);}catch(e){}});
+
+/* auth (même pattern que les autres pages) */
+function showLogin(){var o=$("authOverlay");if(o)o.style.display="flex";}
+function hideLogin(){var o=$("authOverlay");if(o)o.style.display="none";}
+async function doAuth(mode){var email=$("authEmail").value.trim(),pw=$("authPw").value,msg=$("authMsg");
+if(!email||!pw){msg.textContent="E-mail et mot de passe requis.";return;}
+msg.textContent="…";
+try{var res;
+if(mode==="signup")res=await window.__sb.auth.signUp({email:email,password:pw});
+else res=await window.__sb.auth.signInWithPassword({email:email,password:pw});
+if(res.error){msg.textContent=res.error.message;return;}
+var session=res.data&&res.data.session;
+if(!session){var g=await window.__sb.auth.getSession();session=g.data.session;}
+if(!session){msg.textContent="Compte créé. Clique maintenant sur « Se connecter ».";return;}
+await afterLogin(session);}catch(e){msg.textContent="Erreur : "+(e&&e.message?e.message:e);}}
+$("authSignin").addEventListener("click",function(){doAuth("signin");});
+$("authSignup").addEventListener("click",function(){doAuth("signup");});
+async function afterLogin(session){uid=session.user.id;hideLogin();var t=await kvGet("theme");applyTheme(t==="dark"?"dark":"light");initCheckin();}
+
+/* ===== Check-in dominical ===== */
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+function mondayOf(d){var x=new Date(d);var day=x.getDay();var diff=(day===0)?6:day-1;x.setDate(x.getDate()-diff);return x;}
+function fr(s){var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
+var answers={q1:null,q2:null,q3:null,q4:null};
+var weekKey=null;
+
+function weekWindow(){
+  var now=new Date(),day=now.getDay();
+  /* la semaine évaluée = celle qui se termine ce dimanche ; saisie ouverte dimanche (0) et lundi (1, rattrapage de la semaine passée) */
+  if(day===0){return{key:iso(mondayOf(now)),open:true,label:"Semaine du "+fr(iso(mondayOf(now)))};}
+  if(day===1){var lastMon=new Date(now);lastMon.setDate(lastMon.getDate()-7);return{key:iso(mondayOf(lastMon)),open:true,label:"Rattrapage — semaine du "+fr(iso(mondayOf(lastMon)))};}
+  return{key:iso(mondayOf(now)),open:false,label:""};
+}
+
+async function weightTrend(){
+  var raw=await kvGet("userWeight");if(!raw)return null;
+  var W=[];try{W=JSON.parse(raw)||[];}catch(e){return null;}
+  if(!W.length)return null;
+  var now=new Date();now.setHours(23,59,59,0);
+  function avgBetween(d1,d2){var s=0,n=0;W.forEach(function(p){var d=new Date(p.date+"T12:00:00");if(d>=d1&&d<=d2){s+=parseFloat(p.kg);n++;}});return n?{avg:s/n,n:n}:null;}
+  var a7start=new Date(now);a7start.setDate(a7start.getDate()-6);a7start.setHours(0,0,0,0);
+  var p7end=new Date(a7start);p7end.setDate(p7end.getDate()-1);p7end.setHours(23,59,59,0);
+  var p7start=new Date(p7end);p7start.setDate(p7start.getDate()-6);p7start.setHours(0,0,0,0);
+  var cur=avgBetween(a7start,now),prev=avgBetween(p7start,p7end);
+  if(!cur)return null;
+  return{cur:cur.avg,curN:cur.n,prev:prev?prev.avg:null,prevN:prev?prev.n:0};
+}
+
+function paintButtons(){
+  document.querySelectorAll(".ynbtns").forEach(function(g){
+    var k=g.dataset.k;
+    g.querySelectorAll("button").forEach(function(b){
+      b.classList.remove("on-yes","on-no");
+      if(answers[k]!==null&&String(answers[k])===b.dataset.v)b.classList.add(b.dataset.v==="1"?"on-yes":"on-no");
+    });
+  });
+  var full=["q1","q2","q3","q4"].every(function(k){return answers[k]!==null;});
+  $("ckSave").disabled=!full;
+}
+document.querySelectorAll(".ynbtns button").forEach(function(b){
+  b.addEventListener("click",function(){var k=b.parentNode.dataset.k;answers[k]=parseInt(b.dataset.v,10);paintButtons();});
+});
+
+async function renderHist(){
+  var raw=await kvGet("nutriCheckins");var data={};
+  if(raw){try{data=JSON.parse(raw)||{};}catch(e){data={};}}
+  var keys=Object.keys(data).sort().reverse();
+  var box=$("ckHist");
+  if(!keys.length){box.innerHTML='<p style="color:var(--muted);font-size:13.5px;margin:6px 0">Aucun check-in pour l\u2019instant.</p>';return data;}
+  box.innerHTML=keys.slice(0,12).map(function(k){
+    var c=data[k];
+    function p(v){return v===1?'<span class="p y">\u2713</span>':(v===0?'<span class="p n">\u00d7</span>':'<span class="p u">\u2013</span>');}
+    var wt=(c.wtCur!=null)?(c.wtDelta!=null?((c.wtDelta>0?"+":"")+c.wtDelta.toFixed(1)+" kg \u00b7 moy "+c.wtCur.toFixed(1)):("moy "+c.wtCur.toFixed(1)+" kg")):"";
+    return '<div class="row"><span class="wk">'+fr(k)+'</span><span class="pill4">'+p(c.q1)+p(c.q2)+p(c.q3)+p(c.q4)+'</span>'+(c.note?'<span style="color:var(--muted)">'+c.note.replace(/</g,"&lt;").slice(0,80)+'</span>':'')+'<span class="wtd">'+wt+'</span></div>';
+  }).join("");
+  return data;
+}
+
+async function initCheckin(){
+  var w=weekWindow();weekKey=w.key;
+  var data=await renderHist();
+  var existing=data[weekKey];
+  var trend=await weightTrend();
+  var wtEl=$("ckWt");
+  if(trend){
+    var msg="Moyenne 7 jours : <b>"+trend.cur.toFixed(1)+" kg</b> ("+trend.curN+" pes\u00e9e"+(trend.curN>1?"s":"")+")";
+    if(trend.prev!=null&&trend.prevN>=2){var d=trend.cur-trend.prev;msg+=" \u00b7 vs 7 jours pr\u00e9c. : <b>"+(d>0?"+":"")+d.toFixed(1)+" kg</b>";}
+    else msg+=" \u00b7 pas assez de mesures la semaine pr\u00e9c\u00e9dente pour comparer";
+    wtEl.innerHTML=msg;
+  } else wtEl.innerHTML="Tendance poids : aucune pes\u00e9e trouv\u00e9e \u2014 le suivi du poids se remplit sur la page Principale.";
+  if(!w.open){
+    $("ckForm").style.display="none";
+    $("ckLock").style.display="block";
+    $("ckLock").innerHTML="Le check-in s\u2019ouvre <b>dimanche soir</b> (rattrapage possible lundi). En attendant : coche tes habitudes du jour sur la page Principale \u2014 c\u2019est l\u00e0 que \u00e7a se joue.";
+    return;
+  }
+  if(existing){
+    answers={q1:existing.q1,q2:existing.q2,q3:existing.q3,q4:existing.q4};
+    $("ckNote").value=existing.note||"";
+    $("ckMsg").textContent="Semaine d\u00e9j\u00e0 valid\u00e9e \u2014 tu peux modifier et revalider.";
+  }
+  paintButtons();
+  $("ckSave").addEventListener("click",saveCheckin);
+}
+
+async function saveCheckin(){
+  var raw=await kvGet("nutriCheckins");var data={};
+  if(raw){try{data=JSON.parse(raw)||{};}catch(e){data={};}}
+  var trend=await weightTrend();
+  data[weekKey]={
+    q1:answers.q1,q2:answers.q2,q3:answers.q3,q4:answers.q4,
+    note:$("ckNote").value.trim(),
+    wtCur:trend?Math.round(trend.cur*10)/10:null,
+    wtDelta:(trend&&trend.prev!=null&&trend.prevN>=2)?Math.round((trend.cur-trend.prev)*10)/10:null,
+    savedAt:new Date().toISOString()
+  };
+  await kvSet("nutriCheckins",JSON.stringify(data));
+  $("ckMsg").textContent="Semaine enregistr\u00e9e \u2713";
+  renderHist();
+}
+
+/* boot */
+async function boot(){
+  try{var t=localStorage.getItem("mm_theme");if(t)applyTheme(t);}catch(e){}
+  if(!window.__sb){showLogin();return;}
+  var s=(await window.__sb.auth.getSession()).data.session;
+  if(s){await afterLogin(s);}
+  else{showLogin();window.__sb.auth.onAuthStateChange(function(e,sess){if(sess)afterLogin(sess);});}
+}
+if(document.readyState!=="loading")boot();else window.addEventListener("DOMContentLoaded",boot);
+})();
+</script>
+</body></html>
