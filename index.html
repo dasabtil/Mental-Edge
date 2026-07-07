@@ -1182,6 +1182,7 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
 async function updateBadge(){try{var stp=await getJSON("userSteps",{total:0});var sb=document.getElementById("stepBadge");if(sb)sb.textContent="Pas accomplis : "+(stp.total||0);}catch(e){}}
 function showErr(e){var p=document.getElementById("weekPanel");if(p)p.insertAdjacentHTML("afterbegin",'<div style="background:#b5483f;color:#fff;padding:8px 10px;border-radius:8px;margin-bottom:10px;font-size:12px">\u26a0 '+(e&&e.message?e.message:e)+'</div>');}
 function storageOK(){return typeof getJSON==="function"&&typeof setJSON==="function";}
+function showInfo(m){var p=document.getElementById("weekPanel");if(p)p.insertAdjacentHTML("afterbegin",'<div style="background:#2a6dbf;color:#fff;padding:6px 9px;border-radius:7px;margin-bottom:6px;font-size:11px">'+m+'</div>');}
 function renderNormal(panel,W,hasLegacy){
  var filled=OBLIG.filter(function(c){return W.goals.some(function(g){return g.cat===c;});});
  var missing=OBLIG.filter(function(c){return filled.indexOf(c)<0;});
@@ -1227,17 +1228,17 @@ window.renderWeek=async function(preW){
  panel.insertAdjacentHTML("beforeend",'<div style="text-align:right;color:var(--muted2,#9aa);font-size:10px;margin-top:10px;opacity:.7">build 48</div>');
  updateBadge();
 };
-async function incGoal(id,delta){try{var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
- var cur=Number(String(g.current).replace(",","."))||0,nv=Math.max(0,cur+delta);g.current=String(nv);await wgSet(W);
+async function incGoal(id,delta){try{showInfo("+ capté, id="+id);var W=await wgGet();if(!W){showInfo("aucun weekGoals en base");W={weekStart:weekStartIso(new Date()),goals:[]};}showInfo(W.goals.length+" objectif(s) ; ids: "+W.goals.map(function(x){return x.id;}).join(" | "));var g=W.goals.find(function(x){return String(x.id)===String(id);});if(!g){showInfo("INTROUVABLE id="+id);return;}
+ var cur=Number(String(g.current).replace(",","."))||0,nv=Math.max(0,cur+delta);g.current=String(nv);showInfo("valeur "+cur+" -> "+nv+", sauvegarde");await wgSet(W);showInfo("sauvé, re-render");
  if(nv>cur){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-cur);await setJSON("userSteps",stp);}catch(e){}}
  window.renderWeek(W);}catch(err){showErr(err);}}
-async function onCur(id,v){try{var W=await wgGet();if(!W)return;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
+async function onCur(id,v){try{var W=await wgGet();if(!W)return;var g=W.goals.find(function(x){return String(x.id)===String(id);});if(!g)return;
  var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(nv);await wgSet(W);
  if(nv>oldv){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}catch(e){}}
  window.renderWeek(W);}catch(err){showErr(err);}}
 async function addGoal(){try{var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
  var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek(W);}catch(err){showErr(err);}}
-async function delGoal(id){var W=await wgGet();if(!W)return;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek(W);}
+async function delGoal(id){var W=await wgGet();if(!W)return;W.goals=W.goals.filter(function(x){return String(x.id)!==String(id);});await wgSet(W);window.renderWeek(W);}
 async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek(W);}
 async function validate(){var W=await wgGet();if(!W)return;var curStart=weekStartIso(new Date());
  var arch=await getJSON("weekArchive",[]);if(!Array.isArray(arch))arch=[];var review={items:{},done:new Date().toISOString()};
