@@ -1141,7 +1141,7 @@ function catLab(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
 function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&new Date(now).getHours()<12)mon.setDate(mon.getDate()-7);return iso(mon);}
-function fmtRange(startIso){var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
+function fmtRange(startIso){if(!startIso||typeof startIso!=="string"||startIso.indexOf("-")<0)return "semaine en cours";var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
 function $w(s){return document.querySelector(s);}
 function val(s){var e=$w(s);return e?e.value.trim():"";}
 // Stockage : STRICTEMENT le mécanisme du moteur (comme habitudes / gratitude / poids), fiable.
@@ -1223,21 +1223,22 @@ window.renderWeek=async function(preW){
  var W;
  if(preW){W=preW;}
  else{W=await wgGet();if(W===null){W={weekStart:curStart,goals:[]};}}   // jamais d'écriture ici : pas d'écrasement possible
- var legacy=(!W.goals||W.goals.length===0)?(await ugGetSem()):[];
- if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);
+ if(!W.weekStart)W.weekStart=curStart;if(!W.goals)W.goals=[];
+ var legacy=(W.goals.length===0)?(await ugGetSem()):[];
+ try{if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);}catch(rerr){showErr("rendu: "+(rerr&&rerr.message?rerr.message:rerr));return;}
  panel.insertAdjacentHTML("beforeend",'<div style="text-align:right;color:var(--muted2,#9aa);font-size:10px;margin-top:10px;opacity:.7">build 48</div>');
  updateBadge();
 };
 async function incGoal(id,delta){try{showInfo("+ capté, id="+id);var W=await wgGet();if(!W){showInfo("aucun weekGoals en base");W={weekStart:weekStartIso(new Date()),goals:[]};}showInfo(W.goals.length+" objectif(s) ; ids: "+W.goals.map(function(x){return x.id;}).join(" | "));var g=W.goals.find(function(x){return String(x.id)===String(id);});if(!g){showInfo("INTROUVABLE id="+id);return;}
  var cur=Number(String(g.current).replace(",","."))||0,nv=Math.max(0,cur+delta);g.current=String(nv);showInfo("valeur "+cur+" -> "+nv+", sauvegarde");await wgSet(W);showInfo("sauvé, re-render");
  if(nv>cur){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-cur);await setJSON("userSteps",stp);}catch(e){}}
- window.renderWeek(W);}catch(err){showErr(err);}}
+ await window.renderWeek(W);}catch(err){showErr((err&&err.message?err.message:err)+"");}}
 async function onCur(id,v){try{var W=await wgGet();if(!W)return;var g=W.goals.find(function(x){return String(x.id)===String(id);});if(!g)return;
  var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(nv);await wgSet(W);
  if(nv>oldv){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}catch(e){}}
- window.renderWeek(W);}catch(err){showErr(err);}}
+ await window.renderWeek(W);}catch(err){showErr((err&&err.message?err.message:err)+"");}}
 async function addGoal(){try{var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
- var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek(W);}catch(err){showErr(err);}}
+ var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);await window.renderWeek(W);}catch(err){showErr((err&&err.message?err.message:err)+"");}}
 async function delGoal(id){var W=await wgGet();if(!W)return;W.goals=W.goals.filter(function(x){return String(x.id)!==String(id);});await wgSet(W);window.renderWeek(W);}
 async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek(W);}
 async function validate(){var W=await wgGet();if(!W)return;var curStart=weekStartIso(new Date());
