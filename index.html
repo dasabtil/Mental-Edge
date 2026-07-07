@@ -1144,15 +1144,10 @@ function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.ge
 function fmtRange(startIso){var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
 function $w(s){return document.querySelector(s);}
 function val(s){var e=$w(s);return e?e.value.trim():"";}
-// --- accès Supabase DIRECT (lecture fraîche, jamais le cache) pour ne jamais écraser par erreur ---
-async function getUid(){try{var s=(await window.__sb.auth.getSession()).data.session;return s?s.user.id:null;}catch(e){return null;}}
-async function kvRead(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.error)return{err:true,val:null};if(r&&r.data&&r.data.v!=null)return{err:false,val:JSON.parse(r.data.v)};return{err:false,val:null};}catch(e){return{err:true,val:null};}}
-async function kvWrite(k,obj){var u=await getUid();if(!u)return false;try{var r=await window.__sb.from("kv").upsert({user_id:u,k:k,v:JSON.stringify(obj)},{onConflict:"user_id,k"});return !(r&&r.error);}catch(e){return false;}}
-async function wgGet(){return await kvRead("weekGoals");}
-async function wgSet(o){try{await setJSON("weekGoals",o);return true;}catch(e){return false;}}
-async function arGet(){var r=await kvRead("weekArchive");return Array.isArray(r.val)?r.val:[];}
-async function arSet(a){try{await setJSON("weekArchive",a);return true;}catch(e){return false;}}
-async function ugGetSem(){var r=await kvRead("userGoals");return Array.isArray(r.val)?r.val.filter(function(g){return g.h==="sem";}):[];}
+// Stockage : STRICTEMENT le mécanisme du moteur (comme habitudes / gratitude / poids), fiable.
+async function wgGet(){return await getJSON("weekGoals",null);}
+async function wgSet(o){await setJSON("weekGoals",o);}
+async function ugGetSem(){var ug=await getJSON("userGoals",[]);return (ug||[]).filter(function(g){return g.h==="sem";});}
 function impMap(sem){return sem.map(function(g){return {id:g.id,cat:"autre",label:g.label,target:g.target,current:g.current,unit:g.unit,ifthen:""};});}
 function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.createElement("style");s.id="wkCss";
  s.textContent=".wkwarn{background:rgba(212,120,23,.12);border:1px solid rgba(212,120,23,.35);color:#9c5a1f;border-radius:11px;padding:10px 13px;font-size:13px;margin-bottom:14px;font-weight:600}"
@@ -1165,7 +1160,8 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
  +".wkg-top{display:flex;align-items:center;gap:8px}"
  +".wkg-label{flex:1;font-size:14.5px;color:var(--text)}"
  +".wkg-nums{display:flex;align-items:center;gap:5px;flex:none}"
- +".wkstep{width:30px;height:30px;flex:none;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;font:inherit;font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}.wkstep:active{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}.wkg-nums input{width:54px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:13px;text-align:right}"
+ +".wkstep{width:32px;height:32px;flex:none;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;font:inherit;font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}.wkstep:active{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}"
+ +".wkg-nums input{width:46px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:5px 6px;font:inherit;font-size:13px;text-align:center}"
  +".wkg-if{font-size:12.5px;color:var(--muted);margin:5px 0 2px;font-style:italic}"
  +".wkadd{border-top:1px solid var(--line);margin-top:12px;padding-top:12px;display:flex;flex-direction:column;gap:8px}"
  +".wkadd-row{display:flex;gap:8px;flex-wrap:wrap}"
@@ -1187,8 +1183,9 @@ async function updateBadge(){try{var stp=await getJSON("userSteps",{total:0});va
 function renderNormal(panel,W,hasLegacy){
  var filled=OBLIG.filter(function(c){return W.goals.some(function(g){return g.cat===c;});});
  var missing=OBLIG.filter(function(c){return filled.indexOf(c)<0;});
- var html="";
- html+='<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Objectifs de la '+fmtRange(W.weekStart)+'.</div>';if(hasLegacy)html+='<button class="mini-add" id="wkImport" style="margin-bottom:12px">Récupérer mes anciens objectifs de semaine</button>';html+=missing.length?('<div class="wkwarn">Catégories obligatoires : '+filled.length+'/5 — il manque : '+missing.map(catLab).join(", ")+'.</div>'):'<div class="wkok">Tes 5 catégories obligatoires sont couvertes \u2713</div>';
+ var html='<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Objectifs de la '+fmtRange(W.weekStart)+'.</div>';
+ if(hasLegacy)html+='<button class="mini-add" id="wkImport" style="margin-bottom:12px">Récupérer mes anciens objectifs de semaine</button>';
+ html+=missing.length?('<div class="wkwarn">Catégories obligatoires : '+filled.length+'/5 — il manque : '+missing.map(catLab).join(", ")+'.</div>'):'<div class="wkok">Tes 5 catégories obligatoires sont couvertes \u2713</div>';
  CATS.forEach(function(p){var cid=p[0],clab=p[1];var items=W.goals.filter(function(g){return g.cat===cid;});
   if(cid==="autre"&&items.length===0)return;
   html+='<div class="wkcat"><div class="wkcat-h">'+clab+(OBLIG.indexOf(cid)>=0?(items.length?' <span class="wkdone">\u2713</span>':' <span class="wkmiss">à remplir</span>'):'')+'</div>';
@@ -1218,46 +1215,43 @@ function renderReview(panel,W){
 }
 window.renderWeek=async function(preW){
  styleOnce();var panel=document.getElementById("weekPanel");if(!panel)return;
- if(typeof cloud==="undefined"||!cloud||!cloud.uid){panel.innerHTML='<p class="wkempty" style="padding:10px 0">Connexion en cours…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1200);return;}
  var curStart=weekStartIso(new Date());
  var W;
  if(preW){W=preW;}
- else{
-   var res=await wgGet();
-   if(res.err){panel.innerHTML='<p class="wkempty" style="padding:10px 0">Chargement de tes objectifs…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1500);return;}
-   W=res.val;
-   if(W===null){W={weekStart:curStart,goals:impMap(await ugGetSem())};await wgSet(W);}
- }
+ else{W=await wgGet();if(W===null){W={weekStart:curStart,goals:[]};}}   // jamais d'écriture ici : pas d'écrasement possible
  var legacy=(!W.goals||W.goals.length===0)?(await ugGetSem()):[];
  if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);
  updateBadge();
 };
-async function incGoal(id,delta){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;var cur=Number(String(g.current).replace(",","."))||0;var nv=Math.max(0,cur+delta);g.current=String(nv);await wgSet(W);if(nv>cur){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-cur);await setJSON("userSteps",stp);}catch(e){}}window.renderWeek(W);}
-async function onCur(id,v){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
- var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(v).replace(",",".");await wgSet(W);
+async function incGoal(id,delta){var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
+ var cur=Number(String(g.current).replace(",","."))||0,nv=Math.max(0,cur+delta);g.current=String(nv);await wgSet(W);
+ if(nv>cur){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-cur);await setJSON("userSteps",stp);}catch(e){}}
+ window.renderWeek(W);}
+async function onCur(id,v){var W=await wgGet();if(!W)return;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
+ var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(nv);await wgSet(W);
  if(nv>oldv){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}catch(e){}}
  window.renderWeek(W);}
-async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek();}
 async function addGoal(){var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
- var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek(W);}
-async function delGoal(id){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek(W);}
-async function validate(){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var curStart=weekStartIso(new Date());
- var arch=await arGet();var review={items:{},done:new Date().toISOString()};
+ var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek(W);}
+async function delGoal(id){var W=await wgGet();if(!W)return;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek(W);}
+async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek(W);}
+async function validate(){var W=await wgGet();if(!W)return;var curStart=weekStartIso(new Date());
+ var arch=await getJSON("weekArchive",[]);if(!Array.isArray(arch))arch=[];var review={items:{},done:new Date().toISOString()};
  W.goals.forEach(function(g){var s=reviewState[g.id]||{};review.items[g.id]={label:g.label,reached:!!s.reached,cause:s.reached?"":((s.cause||"").trim())};});
- arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await arSet(arch);
+ arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await setJSON("weekArchive",arch);
  await wgSet({weekStart:curStart,goals:[]});reviewState={};window.renderWeek();}
 function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
  panel.addEventListener("click",function(e){var t=e.target;
+  var inc=t.getAttribute&&t.getAttribute("data-winc");if(inc){incGoal(inc,1);return;}
+  var dec=t.getAttribute&&t.getAttribute("data-wdec");if(dec){incGoal(dec,-1);return;}
   var d=t.getAttribute&&t.getAttribute("data-wdel");if(d){delGoal(d);return;}
   if(t.id==="wkAdd"){addGoal();return;}
   if(t.id==="wkImport"){importLegacy();return;}
-  var inc=t.getAttribute&&t.getAttribute("data-winc");if(inc){incGoal(inc,1);return;}
-  var dec=t.getAttribute&&t.getAttribute("data-wdec");if(dec){incGoal(dec,-1);return;}
   if(t.id==="wkValid"&&!t.disabled){validate();return;}
-  var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");wgGet().then(function(r){var W=r&&r.val;if(W)renderReview(panel2,W);});return;}});
+  var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");wgGet().then(function(W){if(W)renderReview(panel2,W);});return;}});
  panel.addEventListener("change",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-wcur");if(c)onCur(c,e.target.value);});
  panel.addEventListener("input",function(e){var ca=e.target.getAttribute&&e.target.getAttribute("data-cause");if(ca){if(!reviewState[ca])reviewState[ca]={reached:false};reviewState[ca].cause=e.target.value;
-   var btn=document.getElementById("wkValid");if(btn){wgGet().then(function(r){var W=r&&r.val;if(!W)return;var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});btn.disabled=!can;btn.style.opacity=can?"1":".45";btn.style.cursor=can?"pointer":"not-allowed";});}}});
+   var btn=document.getElementById("wkValid");if(btn){wgGet().then(function(W){if(!W)return;var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});btn.disabled=!can;btn.style.opacity=can?"1":".45";btn.style.cursor=can?"pointer":"not-allowed";});}}});
  if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s&&typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();});
 }
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
