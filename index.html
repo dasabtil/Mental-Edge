@@ -1165,7 +1165,7 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
  +".wkg-top{display:flex;align-items:center;gap:8px}"
  +".wkg-label{flex:1;font-size:14.5px;color:var(--text)}"
  +".wkg-nums{display:flex;align-items:center;gap:5px;flex:none}"
- +".wkg-nums input{width:54px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:13px;text-align:right}"
+ +".wkstep{width:30px;height:30px;flex:none;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;font:inherit;font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}.wkstep:active{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}.wkg-nums input{width:54px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:13px;text-align:right}"
  +".wkg-if{font-size:12.5px;color:var(--muted);margin:5px 0 2px;font-style:italic}"
  +".wkadd{border-top:1px solid var(--line);margin-top:12px;padding-top:12px;display:flex;flex-direction:column;gap:8px}"
  +".wkadd-row{display:flex;gap:8px;flex-wrap:wrap}"
@@ -1194,7 +1194,7 @@ function renderNormal(panel,W,hasLegacy){
   html+='<div class="wkcat"><div class="wkcat-h">'+clab+(OBLIG.indexOf(cid)>=0?(items.length?' <span class="wkdone">\u2713</span>':' <span class="wkmiss">à remplir</span>'):'')+'</div>';
   if(items.length===0)html+='<div class="wkempty">Aucun objectif.</div>';
   items.forEach(function(g){var tgt=Number(g.target)||0,cur=Number(g.current)||0,pct=tgt>0?Math.round(cur/tgt*100):0,w=Math.max(0,Math.min(100,pct));
-   html+='<div class="wkgoal"><div class="wkg-top"><span class="wkg-label">'+esc(g.label)+'</span><span class="wkg-nums"><input type="text" inputmode="decimal" data-wcur="'+g.id+'" value="'+esc(String(g.current))+'"><span class="gt">/ '+esc(String(g.target))+' '+esc(g.unit||"")+'</span></span><button class="gdel" data-wdel="'+g.id+'" title="Retirer">&times;</button></div>';
+   html+='<div class="wkgoal"><div class="wkg-top"><span class="wkg-label">'+esc(g.label)+'</span><span class="wkg-nums"><button class="wkstep" data-wdec="'+g.id+'">\u2212</button><input type="text" inputmode="decimal" data-wcur="'+g.id+'" value="'+esc(String(g.current))+'"><button class="wkstep" data-winc="'+g.id+'">+</button><span class="gt">/ '+esc(String(g.target))+' '+esc(g.unit||"")+'</span></span><button class="gdel" data-wdel="'+g.id+'" title="Retirer">&times;</button></div>';
    if(g.ifthen)html+='<div class="wkg-if">Si '+esc(g.ifthen)+', alors je m\'y tiens.</div>';
    html+='<div class="bar"><i style="width:'+w+'%"></i></div></div>';});
   html+='</div>';});
@@ -1216,30 +1216,31 @@ function renderReview(panel,W){
  html+='<button class="mini-add" id="wkValid"'+(can?'':' disabled style="opacity:.45;cursor:not-allowed"')+'>Valider le bilan et démarrer la semaine</button></div>';
  panel.innerHTML=html;
 }
-window.renderWeek=async function(){
+window.renderWeek=async function(preW){
  styleOnce();var panel=document.getElementById("weekPanel");if(!panel)return;
  if(typeof cloud==="undefined"||!cloud||!cloud.uid){panel.innerHTML='<p class="wkempty" style="padding:10px 0">Connexion en cours…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1200);return;}
  var curStart=weekStartIso(new Date());
- var res=await wgGet();
- if(res.err){ // lecture échouée : NE RIEN écraser, réessayer sous peu
-   panel.innerHTML='<p class="wkempty" style="padding:10px 0">Chargement de tes objectifs…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1500);return;
- }
- var W=res.val;
- if(W===null){ // vraiment aucune donnée → migration sûre depuis l'ancien système, une seule fois
-   W={weekStart:curStart,goals:impMap(await ugGetSem())};await wgSet(W);
+ var W;
+ if(preW){W=preW;}
+ else{
+   var res=await wgGet();
+   if(res.err){panel.innerHTML='<p class="wkempty" style="padding:10px 0">Chargement de tes objectifs…</p>';clearTimeout(window.__wkRetry);window.__wkRetry=setTimeout(function(){if(typeof goalH!=="undefined"&&goalH==="sem")window.renderWeek();},1500);return;}
+   W=res.val;
+   if(W===null){W={weekStart:curStart,goals:impMap(await ugGetSem())};await wgSet(W);}
  }
  var legacy=(!W.goals||W.goals.length===0)?(await ugGetSem()):[];
  if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);
  updateBadge();
 };
+async function incGoal(id,delta){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;var cur=Number(String(g.current).replace(",","."))||0;var nv=Math.max(0,cur+delta);g.current=String(nv);await wgSet(W);if(nv>cur){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-cur);await setJSON("userSteps",stp);}catch(e){}}window.renderWeek(W);}
 async function onCur(id,v){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var g=W.goals.find(function(x){return x.id===id;});if(!g)return;
  var oldv=Number(String(g.current).replace(",","."))||0,nv=Number(String(v).replace(",","."))||0;g.current=String(v).replace(",",".");await wgSet(W);
  if(nv>oldv){try{var stp=await getJSON("userSteps",{total:0});stp.total=(stp.total||0)+(nv-oldv);await setJSON("userSteps",stp);}catch(e){}}
- window.renderWeek();}
+ window.renderWeek(W);}
 async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek();}
 async function addGoal(){var label=val("#wkLabel");if(!label)return;var cat=val("#wkCat")||"autre",target=parseFloat((val("#wkTarget")||"").replace(",","."))||1,unit=val("#wkUnit"),ift=val("#wkIf");
- var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek();}
-async function delGoal(id){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek();}
+ var res=await wgGet();if(res.err)return;var W=res.val||{weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);window.renderWeek(W);}
+async function delGoal(id){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;W.goals=W.goals.filter(function(x){return x.id!==id;});await wgSet(W);window.renderWeek(W);}
 async function validate(){var res=await wgGet();if(res.err||!res.val)return;var W=res.val;var curStart=weekStartIso(new Date());
  var arch=await arGet();var review={items:{},done:new Date().toISOString()};
  W.goals.forEach(function(g){var s=reviewState[g.id]||{};review.items[g.id]={label:g.label,reached:!!s.reached,cause:s.reached?"":((s.cause||"").trim())};});
@@ -1250,6 +1251,8 @@ function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
   var d=t.getAttribute&&t.getAttribute("data-wdel");if(d){delGoal(d);return;}
   if(t.id==="wkAdd"){addGoal();return;}
   if(t.id==="wkImport"){importLegacy();return;}
+  var inc=t.getAttribute&&t.getAttribute("data-winc");if(inc){incGoal(inc,1);return;}
+  var dec=t.getAttribute&&t.getAttribute("data-wdec");if(dec){incGoal(dec,-1);return;}
   if(t.id==="wkValid"&&!t.disabled){validate();return;}
   var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");wgGet().then(function(r){var W=r&&r.val;if(W)renderReview(panel2,W);});return;}});
  panel.addEventListener("change",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-wcur");if(c)onCur(c,e.target.value);});
