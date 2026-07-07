@@ -1140,14 +1140,7 @@ var reviewState={};
 var MQ=Promise.resolve();
 function enqueue(fn){MQ=MQ.then(fn).catch(function(e){dlog("ERREUR file: "+(e&&e.message?e.message:e));});return MQ;}
 // --- journal de diagnostic fixe (survit aux re-render ; persiste via sessionStorage) ---
-function dbox(){var b=document.getElementById("wkDbg");if(b)return b;b=document.createElement("div");b.id="wkDbg";
- b.setAttribute("style","position:fixed;left:8px;right:8px;bottom:8px;max-height:38vh;overflow:auto;background:rgba(10,14,20,.95);color:#cfe3ff;font:11px/1.5 monospace;padding:8px 10px;border-radius:10px;z-index:400;white-space:pre-wrap");
- var x=document.createElement("button");x.textContent="fermer";x.setAttribute("style","position:sticky;float:right;top:0;border:none;background:#2a6dbf;color:#fff;border-radius:6px;padding:2px 8px;font:inherit;cursor:pointer");
- x.addEventListener("click",function(){b.remove();try{sessionStorage.removeItem("wkLog");}catch(e){}});
- b.appendChild(x);var pre=document.createElement("div");pre.id="wkDbgTxt";b.appendChild(pre);document.body.appendChild(b);
- try{var old=sessionStorage.getItem("wkLog");if(old)pre.textContent=old+"\n--- PAGE RECHARGEE ---\n";}catch(e){}
- return b;}
-function dlog(s){try{var b=dbox(),pre=b.querySelector("#wkDbgTxt");var line=new Date().toTimeString().slice(0,8)+" "+s;pre.textContent+=line+"\n";b.scrollTop=b.scrollHeight;try{sessionStorage.setItem("wkLog",(pre.textContent||"").slice(-4000));}catch(e){}}catch(e){}}
+function dlog(s){try{console.log("[semaine] "+s);}catch(e){}}
 
 function catLab(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i][1];return c;}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
@@ -1194,7 +1187,6 @@ function styleOnce(){if(document.getElementById("wkCss"))return;var s=document.c
 async function updateBadge(){try{var stp=await getJSON("userSteps",{total:0});var sb=document.getElementById("stepBadge");if(sb)sb.textContent="Pas accomplis : "+(stp.total||0);}catch(e){}}
 function showErr(e){var p=document.getElementById("weekPanel");if(p)p.insertAdjacentHTML("afterbegin",'<div style="background:#b5483f;color:#fff;padding:8px 10px;border-radius:8px;margin-bottom:10px;font-size:12px">\u26a0 '+(e&&e.message?e.message:e)+'</div>');}
 function storageOK(){return typeof getJSON==="function"&&typeof setJSON==="function";}
-function showInfo(m){var p=document.getElementById("weekPanel");if(p)p.insertAdjacentHTML("afterbegin",'<div style="background:#2a6dbf;color:#fff;padding:6px 9px;border-radius:7px;margin-bottom:6px;font-size:11px">'+m+'</div>');}
 function renderNormal(panel,W,hasLegacy){
  var filled=OBLIG.filter(function(c){return W.goals.some(function(g){return g.cat===c;});});
  var missing=OBLIG.filter(function(c){return filled.indexOf(c)<0;});
@@ -1206,9 +1198,9 @@ function renderNormal(panel,W,hasLegacy){
   html+='<div class="wkcat"><div class="wkcat-h">'+clab+(OBLIG.indexOf(cid)>=0?(items.length?' <span class="wkdone">\u2713</span>':' <span class="wkmiss">à remplir</span>'):'')+'</div>';
   if(items.length===0)html+='<div class="wkempty">Aucun objectif.</div>';
   items.forEach(function(g){var tgt=Number(g.target)||0,cur=Number(g.current)||0,pct=tgt>0?Math.round(cur/tgt*100):0,w=Math.max(0,Math.min(100,pct));
-   html+='<div class="wkgoal"><div class="wkg-top"><span class="wkg-label">'+esc(g.label)+'</span><span class="wkg-nums"><button type="button" class="wkstep" data-wdec="'+g.id+'">\u2212</button><input type="text" inputmode="decimal" data-wcur="'+g.id+'" value="'+esc(String(g.current))+'"><button type="button" class="wkstep" data-winc="'+g.id+'">+</button><span class="gt">/ '+esc(String(g.target))+' '+esc(g.unit||"")+'</span></span><button type="button" class="gdel" data-wdel="'+g.id+'" title="Retirer">&times;</button></div>';
+   html+='<div class="wkgoal"><div class="wkg-top"><span class="wkg-label">'+esc(g.label)+((cur>=tgt&&tgt>0)?' <span style="color:var(--green);font-weight:700">\u2713 r\u00e9alis\u00e9</span>':'')+'</span><span class="wkg-nums"><button type="button" class="wkstep" data-wdec="'+g.id+'">\u2212</button><input type="text" inputmode="decimal" data-wcur="'+g.id+'" value="'+esc(String(g.current))+'"><button type="button" class="wkstep" data-winc="'+g.id+'">+</button><span class="gt">/ '+esc(String(g.target))+' '+esc(g.unit||"")+'</span></span><button type="button" class="gdel" data-wdel="'+g.id+'" title="Retirer">&times;</button></div>';
    if(g.ifthen)html+='<div class="wkg-if">Si '+esc(g.ifthen)+', alors je m\'y tiens.</div>';
-   html+='<div class="bar"><i style="width:'+w+'%"></i></div></div>';});
+   html+='<div class="bar"><i style="width:'+w+'%;background:'+(w>=100?'var(--green)':'var(--accent)')+'"></i></div></div>';});
   html+='</div>';});
  html+='<div class="wkadd"><div class="wkadd-row"><input id="wkLabel" placeholder="Nouvel objectif..."><select id="wkCat">'+CATS.map(function(p){return '<option value="'+p[0]+'">'+p[1]+'</option>';}).join("")+'</select></div>'
   +'<div class="wkadd-row"><input id="wkTarget" placeholder="Cible (nb)"><input id="wkUnit" placeholder="Unité"></div>'
@@ -1230,7 +1222,7 @@ function renderReview(panel,W){
 }
 window.renderWeek=async function(preW){
  styleOnce();var panel=document.getElementById("weekPanel");if(!panel)return;
- if(!storageOK()){panel.innerHTML='<div style="background:#b5483f;color:#fff;padding:10px;border-radius:8px;font-size:13px">Diagnostic : le stockage du moteur (getJSON/setJSON) est inaccessible depuis ce module. build 51</div>';return;}
+ if(!storageOK()){panel.innerHTML='<div style="background:#b5483f;color:#fff;padding:10px;border-radius:8px;font-size:13px">Diagnostic : le stockage du moteur (getJSON/setJSON) est inaccessible depuis ce module. build 52</div>';return;}
  var curStart=weekStartIso(new Date());
  var W;
  if(preW){W=preW;dlog("render (état en mémoire)");}
@@ -1238,7 +1230,7 @@ window.renderWeek=async function(preW){
  if(!W.weekStart)W.weekStart=curStart;if(!W.goals)W.goals=[];
  var legacy=(W.goals.length===0)?(await ugGetSem()):[];
  try{if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);}catch(rerr){showErr("rendu: "+(rerr&&rerr.message?rerr.message:rerr));return;}
- panel.insertAdjacentHTML("beforeend",'<div style="text-align:right;color:var(--muted2,#9aa);font-size:10px;margin-top:10px;opacity:.7">build 51</div>');
+ panel.insertAdjacentHTML("beforeend",'<div style="text-align:right;color:var(--muted2,#9aa);font-size:10px;margin-top:10px;opacity:.7">build 52</div>');
  updateBadge();
 };
 async function persistCur(id,nv){
@@ -1259,7 +1251,7 @@ function incGoal(id,delta){var inp=document.querySelector('#weekPanel input[data
  if(!inp){dlog("+/-: champ introuvable "+id);return;}
  var cur=Number(String(inp.value).replace(",","."))||0,nv=Math.max(0,cur+delta);
  inp.value=nv;
- var row=inp.closest(".wkgoal");if(row){var barI=row.querySelector(".bar i"),gt=row.querySelector(".gt");var tgt=gt?(parseFloat(gt.textContent.replace("/","").trim())||0):0;if(barI&&tgt>0)barI.style.width=Math.max(0,Math.min(100,Math.round(nv/tgt*100)))+"%";}
+ var row=inp.closest(".wkgoal");if(row){var barI=row.querySelector(".bar i"),gt=row.querySelector(".gt");var tgt=gt?(parseFloat(gt.textContent.replace("/","").trim())||0):0;if(barI&&tgt>0){var pw=Math.max(0,Math.min(100,Math.round(nv/tgt*100)));barI.style.width=pw+"%";barI.style.background=(pw>=100?"var(--green)":"var(--accent)");}}
  dlog("tap "+(delta>0?"+":"\u2212")+" : "+cur+" -> "+nv);
  enqueue(function(){return persistCur(id,nv);});}
 function onCur(id,v){var nv=Number(String(v).replace(",","."))||0;dlog("saisie champ: "+nv);enqueue(function(){return persistCur(id,nv);});}
