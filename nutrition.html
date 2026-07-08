@@ -106,7 +106,18 @@ ul.dots li small{color:var(--muted)}
 .authbtns button:hover{background:var(--accent);color:var(--on-accent)}
 .authmsg{margin-top:12px;color:var(--accent);font-size:13px;min-height:16px}
 .footer{margin-top:70px;color:var(--muted2);font-size:12.5px;text-align:center}
-</style></head><body>
+</style><style>
+#themeBtn{display:none!important}
+@media(max-width:760px){
+ #logoutBtn{display:none!important}
+ .nav{position:static!important;transform:none!important}
+ .nav-in{flex-wrap:wrap;row-gap:2px}
+ .brand{order:1}
+ .navright{order:2;margin-left:auto}
+ .navlinks{order:3;width:100%;justify-content:flex-start;padding:2px 0 6px}
+}
+</style>
+</head><body>
 <div id="authOverlay" class="authov"><div class="authbox"><div class="authlogo"><img src="assets/ef25df956b012609.png" alt=""></div><h2>Mental Edge</h2><p class="authsub">Connecte-toi pour accéder à ton espace. Tes données sont privées et synchronisées entre tes appareils.</p><input type="email" id="authEmail" placeholder="Ton e-mail" autocomplete="username"><input type="password" id="authPw" placeholder="Mot de passe" autocomplete="current-password"><div class="authbtns"><button id="authSignin">Se connecter</button><button id="authSignup">Créer un compte</button></div><div class="authmsg" id="authMsg"></div></div></div>
 
 <div class="wrap">
@@ -125,19 +136,8 @@ ul.dots li small{color:var(--muted)}
   <p class="sub">Un cadre, pas un régime. Les quantités sont fixées d'avance, les décisions sont déjà prises. Objectif : 100 kg, énergie stable en session, zéro prison alimentaire.</p>
 </section>
 
-<section class="sec" id="cadresoir">
-  <div class="sec-h"><span class="no">01</span><h2>Le cadre du soir</h2></div>
-  <p class="sec-desc">Tous les soirs, week-end inclus. Assiette portionnée, repas terminé, je me lève de table. Le plat fixe la quantité — pas la volonté.</p>
-  <div class="card">
-    <div class="step"><div class="n">1</div><div><b>Soupe de légumes</b> — un bol (300 ml), avant le plat<small>Soupe fraîche du rayon frais (viser &lt; 0,6 g de sel / 100 ml). Elle remplit, elle coupe l'envie de se resservir.</small></div></div>
-    <div class="step"><div class="n">2</div><div><b>Plat portionné</b> — mangé à part, à mon rythme<small>Comme J'aime (stock ~2 mois), puis transition Food4Fitness si le test est concluant. Une seule assiette, le repas a un début et une fin.</small></div></div>
-    <div class="step"><div class="n">3</div><div><b>Skyr nature 1 pot (150 g) + 1 fruit</b> — la clôture<small>Si vraie faim après : un 2ᵉ pot, plafond 2. C'est la fin du repas, pas un deuxième service. Fruit sucré : banane, pomme gala, fraises.</small></div></div>
-    <div class="step"><div class="n">✓</div><div><b>Je me lève de table</b><small>Présent avec la famille, mais mon repas est clos. Pas d'exposition prolongée au plat commun — c'est le design du comportement, pas de la privation.</small></div></div>
-  </div>
-</section>
-
 <section class="sec" id="matin">
-  <div class="sec-h"><span class="no">02</span><h2>Le cadre du matin — 4 options</h2></div>
+  <div class="sec-h"><span class="no">01</span><h2>Le cadre du matin — 4 options</h2></div>
   <p class="sec-desc">Un choix, pas une décision : les quatre formules sont validées, tu prends celle du jour. Toutes ~30-40 g de protéines sauf la D (jours sans session). D3 + K2 avec ce repas.</p>
   <div class="grid2">
     <div class="card">
@@ -168,7 +168,7 @@ ul.dots li small{color:var(--muted)}
 </section>
 
 <section class="sec" id="midi">
-  <div class="sec-h"><span class="no">03</span><h2>Le cadre du midi</h2></div>
+  <div class="sec-h"><span class="no">02</span><h2>Le cadre du midi</h2></div>
   <p class="sec-desc">Toujours ~12h, session ou pas. En pause de session : la même chose en accéléré — plat réchauffé 2 min + pot de skyr + fruit ; l'entrée saute si le temps manque.</p>
   <div class="grid2">
     <div class="card">
@@ -193,7 +193,7 @@ ul.dots li small{color:var(--muted)}
 </section>
 
 <section class="sec" id="gouter">
-  <div class="sec-h"><span class="no">04</span><h2>Goûter &amp; soirées de session</h2></div>
+  <div class="sec-h"><span class="no">03</span><h2>Goûter &amp; soirées de session</h2></div>
   <div class="grid2">
     <div class="card">
       <div class="mini">Goûter ~16h — protéiné par défaut</div>
@@ -217,6 +217,17 @@ ul.dots li small{color:var(--muted)}
         <li>Le cadre du soir en accéléré : plat CJ réchauffé + skyr 1 pot + fruit <small>(soupe si le temps le permet)</small></li>
       </ul>
     </div>
+  </div>
+</section>
+
+<section class="sec" id="cadresoir">
+  <div class="sec-h"><span class="no">04</span><h2>Le cadre du soir</h2></div>
+  <p class="sec-desc">Tous les soirs, week-end inclus. Assiette portionnée, repas terminé, je me lève de table. Le plat fixe la quantité — pas la volonté.</p>
+  <div class="card">
+    <div class="step"><div class="n">1</div><div><b>Soupe de légumes</b> — un bol (300 ml), avant le plat<small>Soupe fraîche du rayon frais (viser &lt; 0,6 g de sel / 100 ml). Elle remplit, elle coupe l'envie de se resservir.</small></div></div>
+    <div class="step"><div class="n">2</div><div><b>Plat portionné</b> — mangé à part, à mon rythme<small>Comme J'aime (stock ~2 mois), puis transition Food4Fitness si le test est concluant. Une seule assiette, le repas a un début et une fin.</small></div></div>
+    <div class="step"><div class="n">3</div><div><b>Skyr nature 1 pot (150 g) + 1 fruit</b> — la clôture<small>Si vraie faim après : un 2ᵉ pot, plafond 2. C'est la fin du repas, pas un deuxième service. Fruit sucré : banane, pomme gala, fraises.</small></div></div>
+    <div class="step"><div class="n">✓</div><div><b>Je me lève de table</b><small>Présent avec la famille, mais mon repas est clos. Pas d'exposition prolongée au plat commun — c'est le design du comportement, pas de la privation.</small></div></div>
   </div>
 </section>
 
