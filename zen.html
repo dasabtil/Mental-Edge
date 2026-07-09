@@ -1012,6 +1012,9 @@ if(sl)sl.addEventListener("change",async function(){await kvSet("flameSeuil",sl.
 document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#habitList .hck"))setTimeout(refresh,500);});}
 async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;wire();refresh();}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
+window.__flameRefresh=function(){try{refresh();}catch(e){}};
+document.addEventListener("visibilitychange",function(){if(!document.hidden)init();});
+window.addEventListener("focus",function(){init();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script><script>(function(){
 var circle=document.getElementById('zCircle'),phase=document.getElementById('zPhase'),bb=document.getElementById('zBreathBtn'),note=document.getElementById('zNote'),leftEl=document.getElementById('zLeft');
@@ -1042,4 +1045,40 @@ function chapter(path){var low=(path||'').toLowerCase();var seg=path.split('/').
 async function loadMeds(){if(loaded||!window.__sb)return;var box=document.getElementById('medList');try{var sess=(await window.__sb.auth.getSession()).data.session;if(!sess){box.textContent='Connecte-toi pour voir tes m\u00e9ditations.';return;}}catch(e){}loaded=true;box.textContent='Chargement\u2026';BUCKET=await findBucket();if(!BUCKET){box.innerHTML='Bucket de m\u00e9ditations introuvable. V\u00e9rifie le nom du bucket dans Supabase &rarr; Storage.';loaded=false;return;}var acc=[];try{await walk('',0,acc);}catch(e){box.textContent='Erreur : '+e.message;loaded=false;return;}box.innerHTML='';if(!acc.length){box.innerHTML='Aucun fichier audio trouv\u00e9 dans le bucket <b>'+BUCKET+'</b>. V\u00e9rifie (1) la r\u00e8gle SQL, et (2) que des fichiers audio sont bien d\u00e9pos\u00e9s dedans.';return;}acc.forEach(function(g){var c=chapter(g.path);g._n=c[0];g._label=c[1];});acc.sort(function(a,b){return a._n-b._n;});acc.forEach(function(g,idx){var card=document.createElement('div');card.className='foldcard';var head=document.createElement('button');head.className='foldhead';head.innerHTML='<span class="foldtitle">'+g._label+'</span><span class="badge">'+g.files.length+'</span><span class="foldchev">&#8250;</span>';var body=document.createElement('div');body.className='foldbody';body.id='medc'+idx;head.addEventListener('click',function(){body.classList.toggle('open');head.classList.toggle('open');});g.files.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'});});g.files.forEach(function(f){body.appendChild(mkTrack(g.path?g.path+'/'+f.name:f.name,f.name));});card.appendChild(head);card.appendChild(body);box.appendChild(card);});}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange){window.__sb.auth.onAuthStateChange(function(e,s){if(s)loadMeds();});}
 window.addEventListener('load',function(){setTimeout(loadMeds,1200);});
-})();</script></body></html>
+})();</script><script>
+/* ---- Resynchronisation multi-appareils : relit la base au retour et périodiquement ---- */
+(function(){
+ function typing(){var a=document.activeElement;return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));}
+ function menuOpen(){var m=document.getElementById("mobMenu");return m&&m.classList.contains("show");}
+ var busy=false,last=0;
+ async function cloudResync(force){
+  if(busy)return;
+  if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;
+  if(!force&&(typing()||menuOpen()))return;
+  var t=Date.now();if(!force&&t-last<8000)return;last=t;
+  busy=true;
+  try{
+   if(typeof kvFlush==="function"){try{await kvFlush();}catch(e){}}
+   var res=await window.__sb.from("kv").select("k,v");
+   if(res&&!res.error&&res.data){
+    var fresh={};res.data.forEach(function(r){fresh[r.k]=r.v;});
+    var changed=false,k;
+    for(k in fresh){if(cloud.cache[k]!==fresh[k]){changed=true;break;}}
+    if(!changed)for(k in cloud.cache){if(!(k in fresh)){changed=true;break;}}
+    if(changed&&!typing()&&!menuOpen()){
+     cloud.cache=fresh;
+     if(typeof boot==="function"){try{await boot();}catch(e){}}
+     if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}
+    }
+   }
+  }catch(e){}
+  busy=false;
+ }
+ window.__cloudResync=cloudResync;
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)cloudResync();});
+ window.addEventListener("focus",function(){cloudResync();});
+ window.addEventListener("online",function(){cloudResync(true);});
+ setInterval(function(){if(!document.hidden)cloudResync();},60000);
+})();
+</script>
+</body></html>

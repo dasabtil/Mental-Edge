@@ -1031,6 +1031,9 @@ if(sl)sl.addEventListener("change",async function(){await kvSet("flameSeuil",sl.
 document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#habitList .hck"))setTimeout(refresh,500);});}
 async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;wire();refresh();}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
+window.__flameRefresh=function(){try{refresh();}catch(e){}};
+document.addEventListener("visibilitychange",function(){if(!document.hidden)init();});
+window.addEventListener("focus",function(){init();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script><script>(function(){
 var KEY="orga_data",SEED={"tournois":[],"depenses":[],"recettes":[],"bankroll":[],"liens":[],"comptes":[]},D={tournois:[],depenses:[],recettes:[],bankroll:[],liens:[],comptes:[]},uid=null,ready=false,PER="all",editId=null,PYEAR=new Date().getFullYear();
@@ -1184,4 +1187,40 @@ function wire(){document.querySelectorAll(".pktab").forEach(function(b){b.addEve
 async function init(){var raw=await kvGet(KEY);if(raw){try{var p=JSON.parse(raw);D.tournois=p.tournois||[];D.depenses=p.depenses||[];D.recettes=p.recettes||[];D.bankroll=p.bankroll||[];D.liens=p.liens||[];D.comptes=p.comptes||[];}catch(e){}}else{D={tournois:[],depenses:[],recettes:[],bankroll:[],liens:[],comptes:[]};}wire();setView("dash");renderAll();}
 function setReady(s){if(ready||!s)return;uid=s.user.id;ready=true;init();}
 if(window.__sb&&window.__sb.auth){if(window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){setReady(s);});(async function(){try{var g=await window.__sb.auth.getSession();if(g.data.session)setReady(g.data.session);}catch(e){}})();}
-})();</script></body></html>
+})();</script><script>
+/* ---- Resynchronisation multi-appareils : relit la base au retour et périodiquement ---- */
+(function(){
+ function typing(){var a=document.activeElement;return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));}
+ function menuOpen(){var m=document.getElementById("mobMenu");return m&&m.classList.contains("show");}
+ var busy=false,last=0;
+ async function cloudResync(force){
+  if(busy)return;
+  if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;
+  if(!force&&(typing()||menuOpen()))return;
+  var t=Date.now();if(!force&&t-last<8000)return;last=t;
+  busy=true;
+  try{
+   if(typeof kvFlush==="function"){try{await kvFlush();}catch(e){}}
+   var res=await window.__sb.from("kv").select("k,v");
+   if(res&&!res.error&&res.data){
+    var fresh={};res.data.forEach(function(r){fresh[r.k]=r.v;});
+    var changed=false,k;
+    for(k in fresh){if(cloud.cache[k]!==fresh[k]){changed=true;break;}}
+    if(!changed)for(k in cloud.cache){if(!(k in fresh)){changed=true;break;}}
+    if(changed&&!typing()&&!menuOpen()){
+     cloud.cache=fresh;
+     if(typeof boot==="function"){try{await boot();}catch(e){}}
+     if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}
+    }
+   }
+  }catch(e){}
+  busy=false;
+ }
+ window.__cloudResync=cloudResync;
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)cloudResync();});
+ window.addEventListener("focus",function(){cloudResync();});
+ window.addEventListener("online",function(){cloudResync(true);});
+ setInterval(function(){if(!document.hidden)cloudResync();},60000);
+})();
+</script>
+</body></html>

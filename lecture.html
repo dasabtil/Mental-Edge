@@ -994,6 +994,9 @@ if(sl)sl.addEventListener("change",async function(){await kvSet("flameSeuil",sl.
 document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#habitList .hck"))setTimeout(refresh,500);});}
 async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;wire();refresh();}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
+window.__flameRefresh=function(){try{refresh();}catch(e){}};
+document.addEventListener("visibilitychange",function(){if(!document.hidden)init();});
+window.addEventListener("focus",function(){init();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script><script>(function(){
 var TX=[{"t": "Jared Tendler — The Mental Game of Poker", "h": "<p>Pour Tendler, le tilt n'est pas un défaut de caractère mais un signal : une faille mentale (sentiment d'injustice, peur de mal jouer, dégoût de la malchance) qui libère une émotion accumulée. La méthode tient en quatre temps : repérer le déclencheur, écrire la pensée faussée qui se cache derrière, la corriger par une pensée juste, puis relire cette correction avant et pendant la session.</p><p>La confiance solide ne vient pas des derniers résultats — trop dépendants de la variance — mais de la qualité reconnue de ton processus. On ne cherche pas à supprimer l'émotion : on la fait redescendre sous le seuil où elle abîme la décision.</p>"}, {"t": "Kobe Bryant — Mamba Mentality", "h": "<p>La « Mamba Mentality » n'est pas un slogan mais une obsession du détail : étudier l'adversaire image par image, arriver avant tout le monde, répéter le geste jusqu'à ce qu'il devienne automatique. Le talent n'est qu'un point de départ ; c'est le travail invisible qui fait la différence le jour J.</p><p>Kobe assumait l'échec comme une donnée du jeu : rater n'était pas une honte mais une information pour ajuster. La peur du raté ne devait jamais empêcher de prendre le tir décisif.</p>"}, {"t": "Novak Djokovic — Serve to Win", "h": "<p>Djokovic attribue une grande part de sa régularité à l'hygiène de vie : sommeil, alimentation, respiration, récupération. Sa force mentale repose sur des routines stables qui réduisent le bruit émotionnel avant et pendant le match.</p><p>Face à un public hostile ou à un score difficile, il s'entraîne à transformer la pression en énergie plutôt qu'en menace, en revenant au point présent, un échange à la fois.</p>"}, {"t": "Alex Honnold — Free Solo", "h": "<p>Honnold ne grimpe pas « sans peur » : il rend l'extraordinaire ordinaire par une préparation maniaque. Avant un solo, il répète chaque mouvement des centaines de fois, jusqu'à ce que l'incertitude — et donc la peur — disparaisse presque entièrement.</p><p>Sa leçon transposable : on ne gère pas le stress d'un grand moment par le courage seul, mais en réduisant l'inconnu à l'avance, méthodiquement.</p>"}, {"t": "David Goggins — Can't Hurt Me", "h": "<p>Goggins parle de « calleser l'esprit » : s'exposer volontairement à l'inconfort pour élargir sa tolérance. Quand le corps réclame l'arrêt, la limite réelle est bien plus loin que la limite ressentie — c'est sa règle des 40 %.</p><p>Son outil mental, le « cookie jar » : se rappeler les épreuves déjà surmontées pour puiser de la confiance dans les moments durs. La discipline, pas la motivation, est le carburant fiable.</p>"}, {"t": "Mike Horn — Conquérir l'impossible", "h": "<p>Mike Horn affronte des environnements extrêmes en découpant l'immensité en objectifs atteignables : un pas, puis le suivant. Ce n'est pas la destination qui use, c'est de la regarder de trop loin.</p><p>Il cultive l'acceptation de la souffrance comme partie du voyage, et la responsabilité totale de ses choix — personne d'autre ne viendra décider à sa place.</p>"}, {"t": "Anders Ericsson — Peak", "h": "<p>Ericsson a montré que l'expertise ne vient pas d'un don mais de la « pratique délibérée » : un travail ciblé, à la limite de ses capacités, avec des objectifs précis et un feedback immédiat. Répéter ce qu'on sait déjà faire ne fait pas progresser ; sortir de la zone de confort, si.</p><p>Le rôle du retour d'information est central : sans correction précise, on automatise ses erreurs au lieu de s'améliorer.</p>"}, {"t": "Carol Dweck — Mindset", "h": "<p>Dweck oppose deux états d'esprit. En état d'esprit « fixe », on croit ses capacités figées : l'erreur menace l'ego, on évite le risque. En état d'esprit « de croissance », l'effort et l'échec deviennent des moyens d'apprendre, donc on cherche le défi.</p><p>Le levier concret : remplacer « je ne sais pas faire » par « je ne sais pas encore faire ». Le langage qu'on s'adresse oriente l'apprentissage.</p>"}, {"t": "Matthew Walker — Why We Sleep", "h": "<p>Le sommeil n'est pas un temps perdu mais le moment où le cerveau consolide la mémoire, régule les émotions et restaure l'attention. Manquer de sommeil dégrade la décision et l'autocontrôle — exactement ce dont un compétiteur a besoin.</p><p>Régularité des horaires, obscurité, fraîcheur et arrêt des écrans avant le coucher comptent davantage que la durée seule.</p>"}, {"t": "Andrew Huberman — Huberman Lab", "h": "<p>Huberman vulgarise des protocoles simples : la lumière du matin pour caler l'horloge interne et l'énergie ; des cycles de travail focalisé d'environ 90 minutes ; la respiration lente, expiration allongée (le « soupir physiologique ») pour faire retomber le stress en quelques souffles.</p><p>Principe directeur : de petits leviers physiologiques, appliqués régulièrement, pilotent l'attention et l'humeur mieux que la volonté seule.</p>"}, {"t": "Kelly McGonigal — The Upside of Stress", "h": "<p>McGonigal montre que la croyance sur le stress change ses effets : vu comme une menace, il use ; vu comme une ressource qui mobilise le corps pour relever un défi, il aide à mieux performer.</p><p>Réinterpréter les signes physiques (cœur qui bat, souffle court) comme « mon corps se prépare » plutôt que « je panique » améliore concrètement la performance.</p>"}, {"t": "Angela Duckworth — Grit", "h": "<p>Ce qui prédit la réussite sur la durée, c'est le « grit » : la combinaison de passion et de persévérance vers un objectif lointain. Le talent compte, mais l'effort compte double — il bâtit la compétence puis la transforme en résultats.</p><p>La clé n'est pas l'intensité d'un jour, mais la constance sur des années, autour d'un but qui a du sens pour soi.</p>"}, {"t": "Daniel Kahneman — Système 1 / Système 2", "h": "<p>Kahneman distingue deux pensées : la rapide, intuitive et émotionnelle ; la lente, analytique et coûteuse. Beaucoup d'erreurs viennent des biais de la pensée rapide (excès de confiance, aversion à la perte, ancrage).</p><p>Au poker comme ailleurs, savoir quand ralentir pour laisser parler la pensée lente — surtout sous émotion — protège la qualité des décisions.</p>"}, {"t": "Mihaly Csikszentmihalyi — Flow", "h": "<p>Le « flow » est cet état d'absorption totale où l'on perd la notion du temps. Il apparaît quand le défi est juste au-dessus de notre niveau, avec un objectif clair et un feedback immédiat — ni trop facile (ennui), ni trop dur (anxiété).</p><p>Concevoir ses sessions pour rester dans ce couloir optimal rend le travail à la fois plus performant et plus agréable.</p>"}];
@@ -1002,4 +1005,40 @@ var li=TX.length?doy()%TX.length:0,el=document.getElementById('ltText');
 function show(){if(el&&TX.length){var x=TX[((li%TX.length)+TX.length)%TX.length];el.innerHTML='<div class="lthead">'+x.t+'</div>'+x.h;}}
 show();var nb=document.getElementById('ltNext');if(nb)nb.addEventListener('click',function(){li++;show();});
 try{var n=(typeof DATA!=='undefined')?(DATA.neuro||null):null;var arr=Array.isArray(n)?n:[];if(arr.length){document.getElementById('lecNeuroWrap').style.display='';var box=document.getElementById('lecNeuro');arr.forEach(function(item){var t='',x='';if(Array.isArray(item)){t=item[0]||'';x=item[1]||'';}else if(typeof item==='string'){x=item;}else if(item){t=item.title||'';x=item.text||item.body||item.desc||'';}var d=document.createElement('div');d.className='readcard';d.innerHTML=(t?'<span class="rcat">Neuro</span><h3>'+t+'</h3>':'')+(x?'<p class="rsum">'+x+'</p>':'');box.appendChild(d);});}}catch(e){}
-})();</script></body></html>
+})();</script><script>
+/* ---- Resynchronisation multi-appareils : relit la base au retour et périodiquement ---- */
+(function(){
+ function typing(){var a=document.activeElement;return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));}
+ function menuOpen(){var m=document.getElementById("mobMenu");return m&&m.classList.contains("show");}
+ var busy=false,last=0;
+ async function cloudResync(force){
+  if(busy)return;
+  if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;
+  if(!force&&(typing()||menuOpen()))return;
+  var t=Date.now();if(!force&&t-last<8000)return;last=t;
+  busy=true;
+  try{
+   if(typeof kvFlush==="function"){try{await kvFlush();}catch(e){}}
+   var res=await window.__sb.from("kv").select("k,v");
+   if(res&&!res.error&&res.data){
+    var fresh={};res.data.forEach(function(r){fresh[r.k]=r.v;});
+    var changed=false,k;
+    for(k in fresh){if(cloud.cache[k]!==fresh[k]){changed=true;break;}}
+    if(!changed)for(k in cloud.cache){if(!(k in fresh)){changed=true;break;}}
+    if(changed&&!typing()&&!menuOpen()){
+     cloud.cache=fresh;
+     if(typeof boot==="function"){try{await boot();}catch(e){}}
+     if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}
+    }
+   }
+  }catch(e){}
+  busy=false;
+ }
+ window.__cloudResync=cloudResync;
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)cloudResync();});
+ window.addEventListener("focus",function(){cloudResync();});
+ window.addEventListener("online",function(){cloudResync(true);});
+ setInterval(function(){if(!document.hidden)cloudResync();},60000);
+})();
+</script>
+</body></html>
