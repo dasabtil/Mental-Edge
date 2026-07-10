@@ -1376,6 +1376,7 @@ if(document.readyState!=="loading")mount();else window.addEventListener("DOMCont
     if(changed&&!typing()&&!menuOpen()){
      cloud.cache=fresh;
      if(typeof boot==="function"){try{await boot();}catch(e){}}
+     if(window.__progRefresh){try{window.__progRefresh();}catch(e){}}
      if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}
     }
    }
@@ -1389,4 +1390,132 @@ if(document.readyState!=="loading")mount();else window.addEventListener("DOMCont
  setInterval(function(){if(!document.hidden)cloudResync();},60000);
 })();
 </script>
+<script>(function(){
+/* ==== Panneau Progression : agrège l'existant, aucune saisie nouvelle ==== */
+function $id(x){return document.getElementById(x);}
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+var MO=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+function frDate(isoS){var p=(isoS||"").split("-");if(p.length!==3)return isoS||"";return (+p[2])+" "+MO[(+p[1])-1];}
+var CATL={mental:"Mental",technique:"Technique",physique:"Physique",bienetre:"Bien-être",social:"Famille / social",autre:"Autre"};
+
+function dayOk(log,ids,seuil,day){if(!ids.length)return false;var arr=log[day]||[];var n=0;ids.forEach(function(i){if(arr.indexOf(i)>=0)n++;});var need=(seuil==="all"||seuil==null)?ids.length:Math.min(parseInt(seuil,10)||ids.length,ids.length);return n>=need;}
+
+function chainStats(log,off,ids,seuil,horizon){
+ // record = plus longue série sur l'horizon ; cur = série en cours (depuis aujourd'hui)
+ var d=new Date();d.setDate(d.getDate()-(horizon-1));
+ var best=0,run=0;
+ for(var i=0;i<horizon;i++){var day=iso(d);
+  if(off[day]){/* neutre */}
+  else if(dayOk(log,ids,seuil,day)){run++;if(run>best)best=run;}
+  else{run=0;}
+  d.setDate(d.getDate()+1);}
+ var cur=0;d=new Date();
+ for(var j=0;j<horizon;j++){var dj=iso(d);
+  if(off[dj]){d.setDate(d.getDate()-1);continue;}
+  if(dayOk(log,ids,seuil,dj)){cur++;}
+  else{if(j===0){d.setDate(d.getDate()-1);continue;}break;}
+  d.setDate(d.getDate()-1);}
+ return {best:best,cur:cur};
+}
+function consistency90(log,off,ids,seuil){
+ var ok=0,tot=0,d=new Date();
+ for(var i=0;i<90;i++){var day=iso(d);
+  if(!off[day]){tot++;if(dayOk(log,ids,seuil,day))ok++;}
+  d.setDate(d.getDate()-1);}
+ return tot?Math.round(ok/tot*100):null;
+}
+function weekAgg(arch){
+ var a=(arch||[]).slice().sort(function(x,y){return x.weekStart<y.weekStart?1:-1;}).slice(0,12);
+ var cats={},done=0,tot=0,best=null;
+ a.forEach(function(w){
+  var wd=0,wt=0;
+  (w.goals||[]).forEach(function(g){
+   var r=w.review&&w.review.items&&w.review.items[g.id];
+   var ok=!!(r&&r.reached);
+   var c=g.cat||"autre";
+   if(!cats[c])cats[c]={ok:0,tot:0};
+   cats[c].tot++;if(ok)cats[c].ok++;
+   wt++;if(ok)wd++;
+  });
+  done+=wd;tot+=wt;
+  if(wt>0){var pct=wd/wt;if(!best||pct>best.pct||(pct===best.pct&&wt>best.tot))best={weekStart:w.weekStart,ok:wd,tot:wt,pct:pct};}
+ });
+ return {cats:cats,done:done,tot:tot,weeks:a.length,best:best};
+}
+function weightTrend(W){
+ try{
+  var arr=(W||[]).slice().filter(function(x){return x&&x.date;}).sort(function(a,b){return a.date<b.date?-1:1;});
+  if(arr.length<2)return null;
+  function val(x){for(var k in x){if(k!=="date"){var n=parseFloat(String(x[k]).replace(",","."));if(!isNaN(n))return n;}}return null;}
+  var v0=val(arr[0]),v1=val(arr[arr.length-1]);
+  if(v0==null||v1==null)return null;
+  return {from:v0,to:v1,d:Math.round((v1-v0)*10)/10,since:arr[0].date};
+ }catch(e){return null;}
+}
+
+function tile(label,val,sub){return '<div class="pgt"><b>'+val+'</b><span>'+label+(sub?'<i>'+sub+'</i>':'')+'</span></div>';}
+
+async function render(){
+ if(typeof getJSON!=="function"||typeof cloud==="undefined"||!cloud||!cloud.uid)return false;
+ var host=$id("progPanel");
+ if(!host){
+  var wk=$id("weekPanel");if(!wk)return false;
+  var sec=wk.closest("section")||wk.closest(".sec");if(!sec)return false;
+  sec.insertAdjacentHTML("afterend",'<section class="sec" id="progSec"><div class="panel"><p class="kicker">Progression</p><h2 style="margin:4px 0 4px">Le mur des preuves</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 14px">Ce que tu as déjà construit — calculé automatiquement, rien à remplir.</p><div id="progPanel"></div></div></section>');
+  host=$id("progPanel");
+  if(!document.getElementById("pgCss")){var st=document.createElement("style");st.id="pgCss";
+   st.textContent=".pgrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}"
+   +".pgt{flex:1;min-width:118px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--surface)}"
+   +".pgt b{display:block;font-size:21px;color:var(--accent);line-height:1.15}"
+   +".pgt span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;letter-spacing:.02em}"
+   +".pgt span i{display:block;font-style:normal;color:var(--muted);opacity:.75;font-size:10.5px;margin-top:1px}"
+   +".pgcat{margin:4px 0 10px}"
+   +".pgcat .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text);margin-bottom:4px}"
+   +".pgnote{color:var(--muted);font-size:12.5px;margin:6px 0 0}";
+   document.head.appendChild(st);}
+ }
+ var log=await getJSON("habitsLog",{})||{};
+ var off=await getJSON("offDays",{})||{};
+ var habits=await getJSON("userHabits",[])||[];
+ var seuil=await getJSON("flameSeuil",null);if(seuil==null)seuil="all";
+ var ids=habits.map(function(h){return h.id;});
+ var steps=await getJSON("userSteps",{total:0})||{total:0};
+ var arch=await getJSON("weekArchive",[])||[];
+ var wRaw=await getJSON("userWeight",null);
+ var chain=chainStats(log,off,ids,seuil,730);
+ var cons=consistency90(log,off,ids,seuil);
+ var wk=weekAgg(arch);
+ var wt=weightTrend(wRaw);
+
+ var html='<div class="pgrow">';
+ html+=tile("chaîne actuelle","\uD83D\uDD25 "+chain.cur+" j","record : "+Math.max(chain.best,chain.cur)+" j");
+ html+=tile("pas accomplis",String(steps.total||0),"depuis le début");
+ if(cons!=null&&ids.length)html+=tile("régularité 90 j",cons+" %","jours off exclus");
+ if(wk.weeks)html+=tile("objectifs bouclés",wk.done+" / "+wk.tot,wk.weeks+" semaine"+(wk.weeks>1?"s":"")+" archivée"+(wk.weeks>1?"s":""));
+ if(wt)html+=tile("poids",wt.to+" kg",(wt.d>0?"+":"")+wt.d+" kg depuis le "+frDate(wt.since));
+ html+='</div>';
+
+ if(wk.best){
+  html+='<div class="pgnote" style="margin-bottom:12px">Meilleure semaine : <b style="color:var(--accent)">'+wk.best.ok+'/'+wk.best.tot+' objectifs</b> — semaine du '+frDate(wk.best.weekStart)+'.</div>';
+ }
+ var order=["mental","technique","physique","bienetre","social","autre"];
+ var hasCats=order.some(function(c){return wk.cats[c]&&wk.cats[c].tot>0;});
+ if(hasCats){
+  html+='<div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin:2px 0 8px">Objectifs atteints par catégorie · 12 dernières semaines</div>';
+  order.forEach(function(c){var s=wk.cats[c];if(!s||!s.tot)return;
+   var p=Math.round(s.ok/s.tot*100);
+   html+='<div class="pgcat"><div class="lbl"><span>'+esc(CATL[c]||c)+'</span><span>'+s.ok+'/'+s.tot+' · '+p+'%</span></div><div class="bar"><i style="width:'+p+'%;background:'+(p>=100?'var(--green)':'var(--accent)')+'"></i></div></div>';});
+ }
+ if(!wk.weeks&&!ids.length){html+='<div class="pgnote">Les preuves s\u2019accumuleront ici automatiquement : cha\u00eene d\u2019habitudes, objectifs de semaine boucl\u00e9s, r\u00e9gularit\u00e9\u2026</div>';}
+ host.innerHTML=html;
+ return true;
+}
+var tries=0;
+function boot2(){render().then(function(ok){if(!ok&&tries++<30)setTimeout(boot2,1000);});}
+if(document.readyState!=="loading")boot2();else window.addEventListener("DOMContentLoaded",boot2);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)render();});
+window.addEventListener("focus",function(){render();});
+window.__progRefresh=function(){render();};
+})();</script>
 </body></html>
