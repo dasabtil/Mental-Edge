@@ -458,6 +458,28 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 .tr-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;z-index:70;opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap}
 .tr-toast.show{opacity:1}
 @media(min-width:640px){.tr-scards{grid-template-columns:1fr 1fr}}
+/* ---- Assiduité ---- */
+.tr-as{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tr-atile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.tr-atile.full{grid-column:1 / -1}
+.tr-alab{color:var(--accent);font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.tr-abig{font-family:"Space Grotesk",serif;font-size:30px;font-weight:600;line-height:1;color:var(--text)}
+.tr-abig .u{font-size:13px;color:var(--muted);font-weight:400;margin-left:5px;letter-spacing:0}
+.tr-abig.off{color:var(--muted2)}
+.tr-abig.acc{color:var(--accent)}
+.tr-asub{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.45}
+.tr-abar{display:flex;gap:5px;margin-bottom:10px}
+.tr-abar i{flex:1;height:13px;border-radius:4px;background:var(--bg2);border:1px solid var(--line2)}
+.tr-abar i.on{background:var(--green-soft);border-color:var(--green-soft)}
+.tr-aline{height:8px;border-radius:5px;background:var(--bg2);overflow:hidden;margin-top:9px}
+.tr-aline i{display:block;height:100%;border-radius:5px;background:var(--green-soft);transition:width .4s}
+.tr-anx{display:flex;gap:14px;flex-wrap:wrap}
+.tr-anx>div{flex:1 1 150px;min-width:0}
+.tr-aname{font-size:14.5px;font-weight:600;color:var(--text);margin-top:2px}
+.tr-aname.dim{color:var(--muted2);font-weight:400}
+.tr-aname .sid,.tr-anext .sid{font-family:"Space Grotesk",serif;color:var(--accent);font-size:17px;font-weight:600}
+.tr-anext{background:none;border:none;padding:0;margin-top:2px;cursor:pointer;text-align:left;font-family:inherit;font-size:14.5px;font-weight:600;color:var(--text)}
+.tr-anext:hover{color:var(--accent)}
 </style><style>
 #themeBtn{display:none!important}
 @media(max-width:760px){
@@ -491,8 +513,14 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   <div id="trSession" style="display:none"></div>
 </section>
 
+<section class="sec" id="assiduite">
+  <div class="sec-h"><span class="no">02</span><h2>Assiduité</h2></div>
+  <p class="sec-desc">La métrique qui décide de tout : le volume fait. Pas la charge, pas la forme du jour. Une séance imparfaite compte, une séance sautée ne compte pas.</p>
+  <div id="trAssid"></div>
+</section>
+
 <section class="sec">
-  <div class="sec-h"><span class="no">02</span><h2>Historique</h2></div>
+  <div class="sec-h"><span class="no">03</span><h2>Historique</h2></div>
   <div id="trHist"></div>
 </section>
 
@@ -613,7 +641,8 @@ const GLOSSARY={
  "RIR":"Reps In Reserve : nombre de répétitions que tu pourrais encore faire avec une forme parfaite. RIR 2 = tu t'arrêtes 2 reps avant l'échec. On ne va jamais à l'échec total en phase de reprise.",
  "Double progression":"Tu gardes la même charge et tu montes les reps de séance en séance. Quand tu atteins le HAUT de la fourchette sur TOUTES les séries (RIR 1-2), tu ajoutes 1 kg par haltère et tu repars en bas de la fourchette.",
  "Échauffement":"~2 min avant chaque séance : marche sur place 30 s, cercles d'épaules 10 par sens, cercles de hanches 10 par sens, cat-cow ×8, squats lents au poids du corps ×10, scapula push-ups ×10.",
- "Deload":"Semaine allégée : moitié des séries, RIR 4-5, sans jamais forcer. Vide la fatigue accumulée pour repartir plus haut."
+ "Deload":"Semaine allégée : moitié des séries, RIR 4-5, sans jamais forcer. Vide la fatigue accumulée pour repartir plus haut.",
+ "Série (assiduité)":"Nombre de séances enchaînées sans décrochage. La série tient tant que tu ne laisses pas passer plus de 3 jours pleins sans séance. Trois jours de marge, c'est exactement le week-end du bloc : finir vendredi et reprendre lundi ne casse rien. Au-delà (4 jours ou plus sans rien), la série tombe à zéro et repart de 1 à la séance suivante. Ce n'est pas la charge qui la casse, c'est l'absence."
 };
 const TKEY="training_logs";
 let trLogs=[]; let trCur=null; let trEntries={}; let trConfirmDel=null; let histAll=false;
@@ -664,6 +693,7 @@ function renderHome(){
    +(last?'<div class="l3">Dernière fois : '+trFmt(last.date)+'</div>':'')
    +'</button>';
  }).join("");
+ renderAssiduite();
  renderHistory();
 }
 /* ---- Séance ---- */
@@ -741,6 +771,100 @@ function renderHistory(){
  if(sorted.length>5)h+='<button class="tr-btn" data-histall="1">'+(histAll?'Réduire':'Tout afficher ('+sorted.length+')')+'</button>';
  el.innerHTML=h;
 }
+/* ================= ASSIDUITÉ =================
+   Tout se recalcule à partir de training_logs, aucune nouvelle clé de stockage.
+   Règle de rupture de série : plus de 3 jours pleins sans séance.
+   3 jours de marge = le week-end normal du bloc (vendredi → lundi), qui ne doit rien casser.
+   4 jours ou plus sans rien = décrochage réel, la série repart de zéro. */
+const STREAK_GAP=3;
+const SESS_PER_WEEK=5;
+const BLOCK_WEEKS=WEEKS.length;              /* 5 semaines : 6 juillet → 9 août */
+const BLOCK_TOTAL=SESS_PER_WEEK*BLOCK_WEEKS; /* 25 séances prévues sur le bloc */
+
+/* Écart en jours calendaires (insensible à l'heure et aux changements d'heure) */
+function dayDiff(a,b){
+ const A=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+ const B=new Date(b.getFullYear(),b.getMonth(),b.getDate());
+ return Math.round((B-A)/86400000);
+}
+/* Semaine du bloc d'un log : valeur stockée, sinon recalculée depuis la date */
+function logWeek(l){return Number.isFinite(l.weekIndex)?l.weekIndex:weekIdx(new Date(l.date));}
+function logsByDate(){return [...trLogs].sort((a,b)=>new Date(a.date)-new Date(b.date));}
+function lastLog(){const s=logsByDate();return s.length?s[s.length-1]:null;}
+
+function computeStreak(){
+ const s=logsByDate();
+ if(!s.length)return{n:0,alive:false,since:null};
+ /* Jours écoulés depuis la dernière séance : si le trou est déjà trop grand, la série est morte */
+ const since=Math.max(0,dayDiff(new Date(s[s.length-1].date),new Date()));
+ if(since>STREAK_GAP)return{n:0,alive:false,since:since};
+ /* On remonte le temps tant que deux séances consécutives sont espacées de 3 jours ou moins */
+ let n=1;
+ for(let i=s.length-1;i>0;i--){
+  if(dayDiff(new Date(s[i-1].date),new Date(s[i].date))<=STREAK_GAP)n++;else break;
+ }
+ return{n:n,alive:true,since:since};
+}
+function relDay(n){return n===0?"aujourd'hui":(n===1?"hier":"il y a "+n+" jours");}
+
+function renderAssiduite(){
+ const el=$("#trAssid");if(!el)return;
+ const today=new Date();
+ const wi=weekIdx(today);
+ const wk=trLogs.filter(l=>logWeek(l)===wi).length;                       /* séances de la semaine en cours */
+ const st=computeStreak();
+ const inBlock=trLogs.filter(l=>{const w=logWeek(l);return w>=0&&w<BLOCK_WEEKS;}).length;
+ const pct=Math.min(100,Math.round(inBlock/BLOCK_TOTAL*100));
+ const lg=lastLog();
+ const nid=nextSession();const ns=PROGRAM.find(s=>s.id===nid);
+ const empty=!trLogs.length;
+
+ /* 1. Semaine en cours */
+ let seg="";for(let i=0;i<SESS_PER_WEEK;i++)seg+='<i class="'+(i<wk?"on":"")+'"></i>';
+ const reste=SESS_PER_WEEK-wk;
+ const bonus=wk>SESS_PER_WEEK?(wk-SESS_PER_WEEK):0;
+ const wsub=(reste<=0)
+  ?("Semaine bouclée ✓"+(bonus?" · +"+bonus+" séance"+(bonus>1?"s":"")+" bonus":""))
+  :("Encore "+reste+" séance"+(reste>1?"s":"")+" pour boucler la semaine.");
+
+ /* 2. Série en cours */
+ let ssub;
+ if(empty)ssub="Ta première séance lance la série.";
+ else if(!st.alive)ssub="Série rompue : "+st.since+" jours sans séance. La prochaine la relance à 1.";
+ else{
+  const marge=STREAK_GAP-st.since;
+  ssub=(st.since===0?"Séance faite aujourd'hui.":"Dernière "+relDay(st.since)+".")+" "
+   +(marge<=0?"Dernier jour pour la garder.":"Encore "+marge+" jour"+(marge>1?"s":"")+" de marge.");
+ }
+
+ let h='<div class="tr-as">';
+ h+='<div class="tr-atile full"><div class="tr-alab">Séances cette semaine</div>'
+  +'<div class="tr-abar">'+seg+'</div>'
+  +'<div class="tr-abig">'+wk+'<span class="u">/ '+SESS_PER_WEEK+' séances</span></div>'
+  +'<div class="tr-asub">'+wsub+'</div></div>';
+ h+='<div class="tr-atile"><div class="tr-alab">Série en cours</div>'
+  +'<div class="tr-abig '+(st.n>0?"acc":"off")+'">'+st.n+'<span class="u">séance'+(st.n>1?"s":"")+'</span></div>'
+  +'<div class="tr-asub">'+ssub+' <button class="tr-link" data-gloss="Série (assiduité)">règle ?</button></div></div>';
+ h+='<div class="tr-atile"><div class="tr-alab">Bloc juillet</div>'
+  +'<div class="tr-abig">'+pct+'<span class="u">%</span></div>'
+  +'<div class="tr-aline"><i style="width:'+pct+'%"></i></div>'
+  +'<div class="tr-asub">'+inBlock+' / '+BLOCK_TOTAL+' séances · 6 juil → 9 août</div></div>';
+ h+='<div class="tr-atile full"><div class="tr-anx">'
+  +'<div><div class="tr-alab">Dernière séance</div>'
+  +(lg
+    ?'<div class="tr-aname"><span class="sid">'+lg.sessionId+'</span> '+esc((PROGRAM.find(p=>p.id===lg.sessionId)||{title:""}).title)+'</div>'
+     +'<div class="tr-asub">'+trFmt(lg.date)+' · '+relDay(Math.max(0,dayDiff(new Date(lg.date),today)))+'</div>'
+    :'<div class="tr-aname dim">Aucune</div><div class="tr-asub">Rien d\'enregistré pour l\'instant.</div>')
+  +'</div>'
+  +'<div><div class="tr-alab">Prochaine séance</div>'
+  +'<button class="tr-anext" data-open="'+nid+'"><span class="sid">'+nid+'</span> '+esc(ns.title)+' →</button>'
+  +'<div class="tr-asub">'+esc(ns.subtitle)+'</div></div>'
+  +'</div></div>';
+ h+='</div>';
+ if(empty)h+='<div class="tr-empty">Aucune donnée pour l\'instant : les compteurs se remplissent tout seuls dès la première séance enregistrée.</div>';
+ el.innerHTML=h;
+}
+
 /* ---- Timer inline (dans le bouton de l'exercice) ---- */
 let itmr=null;
 function inlineTimer(btn,sec){
@@ -802,7 +926,7 @@ document.addEventListener("click",async e=>{
   trCur=null;renderHome();
   toast(hab?"Séance enregistrée ✓ · habitude Sport cochée":"Séance enregistrée ✓");return;}
  if(b.dataset.del){trConfirmDel=+b.dataset.del;renderHistory();return;}
- if(b.dataset.delok){trLogs=trLogs.filter(l=>l.id!==+b.dataset.delok);trConfirmDel=null;await trSave();renderHistory();toast("Séance supprimée");return;}
+ if(b.dataset.delok){trLogs=trLogs.filter(l=>l.id!==+b.dataset.delok);trConfirmDel=null;await trSave();renderWeek();renderAssiduite();renderHistory();toast("Séance supprimée");return;}
 });
 $("#trGloss").addEventListener("click",e=>{if(e.target.id==="trGloss")$("#trGloss").classList.remove("show");});
 /* ---- Boot ---- */
