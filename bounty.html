@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mental Edge — Bounty</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/e220a9bbb233eb75.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/359bfa88608fb72e.png">
+<link rel="apple-touch-icon" href="assets/c7cdbfa6e1e417d4.png">
+<meta name="theme-color" content="#2f6a45">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3eee3;--bg2:#ece4d5;--surface:#fbf8f1;--surface2:#f6f0e6;
+  --text:#272320;--muted:#5e5749;--muted2:#726957;
+  --line:rgba(40,32,16,.12);--line2:rgba(40,32,16,.07);
+  --green:#2f6a45;--green-soft:#4f8a5f;--accent:#8a5f10;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.05);--tint2:rgba(63,107,74,.05);--grain:.10;
+  --r:18px;--maxw:1080px;
+}
+[data-theme=dark]{
+  --bg:#14120d;--bg2:#1b1812;--surface:#211d15;--surface2:#272219;
+  --text:#ece6d8;--muted:#b3ab98;--muted2:#8c8370;
+  --line:rgba(216,166,74,.18);--line2:rgba(236,230,216,.08);
+  --green:#86b079;--green-soft:#6f9e6a;--accent:#e7c272;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.10);--tint2:rgba(63,107,74,.12);--grain:.14;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;background-image:radial-gradient(120% 80% at 50% -8%,var(--tint1),transparent 60%),radial-gradient(80% 60% at 92% 112%,var(--tint2),transparent 60%)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 60px}
+h1,h2,h3{font-family:"Space Grotesk",serif;font-weight:600;letter-spacing:.2px}
+.nav{position:relative;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0 -22px;padding:11px 22px}
+.nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .mark{width:30px;height:30px;flex:none;border-radius:9px;object-fit:cover;border:1px solid var(--line)}
+.brand b{font-family:"Space Grotesk",serif;font-weight:600;font-size:15px;letter-spacing:3px;color:var(--text)}
+.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.navlinks{display:flex;gap:2px;flex-wrap:wrap}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;padding:7px 9px;border-radius:999px;transition:.2s;white-space:nowrap}
+.navlinks a:hover{color:var(--text)}
+.navlinks a.navon,.navlinks a.on{color:var(--accent);font-weight:600}
+.navright{display:flex;align-items:center;gap:12px}
+.themebtn{appearance:none;cursor:pointer;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--accent);font-size:15px;display:grid;place-items:center;transition:.2s}
+.themebtn:hover{border-color:var(--accent);color:var(--text)}
+.menubtn{display:none;appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font-size:20px;line-height:1;border-radius:10px;padding:6px 11px;cursor:pointer}
+.mobmenu{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;display:none}
+.mobmenu.show{display:block}
+.mobmenu-in{position:absolute;top:0;right:0;height:100%;width:80%;max-width:300px;background:var(--surface);border-left:1px solid var(--line);padding:62px 14px 22px;overflow:auto;display:flex;flex-direction:column;gap:2px;box-sizing:border-box}
+.mobmenu-in a{display:block;padding:13px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:16px;border-bottom:1px solid var(--line)}
+.mobmenu-in a:active{background:var(--bg)}
+@media(max-width:760px){.menubtn{display:inline-flex}.navlinks{display:none}}
+
+/* ===== Calculateur bounty ===== */
+.calc{max-width:380px;margin:26px auto 0}
+.calc .kicker{color:var(--accent);letter-spacing:3px;text-transform:uppercase;font-size:11px;font-weight:600;text-align:center;margin:0 0 12px}
+.rescard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);text-align:center;padding:20px 12px 14px;margin-bottom:14px;position:relative;overflow:hidden}
+.rescard::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 120% at 0 0,var(--tint1),transparent 55%);pointer-events:none}
+#resBB{font-family:"Space Grotesk",serif;font-size:54px;font-weight:700;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;position:relative}
+#resBB .unite{font-size:24px;font-weight:500;color:var(--muted)}
+#resJetons{margin-top:7px;font-size:15px;color:var(--green);font-variant-numeric:tabular-nums;position:relative}
+.rescard .icm{margin-top:9px;font-size:11px;color:var(--muted2);line-height:1.4;position:relative}
+.champ{margin-bottom:10px}
+.champ label{display:block;color:var(--muted);font-size:12.5px;margin-bottom:4px}
+.calc input[type=number]{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:10px 13px;font-family:inherit;font-size:17px;font-variant-numeric:tabular-nums;transition:.2s}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent-bright);box-shadow:0 0 0 3px var(--tint1)}
+.calc input::-webkit-outer-spin-button,.calc input::-webkit-inner-spin-button{-webkit-appearance:none}
+.calc input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.duo{display:flex;gap:10px}
+.duo .champ{flex:1}
+.bloc-bounty{border:1px solid var(--line);border-radius:var(--r);padding:12px;background:var(--surface2)}
+.onglets{display:flex;gap:6px;margin-bottom:10px}
+.onglets button{flex:1;appearance:none;background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:inherit;font-size:12px;padding:6px 4px;cursor:pointer;transition:.15s;white-space:nowrap}
+.onglets button.actif{background:var(--accent-bright);border-color:var(--accent-bright);color:var(--on-accent);font-weight:600}
+.mode{display:none}.mode.actif{display:block}
+#bountyCalcule{font-size:12px;color:var(--muted);margin-top:6px;min-height:15px}
+.footer{margin-top:40px;color:var(--muted2);font-size:12.5px;text-align:center}
+</style>
+</head><body>
+<div id="mobMenu" class="mobmenu"><div class="mobmenu-in" id="mobMenuIn"></div></div><div class="nav"><div class="nav-in">
+  <div class="brand">
+    <img class="mark" src="assets/ef25df956b012609.png" alt="">
+    <div><b>Mental</b><small>Edge</small></div>
+  </div>
+  <nav class="navlinks" id="nav"><a href="index.html">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="bounty.html" class="navon">Bounty</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
+  <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button></div>
+</div></div>
+<div class="wrap">
+
+<div class="calc">
+  <p class="kicker">Bounty en BB</p>
+
+  <div class="rescard">
+    <div id="resBB">&ndash;<span class="unite"> BB</span></div>
+    <div id="resJetons">&ndash; jetons</div>
+    <div class="icm">Plancher cEV, valeur r&eacute;elle sup&eacute;rieure en late game (ICM)</div>
+  </div>
+
+  <div class="duo">
+    <div class="champ">
+      <label for="buyin">Buy-in (&euro;)</label>
+      <input type="number" id="buyin" inputmode="decimal" step="any" min="0" placeholder="20">
+    </div>
+    <div class="champ">
+      <label for="tapis">Tapis de d&eacute;part</label>
+      <input type="number" id="tapis" inputmode="numeric" step="any" min="0" placeholder="20000">
+    </div>
+  </div>
+
+  <div class="champ">
+    <label for="bb">BB actuelle (jetons)</label>
+    <input type="number" id="bb" inputmode="numeric" step="any" min="0" placeholder="4000" autofocus>
+  </div>
+
+  <div class="bloc-bounty">
+    <div class="onglets">
+      <button type="button" id="tabDirect" class="actif">Bounty direct</button>
+      <button type="button" id="tabMoyen">Bounty moyen</button>
+    </div>
+    <div id="modeDirect" class="mode actif">
+      <div class="champ" style="margin-bottom:0">
+        <label for="bounty">Bounty (&euro;)</label>
+        <input type="number" id="bounty" inputmode="decimal" step="any" min="0" placeholder="44,80">
+      </div>
+    </div>
+    <div id="modeMoyen" class="mode">
+      <div class="duo">
+        <div class="champ" style="margin-bottom:0">
+          <label for="pool">Pool bounties (&euro;)</label>
+          <input type="number" id="pool" inputmode="decimal" step="any" min="0" placeholder="12500">
+        </div>
+        <div class="champ" style="margin-bottom:0">
+          <label for="nb">Bounties restants</label>
+          <input type="number" id="nb" inputmode="numeric" step="any" min="0" placeholder="180">
+        </div>
+      </div>
+      <div id="bountyCalcule"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Mental Edge &middot; bounty = (bounty &euro; &divide; buy-in) &times; tapis de d&eacute;part, converti en BB</div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+
+  /* thème : suit le réglage local du dashboard */
+  try{var t=localStorage.getItem("mm_theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}
+
+  var champs=["buyin","tapis","bb","bounty","pool","nb"];
+  var modeMoyen=false;
+  var CLE="bountyBB"; /* buy-in et tapis mémorisés */
+
+  function val(id){
+    var brut=$(id).value.replace(",",".");
+    var n=parseFloat(brut);
+    return isFinite(n)&&n>0?n:null;
+  }
+  function formatNombre(n,dec){
+    return n.toLocaleString("fr-FR",{maximumFractionDigits:dec,minimumFractionDigits:0});
+  }
+  function bountyEuros(){
+    if(!modeMoyen)return val("bounty");
+    var pool=val("pool"),nb=val("nb");
+    if(pool===null||nb===null)return null;
+    return pool/nb;
+  }
+  function calculer(){
+    var buyin=val("buyin"),tapis=val("tapis"),bb=val("bb");
+    var bounty=bountyEuros();
+    var infoMoyen=$("bountyCalcule");
+    if(modeMoyen&&bounty!==null){infoMoyen.textContent="Bounty moyen : "+formatNombre(bounty,2)+" €";}
+    else{infoMoyen.textContent="";}
+    if(buyin===null||tapis===null||bb===null||bounty===null){
+      $("resBB").innerHTML="–<span class=\"unite\"> BB</span>";
+      $("resJetons").textContent="– jetons";
+      return;
+    }
+    var jetons=(bounty/buyin)*tapis;
+    var enBB=jetons/bb;
+    $("resBB").innerHTML=formatNombre(enBB,enBB>=100?0:1)+"<span class=\"unite\"> BB</span>";
+    $("resJetons").textContent=formatNombre(jetons,0)+" jetons";
+  }
+  function sauvegarder(){
+    try{localStorage.setItem(CLE,JSON.stringify({buyin:$("buyin").value,tapis:$("tapis").value}));}catch(e){}
+  }
+  function restaurer(){
+    try{
+      var d=JSON.parse(localStorage.getItem(CLE)||"{}");
+      if(d.buyin)$("buyin").value=d.buyin;
+      if(d.tapis)$("tapis").value=d.tapis;
+    }catch(e){}
+  }
+  function setMode(moyen){
+    modeMoyen=moyen;
+    $("tabDirect").classList.toggle("actif",!moyen);
+    $("tabMoyen").classList.toggle("actif",moyen);
+    $("modeDirect").classList.toggle("actif",!moyen);
+    $("modeMoyen").classList.toggle("actif",moyen);
+    calculer();
+  }
+  $("tabDirect").addEventListener("click",function(){setMode(false);});
+  $("tabMoyen").addEventListener("click",function(){setMode(true);});
+  champs.forEach(function(id){
+    $(id).addEventListener("input",function(){
+      if(id==="buyin"||id==="tapis")sauvegarder();
+      calculer();
+    });
+  });
+  restaurer();
+  calculer();
+})();
+</script>
+<script>(function(){var nav=document.querySelector('.nav');if(!nav)return;function pad(){var fx=getComputedStyle(nav).position==='fixed';var h=nav.offsetHeight||64;document.body.style.paddingTop=fx?(h+'px'):'0px';document.documentElement.style.scrollPaddingTop=fx?((h+8)+'px'):'';}pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);})();</script>
+<script>(function(){var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});})();</script>
+</body></html>
