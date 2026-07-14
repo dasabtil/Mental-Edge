@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
 .wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 90px}
 h1,h2,h3{font-family:"Space Grotesk",serif;font-weight:600;letter-spacing:.2px}
-.nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0 -22px;padding:11px 22px}
+.nav{position:relative;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0 -22px;padding:11px 22px}
 .nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
 .brand .mark{width:30px;height:30px;flex:none}
@@ -400,7 +400,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 #avaWrap{display:none}
 .hero{grid-template-columns:1fr}
 #imgDayImg{max-width:600px;width:100%;height:auto;object-fit:contain;display:block;margin:0 auto;border-radius:14px}
-.nav@media(min-width:761px){.nav{position:fixed!important;top:0!important;left:0!important;right:0!important;margin:0!important;transform:translateY(0);transition:transform .25s ease}.navhide{transform:translateY(-110%)}}#themeBtn{display:none!important}.flrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}.flbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;transition:.15s}.flbtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}.flsep{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px}:root,[data-theme=dark]{--bg:#0B0E14;--bg2:#121822;--surface:#121822;--surface2:#1C2331;--text:#E6E9EE;--muted:#A6AFBF;--muted2:#6B7280;--line:rgba(166,175,191,.16);--line2:rgba(166,175,191,.08);--accent:#22D3EE;--accent-bright:#3D5AFE;--on-accent:#ffffff;--tint1:rgba(61,90,254,.12);--tint2:rgba(34,211,238,.06)}body{background:linear-gradient(180deg,rgba(11,14,20,.5) 0%,rgba(11,14,20,.92) 55%,#0B0E14 100%),url("assets/f1cf5a342b5fccda.jpg") center top/cover no-repeat fixed,#0B0E14}#noyau,#matin,#debrief,#objectifs,#habitudes,#outils,#vision{display:none!important}#masession>.sec-h,#masession>.sec-desc,#masession>.foldhead{display:none!important}#sessBody{display:block!important}</style><style>
+#themeBtn{display:none!important}.flrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}.flbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;transition:.15s}.flbtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}.flsep{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px}:root,[data-theme=dark]{--bg:#0B0E14;--bg2:#121822;--surface:#121822;--surface2:#1C2331;--text:#E6E9EE;--muted:#A6AFBF;--muted2:#6B7280;--line:rgba(166,175,191,.16);--line2:rgba(166,175,191,.08);--accent:#22D3EE;--accent-bright:#3D5AFE;--on-accent:#ffffff;--tint1:rgba(61,90,254,.12);--tint2:rgba(34,211,238,.06)}body{background:linear-gradient(180deg,rgba(11,14,20,.5) 0%,rgba(11,14,20,.92) 55%,#0B0E14 100%),url("assets/f1cf5a342b5fccda.jpg") center top/cover no-repeat fixed,#0B0E14}#noyau,#matin,#debrief,#objectifs,#habitudes,#outils,#vision{display:none!important}#masession>.sec-h,#masession>.sec-desc,#masession>.foldhead{display:none!important}#sessBody{display:block!important}</style><style>
 #themeBtn{display:none!important}
 @media(max-width:760px){
  #logoutBtn{display:none!important}
@@ -668,6 +668,8 @@ const now=new Date();
 const dayOfYear=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
 function isoDay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 const TODAY=isoDay(now);
+// Nouveau jour : si la page est restee ouverte depuis la veille, on recharge pour repartir sur la date du jour (formulaires vierges)
+(function(){function chkDay(){if(isoDay(new Date())!==TODAY)location.reload();}document.addEventListener("visibilitychange",function(){if(!document.hidden)chkDay();});window.addEventListener("focus",chkDay);setInterval(chkDay,60000);})();
 const jours=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const moisL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const moisS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
@@ -792,7 +794,7 @@ async function saveBlock(kind){
   if(kind==="avant")await feedJournal("userGrat",TODAY,[obj.g1,obj.g2,obj.g3]);
   if(kind==="apres"){await feedJournal("userWin",TODAY,[obj.winday]);}
   renderJournal();
-  const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800);
+  const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");if(kind!=="avant")setTimeout(()=>el.classList.remove("show"),1800);
 }
 async function bumpStreak(){let s=await getJSON("streak",{count:0,last:null});if(s.last!==TODAY){const y=new Date(now);y.setDate(y.getDate()-1);s.count=(s.last===isoDay(y))?(s.count+1):1;s.last=TODAY;await setJSON("streak",s);}$("#streakN").textContent=s.count;}
 $$(".save[data-save]").forEach(b=>b.addEventListener("click",()=>saveBlock(b.dataset.save)));
@@ -847,7 +849,7 @@ $("#jInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#jAdd").click(
 
 // load day text + meteo restore + wu objective
 async function loadDay(){
-  const a=await store.get("avant:"+TODAY);if(a){try{const o=JSON.parse(a);for(const k in avantFields)if(o[k]!=null)$(avantFields[k]).value=o[k];}catch(e){}}
+  const a=await store.get("avant:"+TODAY);if(a){try{const o=JSON.parse(a);for(const k in avantFields)if(o[k]!=null)$(avantFields[k]).value=o[k];if(Object.values(o).some(v=>v&&String(v).trim()))$("#savedAvant").classList.add("show");}catch(e){}}
   const p=await store.get("apres:"+TODAY);if(p){try{const o=JSON.parse(p);for(const k in apresFields)if(o[k]!=null)$(apresFields[k]).value=o[k];}catch(e){}}
   
   const wo=await store.get("warmObj:"+TODAY);if(wo)$("#wuObj").value=wo;
