@@ -1134,7 +1134,7 @@ function styleOnce(){if(document.getElementById("hcCss"))return;var s=document.c
  document.head.appendChild(s);}
 function build(){styleOnce();ov=document.createElement("div");ov.id="habCal";
  var box=document.createElement("div");box.className="hcBox";
- box.innerHTML='<div class="hcHead"><h3 id="hcTtl"></h3><button class="hcX" id="hcRen" style="margin-left:auto">Renommer</button><button class="hcX" id="hcX" style="margin-left:8px">Fermer</button></div>'
+ box.innerHTML='<div class="hcHead"><h3 id="hcTtl"></h3><button class="hcX" id="hcRen" style="margin-left:auto">Renommer</button><button class="hcX" id="hcQty" style="margin-left:8px">Quantité</button><button class="hcX" id="hcX" style="margin-left:8px">Fermer</button></div>'
  +'<div class="hcStat" id="hcStat"></div>'
  +'<div class="hcScroll"><div class="hcGrid" id="hcGrid"></div></div>'
  +'<div class="hcLeg"><span><i class="hcDone"></i>fait</span><span><i style="border:1px solid var(--line2,#e3e3e3)"></i>manqué</span><span><i class="hcOff"></i>jour off</span></div>';
@@ -1142,10 +1142,26 @@ function build(){styleOnce();ov=document.createElement("div");ov.id="habCal";
  ttl=box.querySelector("#hcTtl");stat=box.querySelector("#hcStat");grid=box.querySelector("#hcGrid");
  box.querySelector("#hcX").addEventListener("click",function(){ov.classList.remove("show");});
  box.querySelector("#hcRen").addEventListener("click",renameCur);
+ box.querySelector("#hcQty").addEventListener("click",quantCur);
  ov.addEventListener("click",function(e){if(e.target===ov)ov.classList.remove("show");});}
 function longest(done,off,start,end){var d=new Date(start),best=0,cur=0;while(d<=end){var k=iso(d);if(off.has(k)){}else if(done.has(k)){cur++;if(cur>best)best=cur;}else{cur=0;}d.setDate(d.getDate()+1);}return best;}
 var curId=null,curLabel="";
 async function renameCur(){if(!curId)return;var nv=prompt("Nouveau nom de l\u2019habitude :",curLabel);if(nv==null)return;nv=nv.trim();if(!nv)return;try{var hs=await getJSON("userHabits",[]);var hh=(hs||[]).find(function(x){return String(x.id)===String(curId);});if(!hh)return;hh.label=nv;await setJSON("userHabits",hs);curLabel=nv;if(ttl)ttl.textContent=nv;if(typeof renderHabits==="function")renderHabits();}catch(e){}}
+async function quantCur(){if(!curId)return;
+ try{var hs=await getJSON("userHabits",[]);var hh=(hs||[]).find(function(x){return String(x.id)===String(curId);});if(!hh)return;
+  var old=Math.max(1,parseInt(hh.target,10)||1);
+  var nv=prompt("Nombre de fois par jour (1 = simple case à cocher) :",old);if(nv==null)return;
+  var t=Math.max(1,Math.min(20,parseInt(nv,10)||1));
+  hh.target=t;await setJSON("userHabits",hs);
+  // Ajuste uniquement l'etat du jour : fait si la progression du jour atteint la nouvelle cible. L'historique n'est pas touche.
+  var lg=await getJSON("habitsLog",{});var arr=lg[TODAY]||[];var idx=arr.indexOf(curId);
+  var rp=await getJSON("habitsReps",{});var tr=rp[TODAY]||{};
+  var cnt=(idx>=0)?Math.max(old,tr[curId]||0):(tr[curId]||0);
+  if(cnt>=t){if(idx<0)arr.push(curId);}else{if(idx>=0)arr.splice(idx,1);}
+  tr[curId]=Math.min(cnt,t);lg[TODAY]=arr;rp[TODAY]=tr;
+  await setJSON("habitsLog",lg);await setJSON("habitsReps",rp);
+  if(typeof renderHabits==="function")renderHabits();
+ }catch(e){}}
 async function open(id,label){curId=id;curLabel=label;if(!ov)build();
  var log=await kvGet("habitsLog")||{},offd=await kvGet("offDays")||{};
  var done=new Set(),off=new Set();
