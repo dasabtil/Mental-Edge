@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
 .wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 90px}
 h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2px}
-.nav{position:relative;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0 -22px;padding:11px 22px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;backdrop-filter:blur(10px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line);margin:0;padding:11px 22px}
 .nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
 .brand .mark{width:30px;height:30px;flex:none}
@@ -961,11 +961,7 @@ async function doAuth(mode){const email=document.getElementById("authEmail").val
 var nav=document.querySelector('.nav');if(!nav)return;
 function pad(){var fx=getComputedStyle(nav).position==='fixed';var h=nav.offsetHeight||64;document.body.style.paddingTop=fx?(h+'px'):'0px';document.documentElement.style.scrollPaddingTop=fx?((h+8)+'px'):'';}
 pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);
-var y=window.scrollY||0;
-window.addEventListener('scroll',function(){var ny=window.scrollY||0;
-if(ny<=10||ny<y-2)nav.classList.remove('navhide');
-else if(ny>y+2&&ny>70)nav.classList.add('navhide');
-y=ny;},{passive:true});
+/* Le bandeau reste visible en permanence : masquage au scroll supprime. */
 (function tag(){var d=new Date(),q=Math.floor(d.getMonth()/3)+1,yy=d.getFullYear();
 var bt=document.querySelector('.subtab[data-h="trim"]');if(bt)bt.textContent='Trimestre \u00b7 T'+q+' '+yy;
 var ba=document.querySelector('.subtab[data-h="annee"]');if(ba)ba.textContent='Ann\u00e9e \u00b7 '+yy;})();
