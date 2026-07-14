@@ -244,7 +244,9 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .hstrip i.on{background:var(--green-soft)}
 .hstreak{color:var(--accent);font-size:13px;min-width:48px;text-align:right;font-family:"Playfair Display",serif}
 .hdel{color:var(--muted2);cursor:pointer;border:none;background:none;font-size:15px}
-.habitadd{display:flex;gap:8px;margin-top:16px}.habitadd input{flex:1}
+.habitadd{display:flex;gap:8px;margin-top:16px}.habitadd input{flex:1}.habitadd input#habitTarget{flex:0 0 72px;text-align:center}
+.hck.mid{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:0}
+.hck.mid.some{border-color:var(--green);color:var(--green)}
 @media(max-width:820px){.dailycards{grid-template-columns:1fr}.wutools{grid-template-columns:1fr}.goaladd{grid-template-columns:1fr 1fr}}
 
 /* v5: video + toolbox + breath modes */
@@ -580,7 +582,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   <p class="sec-desc">Coche au fil de la journée. Les points montrent tes 7 derniers jours et la série par habitude.</p>
   <div class="panel-x">
     <div id="habitList"></div>
-    <div class="habitadd"><input type="text" id="habitInput" placeholder="Ajouter une habitude..."><button class="addb" id="habitAdd">Ajouter</button></div>
+    <div class="habitadd"><input type="text" id="habitInput" placeholder="Ajouter une habitude..."><input type="number" id="habitTarget" min="1" max="20" value="1" title="Nombre de fois par jour"><button class="addb" id="habitAdd">Ajouter</button></div>
   </div>
 </section>
 
@@ -822,16 +824,19 @@ function streakFor(log,id){let s=0;for(let i=0;i<400;i++){const d=new Date(now);
 async function renderHabits(){
   let habits=await getJSON("userHabits",null);
   if(habits==null){habits=JSON.parse(JSON.stringify(DATA.habits));await setJSON("userHabits",habits);}
-  const log=await getJSON("habitsLog",{});const days=last7();const todayList=log[TODAY]||[];
+  const log=await getJSON("habitsLog",{});const reps=await getJSON("habitsReps",{});const days=last7();const todayList=log[TODAY]||[];const todayReps=reps[TODAY]||{};
   $("#habitList").innerHTML=habits.map(hb=>{
+    const tgt=Math.max(1,parseInt(hb.target,10)||1);
     const on=todayList.includes(hb.id);
+    const cnt=on?tgt:Math.min(todayReps[hb.id]||0,tgt);
     const strip=days.map(d=>`<i class="${(log[d]||[]).includes(hb.id)?'on':''}"></i>`).join("");
-    return `<div class="habit"><div class="hck ${on?'on':''}" data-h="${hb.id}">&#10003;</div><span class="hname">${hb.label}</span><div class="hstrip">${strip}</div><span class="hstreak">${streakFor(log,hb.id)}j</span><button class="hdel" data-hd="${hb.id}" title="Retirer">&times;</button></div>`;
+    const box=(!on&&tgt>1)?`<div class="hck mid${cnt>0?' some':''}" data-h="${hb.id}">${cnt}/${tgt}</div>`:`<div class="hck ${on?'on':''}" data-h="${hb.id}">&#10003;</div>`;
+    return `<div class="habit">${box}<span class="hname">${hb.label}</span><div class="hstrip">${strip}</div><span class="hstreak">${streakFor(log,hb.id)}j</span><button class="hdel" data-hd="${hb.id}" title="Retirer">&times;</button></div>`;
   }).join("")||`<p class="blocksub">Ajoute tes habitudes ci-dessous.</p>`;
-  $$('#habitList .hck').forEach(c=>c.addEventListener("click",async()=>{const lg=await getJSON("habitsLog",{});const arr=lg[TODAY]||[];const id=c.dataset.h;const idx=arr.indexOf(id);if(idx>=0)arr.splice(idx,1);else arr.push(id);lg[TODAY]=arr;await setJSON("habitsLog",lg);renderHabits();}));
+  $$('#habitList .hck').forEach(c=>c.addEventListener("click",async()=>{const id=c.dataset.h;const hs=await getJSON("userHabits",[]);const hb=hs.find(x=>x.id===id);const tgt=Math.max(1,parseInt(hb&&hb.target,10)||1);const lg=await getJSON("habitsLog",{});const arr=lg[TODAY]||[];const idx=arr.indexOf(id);const rp=await getJSON("habitsReps",{});const tr=rp[TODAY]||{};if(idx>=0){arr.splice(idx,1);tr[id]=0;}else{const n=Math.min(tr[id]||0,tgt-1)+1;tr[id]=n;if(n>=tgt)arr.push(id);}lg[TODAY]=arr;rp[TODAY]=tr;const kp={};const yd=new Date(now);yd.setDate(yd.getDate()-1);[TODAY,isoDay(yd)].forEach(k=>{if(rp[k])kp[k]=rp[k];});await setJSON("habitsLog",lg);await setJSON("habitsReps",kp);renderHabits();}));
   $$('#habitList [data-hd]').forEach(b=>b.addEventListener("click",async()=>{let hs=await getJSON("userHabits",[]);hs=hs.filter(x=>x.id!==b.dataset.hd);await setJSON("userHabits",hs);renderHabits();}));
 }
-$("#habitAdd").addEventListener("click",async()=>{const v=$("#habitInput").value.trim();if(!v)return;const hs=await getJSON("userHabits",[]);hs.push({id:uid(),label:v});await setJSON("userHabits",hs);$("#habitInput").value="";renderHabits();});
+$("#habitAdd").addEventListener("click",async()=>{const v=$("#habitInput").value.trim();if(!v)return;const t=Math.max(1,Math.min(20,parseInt($("#habitTarget").value,10)||1));const hs=await getJSON("userHabits",[]);hs.push({id:uid(),label:v,target:t});await setJSON("userHabits",hs);$("#habitInput").value="";$("#habitTarget").value="1";renderHabits();});
 $("#habitInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#habitAdd").click();});
 
 // JOURNAL
