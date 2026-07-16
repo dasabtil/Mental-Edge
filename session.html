@@ -351,6 +351,23 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .wumodal-bar span{font-family:"Space Grotesk",serif;font-size:18px;color:var(--text)}
 .wuclose{appearance:none;border:none;background:transparent;color:var(--muted);font-size:30px;line-height:1;cursor:pointer;padding:0 6px}
 .wumodal-in{max-width:920px;margin:0 auto;padding:18px;width:100%;box-sizing:border-box}
+.wup-wrap{flex:1;display:flex}
+.wup-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:8px 0 14px;width:100%;min-height:0;cursor:pointer}
+.wup-vid{width:100%}
+.wup-vid video{width:100%;max-height:66vh;border-radius:14px;border:1px solid var(--line);background:#000;display:block}
+.wup-ico{width:60px;height:60px;opacity:.9}
+.wup-img{width:100%;text-align:center}
+.wup-img img{max-width:100%;max-height:52vh;border-radius:14px;border:1px solid var(--line)}
+.wup-imgs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;width:100%}
+.wup-imgs img{flex:1 1 0;min-width:0;max-width:32%;max-height:36vh;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.wup-t1{font-family:"Space Grotesk",serif;font-size:clamp(22px,5.2vw,38px);font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em;line-height:1.3;max-width:760px}
+.wup-t2{font-size:clamp(15px,3.8vw,20px);color:var(--muted);text-align:center;line-height:1.55;max-width:640px}
+.wup-obj{width:100%;max-width:640px;cursor:auto}
+.wup-obj textarea{width:100%;min-height:120px;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
+.wup-breath{cursor:auto}
+.wup-nav{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 16px;background:var(--surface);border-top:1px solid var(--line)}
+.wup-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.wup-next{appearance:none;border:none;background:var(--accent);color:var(--on-accent);font:inherit;font-size:15px;font-weight:600;border-radius:11px;padding:11px 22px;cursor:pointer}
 .menubtn{display:none;appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font-size:20px;line-height:1;border-radius:10px;padding:6px 11px;cursor:pointer}
 .mobmenu{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;display:none}
 .mobmenu.show{display:block}
@@ -491,8 +508,8 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 
 <section class="sec" id="warmup">
   <div class="sec-h"><span class="no">3</span><h2>Warm-up</h2></div>
-  <p class="sec-desc">Lance ton rituel d'avant-session en plein écran : vidéo, affirmations, respiration.</p>
-  <button id="wuLaunch" class="wulaunch" onclick="document.getElementById('wuModal').classList.add('show')">&#9654;&nbsp; Lancer mon warm-up</button>
+  <p class="sec-desc">Lance ton rituel d'avant-session en plein écran : la séquence exacte de ton deck Warm up, écran par écran.</p>
+  <button id="wuLaunch" class="wulaunch" onclick="wupOpen()">&#9654;&nbsp; Lancer mon warm-up</button>
   <div class="panel-x" style="margin-top:16px">
     <div class="lab"><span>Mon objectif de session</span></div>
     <p class="note">Une chose précise à exécuter, pas un résultat.</p>
@@ -502,16 +519,13 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 
 <div class="wumodal" id="wuModal">
   <div class="wumodal-bar"><span>Warm-up</span><button id="wuClose" style="appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600;border-radius:10px;padding:8px 14px;cursor:pointer" onclick="var m=document.getElementById('wuModal');m.classList.remove('show');m.querySelectorAll('video').forEach(function(v){v.pause();})">&#8592;&nbsp;Retour &agrave; la session</button></div>
-  <div class="wumodal-in">
-    <div class="wustep-h"><span class="n">1</span> La vidéo</div>
-    <div class="wuvid"><video controls preload="metadata" playsinline><source src="media/warmup1.mp4" type="video/mp4"></video><details class="wuvid2"><summary>Voir le second clip</summary><video controls preload="metadata" playsinline><source src="media/warmup2.mp4" type="video/mp4"></video></details></div>
-    <div class="wustep-h"><span class="n">2</span> Les affirmations</div>
-    <div class="slides">
-      <div class="slidebox"><img id="slideImg" src="" alt="slide"></div>
-      <div class="snav"><button class="sbtn" id="sPrev">&#8249;</button><div class="sdots" id="sDots"></div><span class="scount" id="sCount"></span><button class="splay" id="sPlay">Lecture</button><button class="splay" id="sFull">Plein &eacute;cran</button><button class="sbtn" id="sNext">&#8250;</button></div>
-    </div>
-    <div class="wustep-h"><span class="n">3</span> Respiration</div>
-    <div class="panel-x" id="breathPanel"><div class="lab"><span>Respire</span></div></div>
+  <div class="wumodal-in wup-wrap">
+    <div class="wup-stage" id="wupStage"></div>
+  </div>
+  <div class="wup-nav">
+    <button class="sbtn" id="wupPrev" title="Précédent">&#8249;</button>
+    <span class="wup-count" id="wupCount"></span>
+    <button class="wup-next" id="wupNext">Suivant &#8250;</button>
   </div>
 </div>
 
@@ -711,7 +725,7 @@ renderRot();
 $$(".rbtn").forEach(b=>b.addEventListener("click",()=>{offsets[b.dataset.rot]++;renderRot();}));
 
 // breathing
-function mountBreath(el){
+function mountBreath(el){if(!el)return;
   el.innerHTML+=`<div class="bwrap"><div class="bmode"><button data-m="478" class="on">4-7-8</button><button data-m="box">Carrée 4-4-4-4</button></div><div class="bcircle"><div class="ring"></div><div class="bphase">Prêt</div></div><button class="bbtn">Démarrer</button></div>`;
   const circle=el.querySelector(".bcircle"),phase=el.querySelector(".bphase"),btn=el.querySelector(".bbtn");
   const modes={"478":{cls:"run478",dur:19000,ph:[["Inspire",0,4000],["Retiens",4000,11000],["Souffle",11000,19000]]},"box":{cls:"runbox",dur:16000,ph:[["Inspire",0,4000],["Retiens",4000,8000],["Souffle",8000,12000],["Poumons vides",12000,16000]]}};
@@ -721,18 +735,60 @@ function mountBreath(el){
   function stop(){run=false;circle.classList.remove("run478","runbox");btn.textContent="Démarrer";phase.textContent="Prêt";if(timer)cancelAnimationFrame(timer);}
   btn.addEventListener("click",()=>run?stop():start());
 }
-mountBreath($("#breathPanel"));
 
-// SLIDES viewer
-const SL=DATA.slides;let sIdx=0,sTimer=null;
-$("#sDots").innerHTML=SL.map((_,i)=>`<i data-i="${i}"></i>`).join("");
-$$("#sDots i").forEach(d=>d.addEventListener("click",()=>{sIdx=+d.dataset.i;renderSlide();}));
-function renderSlide(){$("#slideImg").src=SL[sIdx];$("#sCount").textContent=(sIdx+1)+" / "+SL.length;$$("#sDots i").forEach((d,i)=>d.classList.toggle("on",i===sIdx));}
-function sGo(n){sIdx=(sIdx+n+SL.length)%SL.length;renderSlide();}
-$("#sPrev").addEventListener("click",()=>sGo(-1));$("#sNext").addEventListener("click",()=>sGo(1));
-$("#sPlay").addEventListener("click",()=>{if(sTimer){clearInterval(sTimer);sTimer=null;$("#sPlay").textContent="Lecture";}else{$("#sPlay").textContent="Pause";sTimer=setInterval(()=>sGo(1),5000);}});
-document.addEventListener("keydown",e=>{if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if(e.key==="ArrowLeft")sGo(-1);if(e.key==="ArrowRight")sGo(1);});
-renderSlide();
+
+// WARM-UP player : la séquence exacte du deck "Warm up", écran par écran
+const WUP=[
+ {img:"media/warmup-slide1.jpg"},
+ {video:"media/warmup1.mp4",poster:"media/warmup-slide2-poster.jpg"},
+ {t1:"JE SUIS UN CHAMPION EN CONSTRUCTION",t2:"Agir en champion précède le fait de le devenir.",img:"media/warmup-slide3.jpeg"},
+ {t1:"JE SUIS PRÊT, J'AI CE QU'IL FAUT, JE L'AI DÉJÀ DÉMONTRÉ"},
+ {t2:"Je me visualise en train de prendre des décisions claires, tranchées.",img:"media/warmup-slide5.jpeg"},
+ {t1:"Pas de pression pas de diamant",img:"media/warmup-slide6.jpeg"},
+ {img:"media/warmup-slide7.jpeg"},
+ {t2:"Cette session va me faire avancer d'1 cm de plus.",imgs:["media/warmup-slide8a.jpeg","media/warmup-slide8b.jpeg","media/warmup-slide8c.jpeg"]},
+ {obj:true,ico:"media/warmup-slide9.svg",t1:"OBJECTIF DE SESSION",t2:"Le travail du jour : une chose précise à exécuter, pas un résultat."},
+ {breath:true,t1:"RESPIRATION 4-7-8",t2:"Inspire 4 s, retiens 7 s, souffle 8 s. Trois cycles suffisent pour faire redescendre le système."},
+ {video:"media/warmup2.mp4",poster:"media/warmup-slide11-poster.jpg"},
+ {t1:"Pas de pression du résultat",img:"media/warmup-slide12.jpeg"},
+ {t1:"TUEUR À SANG FROID",t2:"CALME AGGRO",img:"media/warmup-slide13.jpeg"},
+ {t2:"Je vais faire des erreurs et c'est ok. Je ne sais pas tout et je ne le saurai jamais. Je me débrouille avec ce que je sais."},
+ {t1:"ZEN. Patience.",t2:"Mettre sa valeur de joueur de poker sur les showdowns. Ne pas idéaliser les gros gagnants."},
+ {t2:"La tolérance à la souffrance et au doute est primordiale pour aller au sommet."},
+ {t2:"Un coup qui se passe mal, une marque et NEXT."},
+ {t2:"Je vais faire des erreurs et c'est ok. Je ne sais pas tout et je ne le saurai jamais. Je me débrouille avec ce que je sais."},
+ {t1:"Pas de pression du résultat",img:"media/warmup-slide12.jpeg"},
+ {t1:"JE ME VISUALISE EN TRAIN DE PRENDRE DES BAD BEATS EN SOURIANT, EN RESTANT CALME ET AMUSÉ"}
+];
+let wupIdx=0;
+function wupRender(){
+ const st=$("#wupStage"),s=WUP[wupIdx];
+ st.querySelectorAll("video").forEach(v=>v.pause());
+ let h="";
+ if(s.video)h+=`<div class="wup-vid"><video controls preload="metadata" playsinline${s.poster?` poster="${s.poster}"`:""}><source src="${s.video}" type="video/mp4"></video></div>`;
+ if(s.ico)h+=`<img class="wup-ico" src="${s.ico}" alt="">`;
+ if(s.img)h+=`<div class="wup-img"><img src="${s.img}" alt=""></div>`;
+ if(s.imgs)h+=`<div class="wup-imgs">${s.imgs.map(x=>`<img src="${x}" alt="">`).join("")}</div>`;
+ if(s.t1)h+=`<div class="wup-t1">${s.t1}</div>`;
+ if(s.t2)h+=`<div class="wup-t2">${s.t2}</div>`;
+ if(s.obj)h+=`<div class="wup-obj"><textarea id="wuObjP" placeholder="Aujourd'hui je travaille..."></textarea></div>`;
+ if(s.breath)h+=`<div class="wup-breath" id="wupBreath"></div>`;
+ st.innerHTML=h;
+ $("#wupCount").textContent=(wupIdx+1)+" / "+WUP.length;
+ $("#wupPrev").style.visibility=wupIdx===0?"hidden":"visible";
+ $("#wupNext").innerHTML=wupIdx===WUP.length-1?"Terminer &#10003;":"Suivant &#8250;";
+ if(s.obj){const ta=$("#wuObjP");ta.value=$("#wuObj").value;ta.addEventListener("input",()=>{$("#wuObj").value=ta.value;store.set("warmObj:"+TODAY,ta.value);});}
+ if(s.breath)mountBreath($("#wupBreath"));
+ document.getElementById("wuModal").scrollTop=0;
+}
+function wupGo(n){const i=wupIdx+n;if(i>=WUP.length){wupClose();return;}if(i<0)return;wupIdx=i;wupRender();}
+function wupOpen(){wupIdx=0;wupRender();document.getElementById("wuModal").classList.add("show");}
+function wupClose(){const m=document.getElementById("wuModal");m.classList.remove("show");m.querySelectorAll("video").forEach(v=>v.pause());}
+window.wupOpen=wupOpen;window.wupClose=wupClose;
+$("#wupPrev").addEventListener("click",()=>wupGo(-1));
+$("#wupNext").addEventListener("click",()=>wupGo(1));
+$("#wupStage").addEventListener("click",e=>{if(e.target.closest("video,textarea,button,a,.wup-breath,.wup-obj"))return;wupGo(1);});
+document.addEventListener("keydown",e=>{if(!document.getElementById("wuModal").classList.contains("show"))return;if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if(e.key==="ArrowRight")wupGo(1);if(e.key==="ArrowLeft")wupGo(-1);});
 
 // (mur de mantras texte retiré — les mantras vivent dans le mur d'images)
 async function renderWall(){}
