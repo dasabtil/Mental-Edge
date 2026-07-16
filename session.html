@@ -355,16 +355,25 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .wup-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:8px 0 14px;width:100%;min-height:0;cursor:pointer}
 .wup-vid{width:100%}
 .wup-vid video{width:100%;max-height:66vh;border-radius:14px;border:1px solid var(--line);background:#000;display:block}
-.wup-ico{width:60px;height:60px;opacity:.9}
-.wup-img{width:100%;text-align:center}
-.wup-img img{max-width:100%;max-height:52vh;border-radius:14px;border:1px solid var(--line)}
-.wup-imgs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;width:100%}
-.wup-imgs img{flex:1 1 0;min-width:0;max-width:32%;max-height:36vh;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.wup-full{width:100%;text-align:center}
+.wup-full img{max-width:100%;max-height:74vh;width:auto;height:auto;object-fit:contain;border-radius:12px;border:1px solid var(--line);background:#fff;display:block;margin:0 auto}
 .wup-t1{font-family:"Space Grotesk",serif;font-size:clamp(22px,5.2vw,38px);font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em;line-height:1.3;max-width:760px}
 .wup-t2{font-size:clamp(15px,3.8vw,20px);color:var(--muted);text-align:center;line-height:1.55;max-width:640px}
 .wup-obj{width:100%;max-width:640px;cursor:auto}
 .wup-obj textarea{width:100%;min-height:120px;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;resize:vertical}
-.wup-breath{cursor:auto}
+.wup-breath{cursor:auto;width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.wb-circle{position:relative;width:190px;height:190px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;margin-top:6px}
+.wb-disc{position:absolute;inset:22px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 32%,transparent),color-mix(in srgb,var(--accent) 10%,transparent));transition:transform .25s linear}
+.wb-phase{position:relative;z-index:1;font-family:"Space Grotesk",serif;font-size:19px;font-weight:600}
+.wb-cyc{text-align:center;color:var(--muted);font-size:13px;min-height:16px}
+.wb-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.wb-btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;font-size:14px;border-radius:11px;padding:11px 16px;cursor:pointer}
+.wb-btn:hover{border-color:var(--accent)}
+.wb-stop{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:14px;border-radius:11px;padding:10px 18px;cursor:pointer}
+.wufsbtn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:13.5px;border-radius:10px;padding:8px 12px;cursor:pointer}
+.wuimmexit{display:none;position:fixed;top:10px;right:10px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);color:var(--text);font-size:16px;align-items:center;justify-content:center;cursor:pointer}
+.wumodal.immersive .wumodal-bar{display:none}
+.wumodal.immersive .wuimmexit{display:flex}
 .wup-nav{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 16px;background:var(--surface);border-top:1px solid var(--line)}
 .wup-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .wup-next{appearance:none;border:none;background:var(--accent);color:var(--on-accent);font:inherit;font-size:15px;font-weight:600;border-radius:11px;padding:11px 22px;cursor:pointer}
@@ -518,7 +527,8 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <div class="wumodal" id="wuModal">
-  <div class="wumodal-bar"><span>Warm-up</span><button id="wuClose" style="appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600;border-radius:10px;padding:8px 14px;cursor:pointer" onclick="var m=document.getElementById('wuModal');m.classList.remove('show');m.querySelectorAll('video').forEach(function(v){v.pause();})">&#8592;&nbsp;Retour &agrave; la session</button></div>
+  <div class="wumodal-bar"><span>Warm-up</span><div style="display:flex;gap:8px;align-items:center"><button id="wuFs" class="wufsbtn" title="Plein écran">&#x26F6;&nbsp;Plein écran</button><button id="wuClose" style="appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600;border-radius:10px;padding:8px 14px;cursor:pointer" onclick="wupClose()">&#8592;&nbsp;Retour &agrave; la session</button></div></div>
+  <button id="wuImmExit" class="wuimmexit" title="Quitter le plein écran">&#10005;</button>
   <div class="wumodal-in wup-wrap">
     <div class="wup-stage" id="wupStage"></div>
   </div>
@@ -737,57 +747,98 @@ function mountBreath(el){if(!el)return;
 }
 
 
-// WARM-UP player : la séquence exacte du deck "Warm up", écran par écran
+// WARM-UP player : rendus fidèles des 20 diapos du deck "Warm up" (export PowerPoint pixel-perfect)
 const WUP=[
- {img:"media/warmup-slide1.jpg"},
+ {full:"media/warmup-full1.jpg"},
  {video:"media/warmup1.mp4",poster:"media/warmup-slide2-poster.jpg"},
- {t1:"JE SUIS UN CHAMPION EN CONSTRUCTION",t2:"Agir en champion précède le fait de le devenir.",img:"media/warmup-slide3.jpeg"},
- {t1:"JE SUIS PRÊT, J'AI CE QU'IL FAUT, JE L'AI DÉJÀ DÉMONTRÉ"},
- {t2:"Je me visualise en train de prendre des décisions claires, tranchées.",img:"media/warmup-slide5.jpeg"},
- {t1:"Pas de pression pas de diamant",img:"media/warmup-slide6.jpeg"},
- {img:"media/warmup-slide7.jpeg"},
- {t2:"Cette session va me faire avancer d'1 cm de plus.",imgs:["media/warmup-slide8a.jpeg","media/warmup-slide8b.jpeg","media/warmup-slide8c.jpeg"]},
- {obj:true,ico:"media/warmup-slide9.svg",t1:"OBJECTIF DE SESSION",t2:"Le travail du jour : une chose précise à exécuter, pas un résultat."},
- {breath:true,t1:"RESPIRATION 4-7-8",t2:"Inspire 4 s, retiens 7 s, souffle 8 s. Trois cycles suffisent pour faire redescendre le système."},
+ {full:"media/warmup-full3.jpg"},
+ {full:"media/warmup-full4.jpg"},
+ {full:"media/warmup-full5.jpg"},
+ {full:"media/warmup-full6.jpg"},
+ {full:"media/warmup-full7.jpg"},
+ {full:"media/warmup-full8.jpg"},
+ {obj:true,full:"media/warmup-full9.jpg"},
+ {breath:true},
  {video:"media/warmup2.mp4",poster:"media/warmup-slide11-poster.jpg"},
- {t1:"Pas de pression du résultat",img:"media/warmup-slide12.jpeg"},
- {t1:"TUEUR À SANG FROID",t2:"CALME AGGRO",img:"media/warmup-slide13.jpeg"},
- {t2:"Je vais faire des erreurs et c'est ok. Je ne sais pas tout et je ne le saurai jamais. Je me débrouille avec ce que je sais."},
- {t1:"ZEN. Patience.",t2:"Mettre sa valeur de joueur de poker sur les showdowns. Ne pas idéaliser les gros gagnants."},
- {t2:"La tolérance à la souffrance et au doute est primordiale pour aller au sommet."},
- {t2:"Un coup qui se passe mal, une marque et NEXT."},
- {t2:"Je vais faire des erreurs et c'est ok. Je ne sais pas tout et je ne le saurai jamais. Je me débrouille avec ce que je sais."},
- {t1:"Pas de pression du résultat",img:"media/warmup-slide12.jpeg"},
- {t1:"JE ME VISUALISE EN TRAIN DE PRENDRE DES BAD BEATS EN SOURIANT, EN RESTANT CALME ET AMUSÉ"}
+ {full:"media/warmup-full12.jpg"},
+ {full:"media/warmup-full13.jpg"},
+ {full:"media/warmup-full14.jpg"},
+ {full:"media/warmup-full15.jpg"},
+ {full:"media/warmup-full16.jpg"},
+ {full:"media/warmup-full17.jpg"},
+ {full:"media/warmup-full18.jpg"},
+ {full:"media/warmup-full19.jpg"},
+ {full:"media/warmup-full20.jpg"}
 ];
 let wupIdx=0;
+// ---- Respiration 4-7-8 sonore : fichier audio complet joué via <audio>, pour continuer écran verrouillé (iOS) ----
+let wbAudio=null,wbRaf=null;
+function wbReset(){
+ if(wbAudio){try{wbAudio.pause();}catch(e){}wbAudio=null;}
+ if(wbRaf){clearInterval(wbRaf);wbRaf=null;}
+ const p=$("#wbPhase"),d=$("#wbDisc"),b=$("#wbBtns"),s2=$("#wbStop"),c=$("#wbCyc");
+ if(p)p.textContent="Prêt";if(d)d.style.transform="scale(1)";if(b)b.style.display="";if(s2)s2.style.display="none";if(c)c.textContent="";
+}
+function wbStart(n){
+ wbReset();
+ wbAudio=document.createElement("audio");
+ wbAudio.src="media/breath478-"+n+".wav";
+ wbAudio.setAttribute("playsinline","");
+ const host=$("#wupBreath");if(host)host.appendChild(wbAudio);
+ $("#wbBtns").style.display="none";$("#wbStop").style.display="";
+ wbAudio.play().catch(()=>{});
+ const total=n*19;
+ function tick(){
+  if(!wbAudio){if(wbRaf){clearInterval(wbRaf);wbRaf=null;}return;}
+  const t=wbAudio.currentTime;
+  const ph=$("#wbPhase"),disc=$("#wbDisc"),cy=$("#wbCyc");
+  if(!ph||!disc)return;
+  if(wbAudio.ended||t>=total){
+   ph.textContent="Terminé";disc.style.transform="scale(1)";if(cy)cy.textContent="Bien joué.";
+   if(wbAudio.ended){$("#wbBtns").style.display="";$("#wbStop").style.display="none";wbAudio=null;clearInterval(wbRaf);wbRaf=null;return;}
+  }else{
+   const e=t%19;let lab,sc;
+   if(e<4){lab="Inspire";sc=1+0.28*(e/4);}
+   else if(e<11){lab="Retiens";sc=1.28;}
+   else{lab="Souffle";sc=1.28-0.28*((e-11)/8);}
+   ph.textContent=lab;disc.style.transform="scale("+sc.toFixed(3)+")";
+   if(cy)cy.textContent="Cycle "+Math.min(n,Math.floor(t/19)+1)+" / "+n;
+  }
+ }
+ wbRaf=setInterval(tick,200);tick();
+}
 function wupRender(){
  const st=$("#wupStage"),s=WUP[wupIdx];
  st.querySelectorAll("video").forEach(v=>v.pause());
+ wbReset();
  let h="";
  if(s.video)h+=`<div class="wup-vid"><video controls preload="metadata" playsinline${s.poster?` poster="${s.poster}"`:""}><source src="${s.video}" type="video/mp4"></video></div>`;
- if(s.ico)h+=`<img class="wup-ico" src="${s.ico}" alt="">`;
- if(s.img)h+=`<div class="wup-img"><img src="${s.img}" alt=""></div>`;
- if(s.imgs)h+=`<div class="wup-imgs">${s.imgs.map(x=>`<img src="${x}" alt="">`).join("")}</div>`;
- if(s.t1)h+=`<div class="wup-t1">${s.t1}</div>`;
- if(s.t2)h+=`<div class="wup-t2">${s.t2}</div>`;
+ if(s.full)h+=`<div class="wup-full"><img src="${s.full}" alt=""></div>`;
  if(s.obj)h+=`<div class="wup-obj"><textarea id="wuObjP" placeholder="Aujourd'hui je travaille..."></textarea></div>`;
- if(s.breath)h+=`<div class="wup-breath" id="wupBreath"></div>`;
+ if(s.breath)h+=`<div class="wup-breath" id="wupBreath"><div class="wup-t1">RESPIRATION 4-7-8</div><div class="wup-t2">Inspire 4 s, retiens 7 s, souffle 8 s. Le son te guide : un bip à chaque changement de phase, trois bips à la fin. Tu peux fermer les yeux, et sur iPhone verrouiller l'écran.</div><div class="wb-circle"><div class="wb-disc" id="wbDisc"></div><div class="wb-phase" id="wbPhase">Prêt</div></div><div class="wb-cyc" id="wbCyc"></div><div class="wb-btns" id="wbBtns"><button class="wb-btn" data-c="4">4 cycles &middot; &asymp; 1 min 20</button><button class="wb-btn" data-c="8">8 cycles &middot; &asymp; 2 min 35</button></div><button class="wb-stop" id="wbStop" style="display:none">Arrêter</button></div>`;
  st.innerHTML=h;
  $("#wupCount").textContent=(wupIdx+1)+" / "+WUP.length;
  $("#wupPrev").style.visibility=wupIdx===0?"hidden":"visible";
  $("#wupNext").innerHTML=wupIdx===WUP.length-1?"Terminer &#10003;":"Suivant &#8250;";
  if(s.obj){const ta=$("#wuObjP");ta.value=$("#wuObj").value;ta.addEventListener("input",()=>{$("#wuObj").value=ta.value;store.set("warmObj:"+TODAY,ta.value);});}
- if(s.breath)mountBreath($("#wupBreath"));
+ if(s.breath){$$("#wbBtns .wb-btn").forEach(b=>b.addEventListener("click",()=>wbStart(+b.dataset.c)));$("#wbStop").addEventListener("click",wbReset);}
  document.getElementById("wuModal").scrollTop=0;
 }
 function wupGo(n){const i=wupIdx+n;if(i>=WUP.length){wupClose();return;}if(i<0)return;wupIdx=i;wupRender();}
 function wupOpen(){wupIdx=0;wupRender();document.getElementById("wuModal").classList.add("show");}
-function wupClose(){const m=document.getElementById("wuModal");m.classList.remove("show");m.querySelectorAll("video").forEach(v=>v.pause());}
+function wupClose(){const m=document.getElementById("wuModal");m.classList.remove("show");m.classList.remove("immersive");m.querySelectorAll("video").forEach(v=>v.pause());wbReset();if(document.fullscreenElement){try{document.exitFullscreen();}catch(e){}}}
+function wupImmersive(on){document.getElementById("wuModal").classList.toggle("immersive",on);}
 window.wupOpen=wupOpen;window.wupClose=wupClose;
 $("#wupPrev").addEventListener("click",()=>wupGo(-1));
 $("#wupNext").addEventListener("click",()=>wupGo(1));
-$("#wupStage").addEventListener("click",e=>{if(e.target.closest("video,textarea,button,a,.wup-breath,.wup-obj"))return;wupGo(1);});
+$("#wuFs").addEventListener("click",()=>{
+ const m=document.getElementById("wuModal");
+ if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return;}
+ if(m.requestFullscreen){m.requestFullscreen().catch(()=>wupImmersive(true));}
+ else wupImmersive(true);
+});
+$("#wuImmExit").addEventListener("click",()=>wupImmersive(false));
+$("#wupStage").addEventListener("click",e=>{if(e.target.closest("video,textarea,button,a,audio,.wup-breath,.wup-obj"))return;wupGo(1);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("wuModal").classList.contains("show"))return;if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if(e.key==="ArrowRight")wupGo(1);if(e.key==="ArrowLeft")wupGo(-1);});
 
 // (mur de mantras texte retiré — les mantras vivent dans le mur d'images)
