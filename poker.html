@@ -815,18 +815,18 @@ $("#goalAdd").addEventListener("click",async()=>{const l=$("#goalLabel").value.t
 
 // HABITS
 function last7(){const a=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);a.push(isoDay(d));}return a;}
-function streakFor(log,id){let s=0;for(let i=0;i<400;i++){const d=new Date(now);d.setDate(d.getDate()-i);const day=isoDay(d);if((log[day]||[]).includes(id))s++;else{if(i===0)continue;break;}}return s;}
+function streakFor(log,id,off){let s=0;for(let i=0;i<400;i++){const d=new Date(now);d.setDate(d.getDate()-i);const day=isoDay(d);if(off&&off[day])continue;if((log[day]||[]).includes(id))s++;else{if(i===0)continue;break;}}return s;}
 async function renderHabits(){
   let habits=await getJSON("userHabits",null);
   if(habits==null){habits=JSON.parse(JSON.stringify(DATA.habits));await setJSON("userHabits",habits);}
-  const log=await getJSON("habitsLog",{});const reps=await getJSON("habitsReps",{});const days=last7();const todayList=log[TODAY]||[];const todayReps=reps[TODAY]||{};
+  const log=await getJSON("habitsLog",{});const reps=await getJSON("habitsReps",{});const offd=await getJSON("offDays",{});const days=last7();const todayList=log[TODAY]||[];const todayReps=reps[TODAY]||{};
   $("#habitList").innerHTML=habits.map(hb=>{
     const tgt=Math.max(1,parseInt(hb.target,10)||1);
     const on=todayList.includes(hb.id);
     const cnt=on?tgt:Math.min(todayReps[hb.id]||0,tgt);
     const strip=days.map(d=>`<i class="${(log[d]||[]).includes(hb.id)?'on':''}"></i>`).join("");
     const box=(!on&&tgt>1)?`<div class="hck mid${cnt>0?' some':''}" data-h="${hb.id}">${cnt}/${tgt}</div>`:`<div class="hck ${on?'on':''}" data-h="${hb.id}">&#10003;</div>`;
-    return `<div class="habit">${box}<span class="hname">${hb.label}</span><div class="hstrip">${strip}</div><span class="hstreak">${streakFor(log,hb.id)}j</span><button class="hdel" data-hd="${hb.id}" title="Retirer">&times;</button></div>`;
+    return `<div class="habit">${box}<span class="hname">${hb.label}</span><div class="hstrip">${strip}</div><span class="hstreak">${streakFor(log,hb.id,offd)}j</span><button class="hdel" data-hd="${hb.id}" title="Retirer">&times;</button></div>`;
   }).join("")||`<p class="blocksub">Ajoute tes habitudes ci-dessous.</p>`;
   $$('#habitList .hck').forEach(c=>c.addEventListener("click",async()=>{const id=c.dataset.h;const hs=await getJSON("userHabits",[]);const hb=hs.find(x=>x.id===id);const tgt=Math.max(1,parseInt(hb&&hb.target,10)||1);const lg=await getJSON("habitsLog",{});const arr=lg[TODAY]||[];const idx=arr.indexOf(id);const rp=await getJSON("habitsReps",{});const tr=rp[TODAY]||{};if(idx>=0){arr.splice(idx,1);tr[id]=0;}else{const n=Math.min(tr[id]||0,tgt-1)+1;tr[id]=n;if(n>=tgt)arr.push(id);}lg[TODAY]=arr;rp[TODAY]=tr;const kp={};const yd=new Date(now);yd.setDate(yd.getDate()-1);[TODAY,isoDay(yd)].forEach(k=>{if(rp[k])kp[k]=rp[k];});await setJSON("habitsLog",lg);await setJSON("habitsReps",kp);renderHabits();}));
   $$('#habitList [data-hd]').forEach(b=>b.addEventListener("click",async()=>{let hs=await getJSON("userHabits",[]);hs=hs.filter(x=>x.id!==b.dataset.hd);await setJSON("userHabits",hs);renderHabits();}));
