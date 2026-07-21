@@ -587,8 +587,8 @@ const ORDER=["A","B","C","D","E"];
 const WEEKS=[
  {name:"Semaine 1 · Calibration",rule:"RIR 3-4 — finis loin de l'échec, trouve et note tes charges."},
  {name:"Semaine 2",rule:"RIR 2-3 — nouvelles charges du coach. Trouve tes reps dessus, puis double progression à charge fixe."},
- {name:"Semaine 3",rule:"RIR 1-2 — on monte les reps. Le prochain saut de charge est de +2 kg (le plus petit possible avec le kit)."},
- {name:"Semaine 4",rule:"RIR 1-2 — si la récup est bonne, +1 série sur UN exercice prioritaire par séance."},
+ {name:"Semaine 3",rule:"Départ en live le 22 : séances restantes en MAINTIEN. RIR 3-4, charges prescrites, sans chercher le haut de fourchette. Le sommeil prime sur la séance."},
+ {name:"Semaine 4",rule:"Tournoi puis retour : maintien RIR 3-4 tant que tu es en live, reprise RIR 1-2 une fois rentré et le sommeil récupéré. Pas de +1 série cette semaine."},
  {name:"Deload (3-9 août)",rule:"Moitié des séries, RIR 4-5, charges de S2. Ne jamais forcer."}
 ];
 /* Date de la dernière prescription de charges par le coach.
@@ -597,7 +597,7 @@ const WEEKS=[
    silencieusement les nouvelles. Dès qu'une séance est faite après cette date, c'est
    de nouveau la dernière charge saisie qui est proposée (sa progression est préservée).
    À rebumper à chaque changement de charges. */
-const PRESCRIBED_ON="2026-07-13";
+const PRESCRIBED_ON="2026-07-21";
 
 /* Les ids d'exercice (A1, B2…) sont des CLÉS DE STOCKAGE : elles servent à relire
    l'historique (training_logs) et à pré-remplir les charges. Elles ne sont JAMAIS affichées.
@@ -621,21 +621,21 @@ const PROGRAM=[
     déplacer une ligne du tableau suffit, renuméroter casserait la relecture des logs S1. */
  {id:"C",title:"Bas",day:"Mercredi",subtitle:"Jambes · Chaîne postérieure droite",dur:20,exercises:[
   {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:2,target:"30 s / jambe",weight:null,wl:"",type:"time",timeSec:30,note:"En échauffement, AVANT les squats. Droite d'abord. S1-S2 yeux ouverts, S3 yeux fermés, S4 sur coussin."},
-  {id:"C1",name:"Goblet squat",sets:3,target:"8-12 reps",weight:12,wl:"12 kg",type:"reps",note:"Un réglable contre la poitrine."},
+  {id:"C1",name:"Goblet squat",sets:3,target:"8-12 reps",weight:12,wl:"12 kg",type:"reps",note:"Un réglable contre la poitrine. Palier 14 kg validé sur les reps : à tester AU RETOUR du live, à la maison (dos), pas en déplacement."},
   {id:"C2",name:"Soulevé de terre roumain (RDL)",sets:3,target:"12-15 reps",weight:8,wl:"2 × 8 kg",type:"reps",note:"Charge GELÉE cette semaine (antécédent lombaire : +2 kg = +25 %, trop). On monte les reps. Dos neutre, descente 3 s."},
-  {id:"C3",name:"Squat bulgare",sets:2,target:"8-12 / jambe",weight:6,wl:"2 × 6 kg",type:"reps",note:"Commencer à DROITE. Tibia avant vertical. Si genou grognon, remplacer par single-leg RDL."},
-  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:null,wl:"Poids du corps",type:"reps",note:"DROITE d'abord (jambe du genou). Quand 15 reps faciles, haltère 5 kg sur le bassin."}]},
+  {id:"C3",name:"Squat bulgare",sets:2,target:"8-12 / jambe",weight:8,wl:"2 × 8 kg",type:"reps",note:"Nouvelle charge (+2 kg). Commencer à DROITE. Tibia avant vertical. Au moindre signal du genou (valgus, douleur), redescends à 6 ou remplace par single-leg RDL."},
+  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:4,wl:"4 kg (barre + 2 × 1 kg) sur le bassin",type:"reps",note:"15/15 atteint au poids du corps → barre chargée à 4 kg posée sur le bassin. DROITE d'abord (jambe du genou). Quand 15 reps faciles, passe à l'haltère fixe de 5 kg."}]},
  {id:"D",title:"Push · Épaules",day:"Jeudi",subtitle:"Autres angles · Volume épaules",dur:20,exercises:[
   {id:"D1",name:"Pompes pieds surélevés",sets:3,target:"8-15 reps",weight:null,wl:"Poids du corps",type:"reps",note:"Pieds sur canapé ou chaise."},
   {id:"D2",name:"Pompes pike (mains surélevées)",sets:3,target:"8-12 reps",weight:null,wl:"Poids du corps",type:"reps",note:"Mains sur une chaise ou une marche (30-45 cm). Agrippe les manches des haltères posés au sol plutôt que paume à plat : protège les poignets."},
-  {id:"D3",name:"Floor press haltères",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"Coudes touchent le sol à chaque rep."},
+  {id:"D3",name:"Floor press haltères",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"Coudes touchent le sol à chaque rep. Palier 12 kg AU RETOUR : il faut les disques de 5 kg, restés à la maison."},
   {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"2e exposition épaules de la semaine."},
   {id:"D5",name:"Planche",sets:2,target:"30-50 s",weight:null,wl:"",type:"time",timeSec:40,note:"Corps en ligne, abdos et fessiers serrés."}]},
  /* E : recentrée sur la 2e exposition du dos. E3 (glute bridge) et E4 (planche) sont partis
     en C et D. Leurs ids ne sont pas réutilisés ; d'anciens logs E qui les contiendraient
     seraient simplement ignorés à la relecture, sans casser l'affichage. */
  {id:"E",title:"Dos (10 min)",day:"Samedi",subtitle:"Dos · 2e exposition de la semaine",dur:10,sessNote:"Séance courte, samedi matin. Si elle saute, rien d'irremplaçable n'est perdu.",exercises:[
-  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:12,wl:"12 kg",type:"reps",note:"2e exposition dos de la semaine."},
+  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:14,wl:"14 kg",type:"reps",note:"Nouvelle charge (+2 kg) : 2 × 2 kg + 2 × 1 kg par côté. 2e exposition dos de la semaine. En live : reste à RIR 3-4."},
   {id:"E2b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates, 1 s de tenue en fin de mouvement."}]}
 ];
 const GLOSSARY={
@@ -734,7 +734,7 @@ function openSession(id){
   trEntries[ex.id]=Array.from({length:n},(_,i)=>{
    if(ex.type==="time")return{sec:""};
    const lw=(lastFresh&&le&&le[i]&&le[i].weight)?le[i].weight:(ex.weight==null?"":String(ex.weight));
-   return{reps:"",weight:lw};
+   return{reps:"",weight:lw,rir:""};
   });
  });
  renderSession(deload,last);
@@ -747,7 +747,8 @@ function lastSummary(le,ex){
  if(ex.type==="time"){const p=le.filter(s=>s.sec!==""&&s.sec!=null).map(s=>s.sec+"s");return p.length?p.join(" · "):null;}
  const p=le.filter(s=>s.reps!==""&&s.reps!=null).map(s=>s.reps);if(!p.length)return null;
  const w=(le.find(s=>s.weight!==""&&s.weight!=null)||{}).weight;
- return p.join(" · ")+(w?" @ "+w+" kg":"");
+ const r=le.filter(s=>s.rir!==""&&s.rir!=null).map(s=>s.rir);
+ return p.join(" · ")+(w?" @ "+w+" kg":"")+(r.length?" · RIR "+r.join("/"):"");
 }
 function renderSession(deload,last){
  let h='<button class="tr-back" data-act="back">← Retour aux séances</button>';
@@ -771,6 +772,9 @@ function renderSession(deload,last){
    }else{
     h+='<input class="tr-in" inputmode="numeric" placeholder="reps" value="'+esc(s.reps)+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="reps"><span class="tr-u">reps</span>';
     if(ex.weight!=null){h+='<input class="tr-in" inputmode="decimal" placeholder="kg" value="'+esc(s.weight)+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="weight" style="width:58px"><span class="tr-u">kg</span>';}
+    /* RIR par série (optionnel) : la règle de progression exige haut de fourchette À RIR 1-2,
+       les reps seules ne suffisent pas à valider un +2 kg. Prioritaire sur RDL, goblet, bulgare. */
+    h+='<input class="tr-in" inputmode="numeric" placeholder="RIR" value="'+esc(s.rir||"")+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="rir" style="width:46px"><button class="tr-u tr-link" data-gloss="RIR" style="background:none;border:none;padding:0;cursor:pointer">RIR</button>';
    }
    h+='</div>';
   });
@@ -948,7 +952,7 @@ document.addEventListener("click",async e=>{
  if(b.dataset.open){openSession(b.dataset.open);return;}
  if(b.dataset.timer){inlineTimer(b,+b.dataset.timer);return;}
  if(b.dataset.histall){histAll=!histAll;renderHistory();return;}
- if(b.dataset.add){const ex=trCur.exercises.find(x=>x.id===b.dataset.add);const arr=trEntries[ex.id];if(arr.length<6){arr.push(ex.type==="time"?{sec:""}:{reps:"",weight:arr[arr.length-1]?arr[arr.length-1].weight:""});const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
+ if(b.dataset.add){const ex=trCur.exercises.find(x=>x.id===b.dataset.add);const arr=trEntries[ex.id];if(arr.length<6){arr.push(ex.type==="time"?{sec:""}:{reps:"",weight:arr[arr.length-1]?arr[arr.length-1].weight:"",rir:""});const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
  if(b.dataset.rem){const arr=trEntries[b.dataset.rem];if(arr.length>1){arr.pop();const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
  if(b.dataset.act==="back"){trCur=null;renderHome();return;}
  if(b.dataset.act==="finish"){
