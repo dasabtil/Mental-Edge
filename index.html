@@ -662,7 +662,7 @@ async function cloudWrite(k,v){
 function kvQueue(k,v){try{const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");const i=q.findIndex(x=>x.k===k);if(i>=0)q[i].v=v;else q.push({k:k,v:v});localStorage.setItem("me_pendingKv",JSON.stringify(q));}catch(e){}}
 function kvSynced(ok){try{let b=document.getElementById("syncWarn");if(ok){if(b)b.remove();return;}
  if(!b){b=document.createElement("div");b.id="syncWarn";b.textContent="\u26a0 Sauvegarde non synchronis\u00e9e \u2014 v\u00e9rifie ta connexion, r\u00e9essai automatique en cours";b.setAttribute("style","position:fixed;left:10px;right:10px;bottom:10px;z-index:500;background:#b5483f;color:#fff;padding:10px 12px;border-radius:10px;font-size:13px;text-align:center");document.body.appendChild(b);}}catch(e){}}
-async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");if(!q.length)return;const rest=[];for(const it of q){try{const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);}catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
+async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");if(!q.length)return;const rest=[];for(const it of q){try{if(it.k==="offDays"){try{const rr=await window.__sb.from("kv").select("v").eq("k","offDays").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=JSON.stringify(Object.assign({},JSON.parse(rr.data.v),JSON.parse(it.v)));}}catch(e2){}}const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);}catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
 try{document.addEventListener("visibilitychange",function(){if(!document.hidden)kvFlush();});setInterval(kvFlush,45000);setTimeout(kvFlush,4000);}catch(e){}
 
 async function getJSON(k,def){const v=await store.get(k);if(v==null)return def;try{return JSON.parse(v);}catch(e){return def;}}
@@ -1024,7 +1024,11 @@ if(t){t.classList.toggle("on",!!off[td]);t.textContent=off[td]?"Aujourd\u2019hui
 if(y){y.classList.toggle("on",!!off[yd]);y.textContent=off[yd]?"Hier : off \u2713":"Hier \u00e9tait off";}
 if(sl&&sl.value!==String(seuil))sl.value=String(seuil);}
 async function toggleOff(back){var d=new Date();d.setDate(d.getDate()-back);var k=iso(d);
-var off=await readK("offDays",{})||{};if(off[k])delete off[k];else off[k]=true;await writeK("offDays",off);refresh();if(typeof renderHabits==="function"){try{renderHabits();}catch(e){}}}
+var loc=await readK("offDays",{})||{};
+var srv=null;try{srv=await kvGet("offDays");}catch(e){}
+var off=Object.assign({},srv||{},loc); /* union serveur + local : un cache perime ne fait plus perdre les dates recentes */
+if(off[k])delete off[k];else off[k]=true;
+await writeK("offDays",off);refresh();if(typeof renderHabits==="function"){try{renderHabits();}catch(e){}}}
 function wire(){var t=$("flOffToday"),y=$("flOffYest"),sl=$("flSeuil");
 if(t)t.addEventListener("click",function(){toggleOff(0);});
 if(y)y.addEventListener("click",function(){toggleOff(1);});
