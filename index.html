@@ -974,9 +974,9 @@ async function renderHistory(){
   el.querySelectorAll(".hh").forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("open")));
 }
 async function boot(){const t=await store.get("theme");applyTheme(t==="dark"?"dark":"light");renderTools();await loadHeader();await loadDay();await renderWall();await renderImgWall();await renderJournal();await renderGoals();await renderHabits();await renderHistory();}
-async function loadCloud(uid){cloud={uid:uid,cache:{}};try{const{data,error}=await window.__sb.from("kv").select("k,v");if(!error&&data)data.forEach(r=>{cloud.cache[r.k]=r.v;});}catch(e){console.error("load",e);}}
+async function loadCloud(uid){cloud={uid:uid,cache:{}};try{const{data,error}=await window.__sb.from("kv").select("k,v");if(!error&&data){data.forEach(r=>{cloud.cache[r.k]=r.v;});cloud.loaded=true;}}catch(e){console.error("load",e);}}
 function showLogin(){const o=document.getElementById("authOverlay");if(o)o.style.display="flex";}
-async function afterLogin(session){await loadCloud(session.user.id);const o=document.getElementById("authOverlay");if(o)o.style.display="none";const lo=document.getElementById("logoutBtn");if(lo)lo.style.display="";await boot();}
+async function afterLogin(session){await loadCloud(session.user.id);const o=document.getElementById("authOverlay");if(o)o.style.display="none";const lo=document.getElementById("logoutBtn");if(lo)lo.style.display="";await boot();if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}if(window.__progRefresh){try{window.__progRefresh();}catch(e){}}}
 async function doAuth(mode){const email=document.getElementById("authEmail").value.trim();const pw=document.getElementById("authPw").value;const msg=document.getElementById("authMsg");if(!email||!pw){msg.textContent="E-mail et mot de passe requis.";return;}msg.textContent="…";try{let res;if(mode==="signup")res=await window.__sb.auth.signUp({email:email,password:pw});else res=await window.__sb.auth.signInWithPassword({email:email,password:pw});if(res.error){msg.textContent=res.error.message;return;}let session=res.data&&res.data.session;if(!session){const g=await window.__sb.auth.getSession();session=g.data.session;}if(!session){msg.textContent="Compte créé. Clique maintenant sur « Se connecter ».";return;}await afterLogin(session);}catch(e){msg.textContent="Erreur : "+(e&&e.message?e.message:e);}}
 (async()=>{
   if(!window.__sb){applyTheme("light");await boot();return;}
@@ -1003,7 +1003,7 @@ function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice
 async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return JSON.parse(r.data.v);}catch(e){}return null;}
 async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:JSON.stringify(v)},{onConflict:"user_id,k"});}catch(e){}}
 function dayOk(log,ids,seuil,day){if(!ids.length)return false;var arr=log[day]||[];var n=0;ids.forEach(function(i){if(arr.indexOf(i)>=0)n++;});var need=(seuil==="all"||seuil==null)?ids.length:Math.min(parseInt(seuil,10)||ids.length,ids.length);return n>=need;}
-function storeReady(){return typeof getJSON==="function"&&typeof cloud!=="undefined"&&cloud;}
+function storeReady(){return typeof getJSON==="function"&&typeof cloud!=="undefined"&&cloud&&cloud.loaded;}
 async function readK(k,d){if(storeReady())return (await getJSON(k,d));var r=await kvGet(k);return r==null?d:r;}
 async function writeK(k,v){if(typeof setJSON==="function"&&storeReady()){await setJSON(k,v);return;}await kvSet(k,v);}
 async function refresh(){if(!uid&&!storeReady())return;
@@ -1038,8 +1038,8 @@ var wired=false;function wireOnce(){if(wired)return;wired=true;wire();}
 async function init(){wireOnce();if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s){if(storeReady())refresh();return;}uid=s.user.id;}catch(e){if(storeReady())refresh();return;}loaded=true;refresh();}
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
 window.__flameRefresh=function(){try{refresh();}catch(e){}};
-document.addEventListener("visibilitychange",function(){if(!document.hidden)init();});
-window.addEventListener("focus",function(){init();});
+document.addEventListener("visibilitychange",function(){if(!document.hidden){init();if(loaded)refresh();}});
+window.addEventListener("focus",function(){init();if(loaded)refresh();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script><script>(function(){
 var KEY="userTasks",D={todos:[],done:[]},uid=null,loaded=false,fImp=false,fUrg=false;

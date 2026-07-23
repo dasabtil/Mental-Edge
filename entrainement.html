@@ -620,7 +620,7 @@ const PROGRAM=[
  /* C : la proprioception (id C4) passe en 1er, en échauffement. On garde son id C4 :
     déplacer une ligne du tableau suffit, renuméroter casserait la relecture des logs S1. */
  {id:"C",title:"Bas",day:"Mercredi",subtitle:"Jambes · Chaîne postérieure droite",dur:20,exercises:[
-  {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:2,target:"30 s / jambe",weight:null,wl:"",type:"time",timeSec:30,note:"En échauffement, AVANT les squats. Droite d'abord. S1-S2 yeux ouverts, S3 yeux fermés, S4 sur coussin."},
+  {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:4,setNotes:["yeux ouverts","yeux ouverts","yeux fermés","sur coussin"],target:"30 s / jambe",weight:null,wl:"",type:"time",timeSec:30,note:"En échauffement, AVANT les squats. Droite d'abord. Progression : S1-S2 yeux ouverts, S3 yeux fermés, S4 sur coussin."},
   {id:"C1",name:"Goblet squat",sets:3,target:"8-12 reps",weight:12,wl:"12 kg",type:"reps",note:"Un réglable contre la poitrine. Palier 14 kg validé sur les reps : à tester AU RETOUR du live, à la maison (dos), pas en déplacement."},
   {id:"C2",name:"Soulevé de terre roumain (RDL)",sets:3,target:"12-15 reps",weight:8,wl:"2 × 8 kg",type:"reps",note:"Charge GELÉE cette semaine (antécédent lombaire : +2 kg = +25 %, trop). On monte les reps. Dos neutre, descente 3 s."},
   {id:"C3",name:"Squat bulgare",sets:2,target:"8-12 / jambe",weight:8,wl:"2 × 8 kg",type:"reps",note:"Nouvelle charge (+2 kg). Commencer à DROITE. Tibia avant vertical. Au moindre signal du genou (valgus, douleur), redescends à 6 ou remplace par single-leg RDL."},
@@ -669,7 +669,11 @@ let trLogs=[]; let trCur=null; let trEntries={}; let trConfirmDel=null; let hist
 function weekIdx(d){return Math.floor((d-BLOCK_START)/(7*24*3600*1000));}
 function trFmt(iso){const d=new Date(iso);return jours[d.getDay()].slice(0,3)+" "+d.getDate()+" "+moisS[d.getMonth()];}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
-function beep(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();for(let i=0;i<3;i++){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;const t=ctx.currentTime+i*0.35;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.4,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);o.start(t);o.stop(t+0.3);}}catch(e){}}
+/* Audio du minuteur : le contexte est cree/arme PENDANT le clic (geste utilisateur), sinon iOS le laisse suspendu et le bip de fin est muet. Web Audio se superpose au podcast/radio en cours sans le couper (le web ne peut pas mettre en pause puis relancer une autre app). */
+let trAudioCtx=null;
+function audioArm(){try{if(!trAudioCtx)trAudioCtx=new (window.AudioContext||window.webkitAudioContext)();if(trAudioCtx.state==="suspended")trAudioCtx.resume();const b=trAudioCtx.createBuffer(1,1,22050);const s=trAudioCtx.createBufferSource();s.buffer=b;s.connect(trAudioCtx.destination);s.start(0);}catch(e){}}
+function beep(){try{if(!trAudioCtx)audioArm();const ctx=trAudioCtx;if(ctx){if(ctx.state==="suspended")ctx.resume();for(let i=0;i<4;i++){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;const t=ctx.currentTime+i*0.4;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.32);o.start(t);o.stop(t+0.36);}}}catch(e){}
+ try{if(navigator.vibrate)navigator.vibrate([250,120,250,120,450]);}catch(e){}}
 function toast(msg){const t=$("#trToast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400);}
 
 /* ---- File d'attente : la prochaine séance suit la dernière enregistrée ---- */
@@ -766,6 +770,7 @@ function renderSession(deload,last){
   h+='<div class="tr-sets">';
   trEntries[ex.id].forEach((s,i)=>{
    h+='<div class="tr-setrow"><span class="tr-sn">S'+(i+1)+'</span>';
+   if(ex.setNotes&&ex.setNotes[i])h+='<span style="flex:none;color:var(--muted);font-size:11px;align-self:center">'+esc(ex.setNotes[i])+'</span>';
    if(ex.type==="time"){
     h+='<input class="tr-in" inputmode="numeric" placeholder="sec" value="'+esc(s.sec)+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="sec"><span class="tr-u">s</span>';
     h+='<button class="tr-btn" data-timer="'+ex.timeSec+'">⏱ '+ex.timeSec+'s</button>';
@@ -908,6 +913,7 @@ let itmr=null;
 function inlineTimer(btn,sec){
  if(itmr&&itmr.el===btn){clearTimeout(itmr.h);btn.classList.remove("run");btn.textContent="⏱ "+itmr.total+"s";itmr=null;return;}
  if(itmr){clearTimeout(itmr.h);itmr.el.classList.remove("run");itmr.el.textContent="⏱ "+itmr.total+"s";itmr=null;}
+ audioArm();
  itmr={el:btn,left:sec,total:sec,h:null};
  btn.classList.add("run");btn.textContent=sec+" s";
  const tick=()=>{
