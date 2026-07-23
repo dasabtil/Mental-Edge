@@ -366,10 +366,13 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .wb-disc{position:absolute;inset:22px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 32%,transparent),color-mix(in srgb,var(--accent) 10%,transparent));transition:transform .25s linear}
 .wb-phase{position:relative;z-index:1;font-family:"Space Grotesk",serif;font-size:19px;font-weight:600}
 .wb-cyc{text-align:center;color:var(--muted);font-size:13px;min-height:16px}
-.wb-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.wb-btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;font-size:14px;border-radius:11px;padding:11px 16px;cursor:pointer}
+.wb-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:380px}
+.wb-btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;border-radius:13px;padding:14px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.wb-btn b{font-size:17px}
+.wb-btn small{color:var(--muted);font-size:12px}
 .wb-btn:hover{border-color:var(--accent)}
-.wb-stop{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:14px;border-radius:11px;padding:10px 18px;cursor:pointer}
+.wb-stop{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:14px;border-radius:11px;padding:10px 18px;cursor:pointer;touch-action:manipulation}
+.wup-nav button,.wup-next{touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .wufsbtn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:13.5px;border-radius:10px;padding:8px 12px;cursor:pointer}
 .wuimmexit{display:none;position:fixed;top:10px;right:10px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);color:var(--text);font-size:16px;align-items:center;justify-content:center;cursor:pointer}
 .wumodal.fsmode .wumodal-bar{display:none}
@@ -783,12 +786,15 @@ function wbReset(){
  if(wbRaf){clearInterval(wbRaf);wbRaf=null;}
  const p=$("#wbPhase"),d=$("#wbDisc"),b=$("#wbBtns"),s2=$("#wbStop"),c=$("#wbCyc");
  if(p)p.textContent="Prêt";if(d)d.style.transform="scale(1)";if(b)b.style.display="";if(s2)s2.style.display="none";if(c)c.textContent="";
+ try{if("mediaSession" in navigator)navigator.mediaSession.playbackState="none";}catch(e){}
 }
 function wbStart(n){
  wbReset();
  wbAudio=document.createElement("audio");
- wbAudio.src="media/breath478-"+n+".wav";
+ wbAudio.src="media/breath478-"+n+".mp3";
+ wbAudio.preload="auto";
  wbAudio.setAttribute("playsinline","");
+ try{if("mediaSession" in navigator){navigator.mediaSession.metadata=new MediaMetadata({title:"Respiration 4-7-8",artist:"Mental Edge"});navigator.mediaSession.playbackState="playing";}}catch(e){}
  const host=$("#wupBreath");if(host)host.appendChild(wbAudio);
  $("#wbBtns").style.display="none";$("#wbStop").style.display="";
  wbAudio.play().catch(()=>{});
@@ -820,7 +826,7 @@ function wupRender(){
  if(s.video)h+=`<div class="wup-vid"><video controls preload="metadata" playsinline${s.poster?` poster="${s.poster}"`:""}><source src="${s.video}" type="video/mp4"></video></div>`;
  if(s.full)h+=`<div class="wup-full"><img src="${s.full}" alt=""></div>`;
  if(s.obj)h+=`<div class="wup-obj"><textarea id="wuObjP" placeholder="Aujourd'hui je travaille..."></textarea></div>`;
- if(s.breath)h+=`<div class="wup-breath" id="wupBreath"><div class="wup-t1">RESPIRATION 4-7-8</div><div class="wup-t2">Inspire 4 s, retiens 7 s, souffle 8 s. Le son te guide : un bip à chaque changement de phase, trois bips à la fin. Tu peux fermer les yeux, et sur iPhone verrouiller l'écran.</div><div class="wb-circle"><div class="wb-disc" id="wbDisc"></div><div class="wb-phase" id="wbPhase">Prêt</div></div><div class="wb-cyc" id="wbCyc"></div><div class="wb-btns" id="wbBtns"><button class="wb-btn" data-c="4">4 cycles &middot; &asymp; 1 min 20</button><button class="wb-btn" data-c="8">8 cycles &middot; &asymp; 2 min 35</button></div><button class="wb-stop" id="wbStop" style="display:none">Arrêter</button></div>`;
+ if(s.breath)h+=`<div class="wup-breath" id="wupBreath"><div class="wup-t1">RESPIRATION 4-7-8</div><div class="wup-t2">Inspire 4 s, retiens 7 s, souffle 8 s. Un bip à chaque changement de phase, un gong à la fin. Tu peux fermer les yeux et verrouiller l'écran.</div><div class="wb-circle"><div class="wb-disc" id="wbDisc"></div><div class="wb-phase" id="wbPhase">Prêt</div></div><div class="wb-cyc" id="wbCyc"></div><div class="wb-btns" id="wbBtns"><button class="wb-btn" data-c="4"><b>4 cycles</b><small>&asymp; 1 min 20</small></button><button class="wb-btn" data-c="8"><b>8 cycles</b><small>&asymp; 2 min 40</small></button></div><button class="wb-stop" id="wbStop" style="display:none">Arrêter</button></div>`;
  st.innerHTML=h;
  $("#wupCount").textContent=(wupIdx+1)+" / "+WUP.length;
  $("#wupPrev").style.visibility=wupIdx===0?"hidden":"visible";

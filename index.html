@@ -245,6 +245,16 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .hstreak{color:var(--accent);font-size:13px;min-width:48px;text-align:right;font-family:"Space Grotesk",serif}
 .hdel{color:var(--muted2);cursor:pointer;border:none;background:none;font-size:15px}
 .habitadd{display:flex;gap:8px;margin-top:16px}.habitadd input{flex:1}.habitadd input#habitTarget{flex:0 0 72px;text-align:center}
+#meteoAM.mfolded > :not(.lab),#ouvBlock.mfolded > :not(.lab){display:none}
+#meteoAM .lab,#ouvBlock .lab{cursor:pointer}
+.mfoldb{display:none;color:var(--green);font-size:12.5px;font-weight:600}
+.mfolded{padding-top:16px;padding-bottom:16px}
+.mfolded .lab{margin-bottom:0}
+.mfolded .lab .mfoldb{display:inline}
+#habitList{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+#habitList .habit{min-width:0}
+#habitList .hname{overflow-wrap:anywhere}
+@media(max-width:640px){#habitList .hstrip{display:none}#habitList .habit{gap:8px;padding:10px 2px}#habitList .hname{font-size:14px}#habitList .hstreak{min-width:28px}}
 .hck.mid{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:0}
 .hck.mid.some{border-color:var(--green);color:var(--green)}
 @media(max-width:820px){.dailycards{grid-template-columns:1fr}.wutools{grid-template-columns:1fr}.goaladd{grid-template-columns:1fr 1fr}}
@@ -455,7 +465,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
     <div class="savebar" style="margin-top:8px"><button class="save" id="amBtn">Mon plan du jour</button><span class="saved" id="amSaved">Pris en compte &#10003;</span></div>
     <div class="mres" id="amRes"></div>
   </div>
-  <div class="panel-x" style="margin-bottom:18px">
+  <div class="panel-x" id="ouvBlock" style="margin-bottom:18px">
     <div class="lab"><span>Mon ouverture</span></div>
     <p class="note">Une gratitude pour ouvrir, puis l'unique priorité du jour. Prends-en une seule, mais creuse-la — elle rejoint ton journal automatiquement.</p>
     <div class="twocol">
@@ -792,7 +802,7 @@ function renderAM(v){const dims=amQ.map(q=>q[0]);if(dims.some(d=>v[d]==null))ret
  if(notes.length)html+=`<div style="margin-top:10px;border-left:3px solid var(--accent);padding:2px 0 2px 12px">${notes.map(n=>`<p style="margin:6px 0;color:var(--muted);font-size:13px;line-height:1.5">${n}</p>`).join("")}</div>`;
  html+=`<div class="mant-one">${c.m}</div>`;
  const res=$("#amRes");res.innerHTML=html;res.classList.add("show");return true;}
-$("#amBtn").addEventListener("click",async()=>{if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Réponds aux quatre pour avoir ton plan.</p>";r.classList.add("show");return;}await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);});
+$("#amBtn").addEventListener("click",async()=>{if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Réponds aux quatre pour avoir ton plan.</p>";r.classList.add("show");return;}await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);foldMorning("meteoAM");});
 
 // METEO PM
 const pmQ=[["decisions","Qualité de mes décisions"],["emo","Gestion émotionnelle"],["energie","Énergie restante"]];
@@ -822,7 +832,7 @@ async function saveBlock(kind){
   if(kind==="avant")await feedJournal("userGrat",TODAY,[obj.g1]);
   if(kind==="apres"){await feedJournal("userWin",TODAY,[obj.winday]);}
   renderJournal();
-  const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");if(kind!=="avant")setTimeout(()=>el.classList.remove("show"),1800);
+  const tag=kind==="avant"?"#savedAvant":"#savedApres";const el=$(tag);el.classList.add("show");if(kind!=="avant")setTimeout(()=>el.classList.remove("show"),1800);if(kind==="avant")foldMorning("ouvBlock");
 }
 async function bumpStreak(){let s=await getJSON("streak",{count:0,last:null});if(s.last!==TODAY){const y=new Date(now);y.setDate(y.getDate()-1);s.count=(s.last===isoDay(y))?(s.count+1):1;s.last=TODAY;await setJSON("streak",s);}$("#streakN").textContent=s.count;}
 $$(".save[data-save]").forEach(b=>b.addEventListener("click",()=>saveBlock(b.dataset.save)));
@@ -882,14 +892,17 @@ $$(".jtab").forEach(t=>t.addEventListener("click",()=>{$$(".jtab").forEach(x=>x.
 $("#jAdd").addEventListener("click",async()=>{const v=$("#jInput").value.trim();if(!v)return;const key=curTab==="grat"?"userGrat":"userWin";const a=await getJSON(key,[]);a.push({d:TODAY,place:"",text:v,auto:true});await setJSON(key,a);$("#jInput").value="";renderJournal();});
 $("#jInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#jAdd").click();});
 
+// Repli des blocs du matin une fois enregistres (tap sur le titre pour rouvrir)
+function foldMorning(id,on){const el=document.getElementById(id);if(el)el.classList.toggle("mfolded",on!==false);}
+["meteoAM","ouvBlock"].forEach(id=>{const el=document.getElementById(id);if(!el)return;const lab=el.querySelector(".lab");if(!lab)return;if(!lab.querySelector(".mfoldb")){const b=document.createElement("span");b.className="mfoldb";b.textContent="Enregistré ✓";lab.appendChild(b);}lab.addEventListener("click",()=>el.classList.toggle("mfolded"));});
 // load day text + meteo restore + wu objective
 async function loadDay(){
-  const a=await store.get("avant:"+TODAY);if(a){try{const o=JSON.parse(a);for(const k in avantFields)if(o[k]!=null)$(avantFields[k]).value=o[k];if(Object.values(o).some(v=>v&&String(v).trim()))$("#savedAvant").classList.add("show");}catch(e){}}
+  const a=await store.get("avant:"+TODAY);if(a){try{const o=JSON.parse(a);for(const k in avantFields)if(o[k]!=null)$(avantFields[k]).value=o[k];if(Object.values(o).some(v=>v&&String(v).trim())){$("#savedAvant").classList.add("show");foldMorning("ouvBlock");}}catch(e){}}
   const p=await store.get("apres:"+TODAY);if(p){try{const o=JSON.parse(p);for(const k in apresFields)if(o[k]!=null)$(apresFields[k]).value=o[k];}catch(e){}}
   
   const wo=await store.get("warmObj:"+TODAY);if(wo)$("#wuObj").value=wo;
   $("#wuObj").addEventListener("input",()=>store.set("warmObj:"+TODAY,$("#wuObj").value));
-  const am=await store.get("meteoAM:"+TODAY);if(am){try{const v=JSON.parse(am);for(const d in v){const seg=document.querySelector('#amQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}amVals[d]=v[d];}renderAM(amVals);}catch(e){}}
+  const am=await store.get("meteoAM:"+TODAY);if(am){try{const v=JSON.parse(am);for(const d in v){const seg=document.querySelector('#amQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}amVals[d]=v[d];}renderAM(amVals);foldMorning("meteoAM");}catch(e){}}
   const pm=await store.get("meteoPM:"+TODAY);if(pm){try{const v=JSON.parse(pm);for(const d in v){const seg=document.querySelector('#pmQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}pmVals[d]=v[d];}renderPM(pmVals);}catch(e){}}
 }
 
