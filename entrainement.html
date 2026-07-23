@@ -597,7 +597,7 @@ const WEEKS=[
    silencieusement les nouvelles. Dès qu'une séance est faite après cette date, c'est
    de nouveau la dernière charge saisie qui est proposée (sa progression est préservée).
    À rebumper à chaque changement de charges. */
-const PRESCRIBED_ON="2026-07-21";
+const PRESCRIBED_ON="2026-07-23";
 
 /* Les ids d'exercice (A1, B2…) sont des CLÉS DE STOCKAGE : elles servent à relire
    l'historique (training_logs) et à pré-remplir les charges. Elles ne sont JAMAIS affichées.
@@ -622,7 +622,7 @@ const PROGRAM=[
  {id:"C",title:"Bas",day:"Mercredi",subtitle:"Jambes · Chaîne postérieure droite",dur:20,exercises:[
   {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:4,setNotes:["yeux ouverts","yeux ouverts","yeux fermés","sur coussin"],target:"30 s / jambe",weight:null,wl:"",type:"time",timeSec:30,note:"En échauffement, AVANT les squats. Droite d'abord. Progression : S1-S2 yeux ouverts, S3 yeux fermés, S4 sur coussin."},
   {id:"C1",name:"Goblet squat",sets:3,target:"8-12 reps",weight:12,wl:"12 kg",type:"reps",note:"Un réglable contre la poitrine. Palier 14 kg validé sur les reps : à tester AU RETOUR du live, à la maison (dos), pas en déplacement."},
-  {id:"C2",name:"Soulevé de terre roumain (RDL)",sets:3,target:"12-15 reps",weight:8,wl:"2 × 8 kg",type:"reps",note:"Charge GELÉE cette semaine (antécédent lombaire : +2 kg = +25 %, trop). On monte les reps. Dos neutre, descente 3 s."},
+  {id:"C2",name:"Soulevé de terre roumain (RDL)",sets:3,target:"12-15 reps",weight:6,wl:"2 × 6 kg",type:"reps",noteGloss:"Hinge bilatéral à l'élastique",note:"Charge ramenée à 2 × 6 kg (validé coach). Technique : les haltères frôlent les cuisses tout du long, hanches en ARRIÈRE (pas vers le bas), omoplates serrées, arrêt juste sous le genou, excentrique 3 s. Conduite : fatigue musculaire bilatérale sans douleur le lendemain = on continue. Tiraillement vif, unilatéral ou présent à J+1 = régresser. Si le tiraillement mi-dos persiste après 1-2 séances corrigées : remplacer par le hinge bilatéral à l'élastique (fiche ci-dessous), puis revenir au RDL."},
   {id:"C3",name:"Squat bulgare",sets:2,target:"8-12 / jambe",weight:8,wl:"2 × 8 kg",type:"reps",note:"Nouvelle charge (+2 kg). Commencer à DROITE. Tibia avant vertical. Au moindre signal du genou (valgus, douleur), redescends à 6 ou remplace par single-leg RDL."},
   {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:4,wl:"4 kg (barre + 2 × 1 kg) sur le bassin",type:"reps",note:"15/15 atteint au poids du corps → barre chargée à 4 kg posée sur le bassin. DROITE d'abord (jambe du genou). Quand 15 reps faciles, passe à l'haltère fixe de 5 kg."}]},
  {id:"D",title:"Push · Épaules",day:"Jeudi",subtitle:"Autres angles · Volume épaules",dur:20,exercises:[
@@ -657,7 +657,8 @@ const GLOSSARY={
  "Single-leg glute bridge":"Allongé sur le dos, un pied à plat au sol, l'autre jambe tendue ou genou vers la poitrine. Pousse sur le talon au sol pour décoller le bassin jusqu'à ligne épaules-genou, serre le fessier en haut, redescends.",
  "Planche":"Sur les avant-bras, coudes sous les épaules, corps en ligne droite des chevilles à la tête. Serre abdos et fessiers, ne creuse pas le dos, tiens immobile.",
  "Proprioception (équilibre 1 jambe)":"Tiens-toi en équilibre sur une jambe, genou souple. Progression : yeux ouverts, puis yeux fermés, puis sur un coussin. Prépare le genou aux appuis du padel. Placée en PREMIER de la séance C : elle sert d'échauffement du genou et de la cheville, elle ne vaut plus rien faite en fin de séance sur des jambes rincées.",
- "RIR":"Reps In Reserve : nombre de répétitions que tu pourrais encore faire avec une forme parfaite. RIR 2 = tu t'arrêtes 2 reps avant l'échec. On ne va jamais à l'échec total en phase de reprise.",
+ "RIR":"Reps In Reserve : nombre de répétitions que tu pourrais encore faire avec une forme parfaite. RIR 2 = tu t'arrêtes 2 reps avant l'échec. On ne va jamais à l'échec total en phase de reprise. 4+ = tu étais loin du max : la série ne compte pas pour valider une montée de charge.",
+ "Hinge bilatéral à l'élastique":"Substitut du RDL quand le mi-dos tiraille. Debout, les deux pieds sur le milieu d'un élastique, poignées en mains, bras le long du corps. Même geste que le RDL : hanches en ARRIÈRE, dos neutre, omoplates serrées, arrêt juste sous le genou, excentrique 3 s. L'élastique tire vers le bas et l'arrière : la charge sur le rachis est quasi nulle. 3 × 12-15, tension réglée pour finir à RIR 2-3. Après 1-2 séances sans douleur, retour au RDL à 2 × 6 kg.",
  "Double progression":"Tu gardes la même charge et tu montes les reps de séance en séance. Quand tu atteins le HAUT de la fourchette sur TOUTES les séries (RIR 1-2), tu ajoutes le plus petit saut possible avec ton kit, soit +2 kg par haltère, et tu repars en bas de la fourchette.",
  "Kit haltères":"4 disques de 2 kg, 8 disques de 1 kg, 2 barres de 2 kg, plus 2 haltères FIXES de 5 kg. Le chargement est symétrique et le plus petit disque fait 1 kg, donc le plus petit saut possible est de +2 kg par haltère. Charges réellement montables en PAIRE : 4, 6, 8 et 10 kg. Sur un haltère SEUL (rowing, goblet, pull-over), tu peux aller jusqu'à 18 kg. Toute charge intermédiaire (7 kg, 9 kg…) est impossible à charger : si le programme t'en propose une, c'est un bug, signale-le.",
  "Échauffement":"~2 min avant chaque séance : marche sur place 30 s, cercles d'épaules 10 par sens, cercles de hanches 10 par sens, cat-cow ×8, squats lents au poids du corps ×10, scapula push-ups ×10.",
@@ -751,7 +752,7 @@ function lastSummary(le,ex){
  if(ex.type==="time"){const p=le.filter(s=>s.sec!==""&&s.sec!=null).map(s=>s.sec+"s");return p.length?p.join(" · "):null;}
  const p=le.filter(s=>s.reps!==""&&s.reps!=null).map(s=>s.reps);if(!p.length)return null;
  const w=(le.find(s=>s.weight!==""&&s.weight!=null)||{}).weight;
- const r=le.filter(s=>s.rir!==""&&s.rir!=null).map(s=>s.rir);
+ const r=le.filter(s=>s.rir!==""&&s.rir!=null).map(s=>{const n=parseInt(s.rir,10);return (!isNaN(n)&&n>=4)?"4+":s.rir;});
  return p.join(" · ")+(w?" @ "+w+" kg":"")+(r.length?" · RIR "+r.join("/"):"");
 }
 function renderSession(deload,last){
@@ -765,7 +766,7 @@ function renderSession(deload,last){
   h+='<div class="tr-ex">';
   h+='<button class="tr-exname" data-gloss="'+esc(ex.name)+'">'+esc(ex.name)+' <span class="i">ⓘ</span></button>';
   h+='<div class="tr-target">'+trEntries[ex.id].length+' × '+esc(ex.target)+(ex.wl&&ex.type!=="time"?' @ '+esc(ex.wl):'')+'</div>';
-  h+='<div class="tr-note">'+esc(ex.note)+'</div>';
+  h+='<div class="tr-note">'+esc(ex.note)+(ex.noteGloss?' <button class="tr-link" data-gloss="'+esc(ex.noteGloss)+'">Fiche : '+esc(ex.noteGloss)+'</button>':'')+'</div>';
   if(ls)h+='<div class="tr-last">Dernière fois : '+esc(ls)+'</div>';
   h+='<div class="tr-sets">';
   trEntries[ex.id].forEach((s,i)=>{
@@ -779,7 +780,8 @@ function renderSession(deload,last){
     if(ex.weight!=null){h+='<input class="tr-in" inputmode="decimal" placeholder="kg" value="'+esc(s.weight)+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="weight" style="width:58px"><span class="tr-u">kg</span>';}
     /* RIR par série (optionnel) : la règle de progression exige haut de fourchette À RIR 1-2,
        les reps seules ne suffisent pas à valider un +2 kg. Prioritaire sur RDL, goblet, bulgare. */
-    h+='<input class="tr-in" inputmode="numeric" placeholder="RIR" value="'+esc(s.rir||"")+'" data-ex="'+ex.id+'" data-i="'+i+'" data-f="rir" style="width:46px"><button class="tr-u tr-link" data-gloss="RIR" style="background:none;border:none;padding:0;cursor:pointer">RIR</button>';
+    const rirV=(s.rir===""||s.rir==null)?"":(parseInt(s.rir,10)>=4?"4+":String(s.rir));
+    h+='<select class="tr-in" data-ex="'+ex.id+'" data-i="'+i+'" data-f="rir" style="width:58px">'+["","0","1","2","3","4+"].map(o=>'<option value="'+o+'"'+(rirV===o?' selected':'')+'>'+(o===""?"RIR":o)+'</option>').join("")+'</select><button class="tr-u tr-link" data-gloss="RIR" style="background:none;border:none;padding:0;cursor:pointer">RIR</button>';
    }
    h+='</div>';
   });
@@ -947,6 +949,7 @@ async function trSave(){await setJSON(TKEY,{logs:trLogs});}
 /* ---- Events ---- */
 document.addEventListener("input",e=>{
  const t=e.target;if(!t.dataset||!t.dataset.ex)return;
+ if(t.tagName==="SELECT"){trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=t.value;return;}
  const v=t.value.replace(t.dataset.f==="weight"?/[^0-9.,]/g:/[^0-9]/g,"");
  t.value=v;trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=v;
 });
