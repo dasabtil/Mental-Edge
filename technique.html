@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="fr" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mental Edge — Technique</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/e220a9bbb233eb75.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/359bfa88608fb72e.png">
+<link rel="apple-touch-icon" href="assets/c7cdbfa6e1e417d4.png">
+<meta name="theme-color" content="#2f6a45">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#f3eee3;--bg2:#ece4d5;--surface:#fbf8f1;--surface2:#f6f0e6;
+  --text:#272320;--muted:#5e5749;--muted2:#726957;
+  --line:rgba(40,32,16,.12);--line2:rgba(40,32,16,.07);
+  --green:#2f6a45;--green-soft:#4f8a5f;--accent:#8a5f10;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.05);--tint2:rgba(63,107,74,.05);--grain:.10;
+  --r:18px;--maxw:1080px;
+}
+[data-theme=dark]{
+  --bg:#14120d;--bg2:#1b1812;--surface:#211d15;--surface2:#272219;
+  --text:#ece6d8;--muted:#b3ab98;--muted2:#8c8370;
+  --line:rgba(216,166,74,.18);--line2:rgba(236,230,216,.08);
+  --green:#86b079;--green-soft:#6f9e6a;--accent:#e7c272;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.10);--tint2:rgba(63,107,74,.12);--grain:.14;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;background-image:radial-gradient(120% 80% at 50% -8%,var(--tint1),transparent 60%),radial-gradient(80% 60% at 92% 112%,var(--tint2),transparent 60%)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 90px}
+h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin:0;padding:11px 22px}
+.nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .mark{width:30px;height:30px;flex:none}
+.brand b{font-family:"Playfair Display",serif;font-weight:600;font-size:15px;letter-spacing:3px;color:var(--text)}
+.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.navlinks{display:flex;gap:2px;flex-wrap:wrap}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;padding:7px 9px;border-radius:999px;transition:.2s;white-space:nowrap}
+.navlinks a:hover{color:var(--text)}
+.navlinks a.on{color:var(--on-accent);background:var(--accent-bright);font-weight:600}
+.navright{display:flex;align-items:center;gap:12px}
+.themebtn{appearance:none;cursor:pointer;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--accent);font-size:15px;display:grid;place-items:center;transition:.2s}
+.themebtn:hover{border-color:var(--accent);color:var(--text)}
+.hero{padding:46px 0 8px}
+.hero .kicker{color:var(--accent);letter-spacing:4px;text-transform:uppercase;font-size:11.5px;margin:0 0 8px;font-weight:600}
+.hero h1{margin:0;font-size:clamp(34px,6vw,52px);line-height:1.05}.hero h1 em{font-style:italic;color:var(--green);font-weight:500}
+.hero .sub{margin:14px 0 0;color:var(--muted);font-size:16.5px;max-width:60ch}
+.sec{padding:42px 0 6px;scroll-margin-top:72px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:0 0 5px}
+.sec-h .no{font-family:"Playfair Display",serif;color:var(--accent);font-size:14px;letter-spacing:2px}
+.sec-h h2{margin:0;font-size:26px}
+.sec-desc{color:var(--muted);font-size:15px;margin:0 0 22px;max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 18px}
+.lab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.lab span,.lab>span{color:var(--accent);font-size:11px;letter-spacing:2.2px;text-transform:uppercase;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.step{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--line2);align-items:flex-start}
+.step:last-child{border-bottom:none}
+.step .n{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-family:"Playfair Display",serif;font-weight:700;font-size:15px;color:var(--on-accent);background:linear-gradient(150deg,#e6bd66,#caa23e)}
+.step b{font-weight:600}
+.step small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.5}
+ul.dots{list-style:none;padding:0;margin:0}
+ul.dots li{position:relative;padding:6px 0 6px 18px;font-size:14.5px;border-bottom:1px solid var(--line2)}
+ul.dots li:last-child{border-bottom:none}
+ul.dots li::before{content:"";position:absolute;left:0;top:15px;width:6px;height:6px;border-radius:50%;background:var(--green-soft)}
+ul.dots li b{font-weight:600}
+ul.dots li small{color:var(--muted)}
+.rulecard{border-left:3px solid var(--accent-bright)}
+.mini{color:var(--accent);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin:14px 0 7px;font-weight:600}
+.mini:first-child{margin-top:0}
+/* check-in */
+.ckq{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.ckq:last-of-type{border-bottom:none}
+.ckq .q{font-size:14.5px;line-height:1.4}
+.ckq .q small{display:block;color:var(--muted);font-size:12.5px}
+.ynbtns{display:flex;gap:6px;flex:none}
+.ynbtns button{appearance:none;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 16px;font:inherit;font-size:13px;transition:.15s}
+.ynbtns button.on-yes{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.ynbtns button.on-no{background:#b0522b;border-color:#b0522b;color:#fff;font-weight:600}
+.cknote{width:100%;box-sizing:border-box;margin-top:14px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--text);font:inherit;font-size:14px;resize:vertical;min-height:60px}
+.cksave{appearance:none;cursor:pointer;margin-top:12px;border-radius:11px;padding:11px 22px;font:inherit;font-size:14px;font-weight:600;border:1px solid var(--accent);background:var(--accent-bright);color:var(--on-accent);transition:.2s}
+.cksave:disabled{opacity:.45;cursor:default}
+.ckmsg{margin-top:10px;color:var(--green);font-size:13px;min-height:16px}
+.ckwt{margin-top:4px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;font-size:14px;color:var(--muted)}
+.ckwt b{color:var(--text)}
+.cklock{padding:14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:14px;margin-bottom:10px}
+.ckhist .row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13.5px;flex-wrap:wrap}
+.ckhist .row:last-child{border-bottom:none}
+.ckhist .wk{font-family:"Playfair Display",serif;font-weight:600;color:var(--accent);min-width:118px}
+.ckhist .pill4{display:flex;gap:4px}
+.ckhist .p{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;color:#fff}
+.ckhist .p.y{background:var(--green)}.ckhist .p.n{background:#b0522b}.ckhist .p.u{background:var(--line);color:var(--muted)}
+.ckhist .wtd{margin-left:auto;color:var(--muted)}
+.authov{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.authbox{max-width:380px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.authlogo{width:56px;height:56px;margin:0 auto 12px;border-radius:14px;overflow:hidden}
+.authlogo img{width:100%;height:100%;object-fit:cover}
+.authbox h2{font-family:"Playfair Display",serif;margin:0 0 6px;color:var(--text);font-size:24px}
+.authsub{color:var(--muted);font-size:13.5px;margin:0 0 18px;line-height:1.5}
+.authbox input{width:100%;box-sizing:border-box;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--text);font-size:15px}
+.authbtns{display:flex;gap:10px;margin-top:6px}
+.authbtns button{flex:1;cursor:pointer;border-radius:11px;padding:12px;font-size:14px;border:1px solid var(--accent);background:transparent;color:var(--accent);transition:.2s}
+.authbtns button:hover{background:var(--accent);color:var(--on-accent)}
+.authmsg{margin-top:12px;color:var(--accent);font-size:13px;min-height:16px}
+.footer{margin-top:70px;color:var(--muted2);font-size:12.5px;text-align:center}
+</style><style>
+#themeBtn{display:none!important}
+@media(max-width:760px){
+ #logoutBtn{display:none!important}
+}
+</style>
+
+<style>
+.menubtn{display:none;appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font-size:20px;line-height:1;border-radius:10px;padding:6px 11px;cursor:pointer}
+.mobmenu{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;display:none}
+.mobmenu.show{display:block}
+.mobmenu-in{position:absolute;top:0;right:0;height:100%;width:80%;max-width:300px;background:var(--surface);border-left:1px solid var(--line);padding:62px 14px 22px;overflow:auto;display:flex;flex-direction:column;gap:2px;box-sizing:border-box}
+.mobmenu-in a{display:block;padding:13px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:16px;border-bottom:1px solid var(--line)}
+.mobmenu-in a:active{background:var(--bg)}
+.streak{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);white-space:nowrap}
+.streak .fl{font-size:15px}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;padding:7px 9px;border-radius:999px;transition:.2s;white-space:nowrap}
+.navlinks a:hover{color:var(--text)}
+.navlinks a.on{color:var(--on-accent);background:var(--accent-bright);font-weight:600}
+@media(max-width:760px){.menubtn{display:inline-flex}.navlinks{display:none}}
+</style>
+<style>
+/* ===== Suivi Pure Poker ===== */
+.gl{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.gl .pct{font-family:"Playfair Display",serif;font-size:34px;font-weight:700;color:var(--accent);line-height:1}
+.gl .meta{color:var(--muted);font-size:13.5px}
+.gbar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}
+.gbar>i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green-soft),var(--accent-bright));transition:width .3s}
+.tctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tctrl button{appearance:none;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 15px;font:inherit;font-size:12.5px;transition:.15s}
+.tctrl button:hover{border-color:var(--accent);color:var(--text)}
+.tctrl button.danger:hover{border-color:#b0522b;color:#b0522b}
+.cat{margin-top:26px}
+.cat-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.cat-tag{color:var(--accent);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.cat-name{font-family:"Playfair Display",serif;font-size:20px;font-weight:600}
+.cat-prog{margin-left:auto;color:var(--muted);font-size:13px}
+details.module{border-bottom:1px solid var(--line2)}
+details.module>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:11px;padding:13px 2px}
+details.module>summary::-webkit-details-marker{display:none}
+.chevron{color:var(--accent);font-size:10px;transition:transform .18s;flex:none}
+details.module[open]>summary .chevron{transform:rotate(90deg)}
+.mod-title{font-weight:600;font-size:15px}
+.mod-mini{margin-left:auto;display:flex;align-items:center;gap:9px;flex:none}
+.mini-bar{width:76px;height:5px;border-radius:999px;background:var(--line);overflow:hidden}
+.mini-bar>i{display:block;height:100%;width:0;background:var(--green-soft);transition:width .3s}
+.mpct{color:var(--muted);font-size:12px;min-width:34px;text-align:right}
+.mod-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:16px;padding:4px 0 18px}
+.col-name{color:var(--muted2);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.grp{background:var(--surface2);border:1px solid var(--line2);border-left:3px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px}
+.grp.b{border-left-color:var(--green-soft)}
+.grp.a{border-left-color:var(--accent-bright)}
+.grp.e{border-left-color:#b0522b}
+.grp-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.lvl{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:999px}
+.lvl.basique{background:rgba(79,138,95,.16);color:var(--green)}
+.lvl.avance{background:rgba(216,166,74,.18);color:var(--accent)}
+.lvl.elite{background:rgba(176,82,43,.16);color:#b0522b}
+.grp-title{color:var(--muted);font-size:12px}
+.lesson{display:flex;align-items:center;gap:9px;padding:7px 4px;border-radius:9px;cursor:pointer;transition:background .15s}
+.lesson:hover{background:var(--bg2)}
+.lesson .cb{width:17px;height:17px;flex:none;border-radius:5px;border:1.5px solid var(--line);display:grid;place-items:center;transition:.15s}
+.lesson .cb svg{width:12px;height:12px;opacity:0}
+.lesson .cb svg path{stroke:var(--on-accent)}
+.lesson.done .cb{background:var(--accent-bright);border-color:var(--accent-bright)}
+.lesson.done .cb svg{opacity:1}
+.lesson .name{font-size:13.5px;line-height:1.35}
+.lesson.done .name{color:var(--muted);text-decoration:line-through}
+.lesson .dur{margin-left:auto;color:var(--muted2);font-size:11.5px;flex:none}
+.lesson.soon{cursor:default;opacity:.5}
+.lesson.soon:hover{background:transparent}
+.soon-tag{margin-left:auto;color:var(--muted2);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;flex:none}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(14px);background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:9px 18px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:120;box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.soonbox{padding:16px 18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:14.5px}
+.soonbox b{color:var(--text)}
+</style>
+</head><body>
+<div id="authOverlay" class="authov"><div class="authbox"><div class="authlogo"><img src="assets/ef25df956b012609.png" alt=""></div><h2>Mental Edge</h2><p class="authsub">Connecte-toi pour accéder à ton espace. Tes données sont privées et synchronisées entre tes appareils.</p><input type="email" id="authEmail" placeholder="Ton e-mail" autocomplete="username"><input type="password" id="authPw" placeholder="Mot de passe" autocomplete="current-password"><div class="authbtns"><button id="authSignin">Se connecter</button><button id="authSignup">Créer un compte</button></div><div class="authmsg" id="authMsg"></div></div></div>
+
+<div class="wrap">
+<div id="mobMenu" class="mobmenu"><div class="mobmenu-in" id="mobMenuIn"></div></div><div class="nav"><div class="nav-in">
+  <div class="brand">
+    <img class="mark" src="assets/ef25df956b012609.png" alt="">
+    <div><b>Mental</b><small>Edge</small></div>
+  </div>
+  <nav class="navlinks" id="nav"><a href="index.html">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="bounty.html">Bounty</a><a href="technique.html" class="on">Technique</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
+  <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button> <button class="themebtn" id="themeBtn" title="Changer de thème" aria-label="Changer de thème">&#9728;</button> <button class="themebtn" id="logoutBtn" title="Déconnexion" style="display:none">&#9099;</button><div class="streak"><span class="fl">&#128293;</span><b id="streakN">0</b><span>j</span></div></div>
+</div></div>
+
+<section class="hero">
+  <p class="kicker">Travail hors table</p>
+  <h1>Technique — <em>le chemin de progression</em></h1>
+  <p class="sub">Un seul endroit pour le travail technique : ce qui est déjà étudié, et ce qui reste à construire. Le volume de jeu se protège, le travail technique se planifie.</p>
+</section>
+
+<section class="sec" id="suivi">
+  <div class="sec-h"><span class="no">01</span><h2>Suivi Pure Poker</h2></div>
+  <p class="sec-desc">L'arbre d'apprentissage complet. Clique une leçon pour la cocher : la progression est enregistrée dans ton compte et suit sur tous tes appareils. Les leçons « bientôt » sont grisées et exclues du calcul.</p>
+  <div class="card">
+    <div class="lab"><span>Progression globale</span></div>
+    <div class="gl"><span class="pct" id="gPct">0%</span><span class="meta" id="gMeta">—</span></div>
+    <div class="gbar"><i id="gBar"></i></div>
+    <div class="tctrl">
+      <button id="expandAll">Tout déplier</button>
+      <button id="collapseAll">Tout replier</button>
+      <button id="reset" class="danger">Réinitialiser</button>
+    </div>
+    <div id="tree"></div>
+  </div>
+</section>
+
+<section class="sec" id="plan">
+  <div class="sec-h"><span class="no">02</span><h2>Plan de progression</h2></div>
+  <p class="sec-desc">Le chemin : quoi travailler, dans quel ordre, avec quel critère de sortie. À construire.</p>
+  <div class="card rulecard">
+    <div class="soonbox"><b>Section en attente.</b> On la remplit quand on aura bossé le plan : axes prioritaires, ordre de travail, critère qui dit qu'un sujet est acquis, et le lien vers le suivi Pure Poker ci-dessus.</div>
+  </div>
+</section>
+
+<p class="footer">Mental Edge · Technique — le travail hors table ne remplace pas le volume, il le rentabilise.</p>
+</div>
+
+<div class="toast" id="savedToast">Enregistré &#10003;</div>
+
+<script>
+/* ===== DATA ===== */
+/* l = lesson [titre, minutes]  |  minutes=0 ou "soon"=true => "bientôt" (non comptée) */
+const S = (t)=>({t, soon:true});           // bientôt
+const L = (t,m)=>({t, m});                 // leçon dispo
+const data = [
+{
+  tag:"pots-relances-srp", name:"Pots relancés (SRP)",
+  modules:[
+    { name:"OOP vs flatcall IP", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Préflop basique", lessons:[L("Intro préflop sans les blindes",8)]},
+        {lvl:"avance", title:"Préflop avancé", lessons:[S("Préflop : chartes GTO simplifiées")]},
+        {lvl:"elite", title:"Préflop élite", lessons:[S("Préflop : exploits et nodelocks")]},
+      ]},
+      { name:"Postflop OOP", groups:[
+        {lvl:"basique", title:"Postflop PFR OOP basique", lessons:[L("Intro postflop vs flatcall IP",10)]},
+        {lvl:"avance", title:"Postflop avancé PFR OOP", lessons:[L("Concepts & Exemples",25)]},
+        {lvl:"elite", title:"Postflop élite OOP", lessons:[
+          S("GTO : fréquences et sizings"),
+          L("Concepts généraux",44),
+          L("OOP vs IP flat : Exploits et MDA (partie 1)",32),
+          L("OOP vs IP flat : nodelocks en pratique (partie 2)",22),
+        ]},
+      ]},
+      { name:"Postflop IP", groups:[
+        {lvl:"basique", title:"Postflop flatcall IP", lessons:[L("Intro postflop IP",11)]},
+        {lvl:"avance", title:"Postflop avancé flatcall IP", lessons:[
+          L("40bb postflop IP",33), S("Adaptations différents stacks")]},
+        {lvl:"elite", title:"Postflop élite IP", lessons:[
+          S("GTO : fréquences et sizings"),
+          S("Concepts généraux"),
+          L("IP flat vs OOP pfr : Exploits et MDA (partie 1)",42),
+        ]},
+      ]},
+    ]},
+
+    { name:"UTG-HJ vs BB", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Préflop", lessons:[L("Intro préflop",12)]},
+        {lvl:"avance", title:"Préflop", lessons:[S("Chartes GTO simplifiées")]},
+        {lvl:"elite", title:"Préflop", lessons:[L("Exploits et nodelocks",49)]},
+      ]},
+      { name:"Postflop UTG-HJ", groups:[
+        {lvl:"basique", title:"Postflop UTG-HJ", lessons:[L("depuis HJ et UTG",8)]},
+        {lvl:"avance", title:"Postflop UTG-HJ", lessons:[S("30bb postflop UTG-HJ")]},
+        {lvl:"elite", title:"Postflop UTG-HJ", lessons:[
+          L("Comparaison BU vs UTG vs HJ (partie 1)",40),
+          L("A high boards (depuis HJ)",38),
+          L("K-T High (depuis HJ)",48),
+          L("9 High et dessous (depuis HJ)",56),
+          L("Exploits et nodelocks",37),
+        ]},
+      ]},
+      { name:"Postflop en BB", groups:[
+        {lvl:"basique", title:"Postflop BB", lessons:[L("depuis BB",13)]},
+        {lvl:"avance", title:"Postflop BB", lessons:[S("30bb postflop BB")]},
+        {lvl:"elite", title:"Postflop BB", lessons:[S("BB leads (donkbets)"), S("Exploits et nodelocks")]},
+      ]},
+    ]},
+
+    { name:"IP vs SB", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[
+          L("Intro au jeu préflop depuis SB",15),
+          L("Intro au jeu préflop contre 3b de la SB",21)]},
+        {lvl:"avance", title:"Avancé", lessons:[S("Chartes GTO simplifiées")]},
+        {lvl:"elite", title:"Élite", lessons:[S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop depuis SB", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[S("Intro postflop en tant que SB")]},
+        {lvl:"avance", title:"Avancé", lessons:[S("30bb depuis la SB")]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("LJ vs SB : IP et OOP a 60bb",53),
+          L("BU vs SB : IP et OOP a 80 et 30bb",44),
+          L("IP vs SB : mise en pratique",43)]},
+      ]},
+      { name:"Postflop depuis IP", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[S("Intro postflop en tant que IP")]},
+        {lvl:"avance", title:"Avancé", lessons:[S("30bb depuis IP")]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("LJ vs SB : IP et OOP a 60bb",53),
+          L("BU vs SB : IP et OOP a 80 et 30bb",44),
+          L("IP vs SB : mise en pratique",43)]},
+      ]},
+    ]},
+
+    { name:"BU vs BB", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Préflop", lessons:[L("Intro préflop",12)]},
+        {lvl:"avance", title:"Préflop", lessons:[L("Chartes GTO simplifiées",30)]},
+        {lvl:"elite", title:"Préflop", lessons:[L("nodelocks : depuis le BU",50)]},
+      ]},
+      { name:"Postflop depuis BB", groups:[
+        {lvl:"basique", title:"Postflop depuis BB", lessons:[L("Intro postflop en BB",16)]},
+        {lvl:"avance", title:"Flop en BB", lessons:[
+          L("30bb flop en BB : théorie",30),
+          L("30bb flop en BB : pratique (partie 1)",34),
+          L("30bb flop en BB : pratique (partie 2)",39),
+          S("Différences à 20, 50, 100bb")]},
+        {lvl:"avance", title:"Turn et River", lessons:[
+          L("Turn après x/r flop 30bb deep",32),
+          S("Turn après XC et XR, River probe")]},
+        {lvl:"elite", title:"Flop en BB", lessons:[
+          L("vs Cbet GTO",44),
+          L("Range linéaire vs 6-12bb",30),
+          L("Flop leads (donkbets)",48),
+          L("Flop exploits et nodelocks : part1",33),
+          S("Flop exploits et nodelocks : part2")]},
+        {lvl:"elite", title:"Turn", lessons:[
+          S("Turn après XC flop"),
+          L("Turn après XR flop (partie 1)",29),
+          L("Turn après XR flop (partie 2)",40),
+          L("Turn après XX flop (probe)",35),
+          L("Turn leads (donkbets)",48),
+          S("Turn exploits et nodelocks")]},
+        {lvl:"elite", title:"River", lessons:[L("River probe (cbet flop turn XX)",64)]},
+      ]},
+      { name:"Postflop depuis BU", groups:[
+        {lvl:"basique", title:"Postflop depuis BU", lessons:[L("Intro postflop au BU",14)]},
+        {lvl:"avance", title:"Flop au BU", lessons:[
+          L("30bb flop au BU",18),
+          L("Différences à 20bb et 60bb+",29),
+          L("BU vs BB - Exploit Live-Focus Flop",37)]},
+        {lvl:"avance", title:"Turn", lessons:[L("Turn après cbet range flop",35)]},
+        {lvl:"elite", title:"Flop au BU", lessons:[
+          L("Intro au jeu BU vs BB",11),
+          L("Boards A high",43),
+          L("Boards K high",44),
+          L("Boards Q-J-T high",41),
+          L("Boards 9 high or lower",35),
+          L("Boards pairés",32),
+          L("Boards monotones",36),
+          L("Range linéaire vs 6-12bb",30),
+          L("Flop leads (donkbets)",48),
+          L("3b le flop vs x/raise",45),
+          L("Flop exploits et nodelocks",24)]},
+        {lvl:"elite", title:"Turn", lessons:[
+          L("Turn après cbet flop",50),
+          L("Turn après XX flop",33),
+          L("Turn après XR flop (partie 2)",40),
+          S("Turn exploits et nodelocks")]},
+        {lvl:"elite", title:"River", lessons:[
+          L("BU vs BB - Sizings River dans les pots Check Down",44)]},
+      ]},
+    ]},
+  ]
+},
+
+{
+  tag:"blinde-contre-blinde", name:"Blinde contre Blinde",
+  modules:[
+    { name:"Limp/Check", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",21), L("Depuis la BB",14)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("Chartes GTO simplifiées depuis la SB",15),
+          L("Chartes GTO simplifiées depuis la BB",13)]},
+        {lvl:"elite", title:"Élite", lessons:[
+          S("MDA - Analyse de la population"), S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",24), L("Depuis la BB",25)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("30bb depuis la SB",28), L("30bb depuis la BB",37),
+          S("Adaptations différents stacks")]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("Stratégie postflop SB+BB",40),
+          S("MDA - Analyse de la population"),
+          L("Exploits et nodelocks",38)]},
+      ]},
+    ]},
+
+    { name:"SB PFR (pot relancé par SB)", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",21), L("Depuis la BB",14)]},
+        {lvl:"avance", title:"Avancé", lessons:[L("Chartes GTO simplifiées depuis la SB",15)]},
+        {lvl:"elite", title:"Élite", lessons:[
+          S("MDA - Analyse de la population"), S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",20), L("Depuis la BB",21)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("30bb depuis la BB",24), L("30bb depuis la SB",28),
+          S("Adaptations à différents stacks sizes")]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("BVB SRP - Stratégies GTO Postflop",51),
+          S("MDA - Analyse de la population"),
+          L("Exploits et nodelocks",24)]},
+      ]},
+    ]},
+
+    { name:"Limp/Call", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",21), L("Depuis la BB",14)]},
+        {lvl:"avance", title:"Avancé", lessons:[L("Chartes GTO simplifiées depuis la SB",15)]},
+        {lvl:"elite", title:"Élite", lessons:[S("MDA - Analyse de la population")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",31), L("Depuis la BB",17)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("30bb depuis la SB",51), L("30bb depuis la BB",34), L("60bb depuis la BB",31)]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("Stratégie postflop SB+BB",48),
+          S("MDA - Analyse de la population"),
+          L("BVB postflop : Exploits et nodelocks du noeud limp/call",35)]},
+      ]},
+    ]},
+  ]
+},
+
+{
+  tag:"pots-3bet", name:"Pots 3bet",
+  modules:[
+    { name:"SB vs BU-HJ-UTG", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[
+          L("Intro au jeu préflop depuis SB",15),
+          L("Intro au jeu préflop contre 3b de la SB",21)]},
+        {lvl:"avance", title:"Avancé", lessons:[L("Chartes GTO simplifiées",14)]},
+        {lvl:"elite", title:"Élite", lessons:[
+          S("Exploits et nodelocks"),
+          S("Impact postflop d'un nodelock préflop")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Depuis la SB",15), L("Depuis IP",13)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("40bb depuis la SB",36),
+          L("40bb depuis BU",20),
+          L("Différences à 80bb",29),
+          L("Comparaison à SB vs MP",3)]},
+        {lvl:"elite", title:"Flop", lessons:[
+          L("SB vs BU : IP et OOP",39),
+          S("SB vs HJ/EP : IP et OOP"),
+          L("Nodelocks et exploits OOP",37),
+          L("Nodelocks et exploits IP (part 1)",46),
+          L("Nodelocks et exploits IP (part 2)",28)]},
+        {lvl:"elite", title:"Turn", lessons:[S("SB vs IP")]},
+      ]},
+    ]},
+
+    { name:"Sans les blindes", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Intro au jeu préflop",19)]},
+        {lvl:"avance", title:"Avancé", lessons:[L("chartes GTO simplifiées",15)]},
+        {lvl:"elite", title:"Élite", lessons:[S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Intro depuis BU",11), L("Intro depuis OOP",9)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("BU vs CO",16), L("BU vs LJ",17), L("HJ vs LJ",18)]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("MP vs MP",48), L("LP vs MP",27), L("LP vs LP",25),
+          L("Pot 3bet - Donkbet FLOP - théorie & exploits",31),
+          L("Nodelocks et exploits depuis OOP",23)]},
+      ]},
+      { name:"ICM", groups:[
+        {lvl:"elite", title:"Préflop", lessons:[
+          L("Défendre vs 3bet sous ICM - couvert",41),
+          L("Défendre vs 3bet sous ICM - couvrant",26)]},
+        {lvl:"elite", title:"Postflop", lessons:[
+          L("Couvert face à un 3bet - Postflop - Bulle et pré-bulle (part 1)",36),
+          L("Couvert face à un 3bet - Postflop - Bulle et pré-bulle (part 2)",28),
+          L("Couvert face à un 3bet - Postflop - TF",70),
+          L("Couvrant face à un 3Bet - Postflop - Bulle Et Pré-Bulle",49),
+          L("Couvert face à un 3Bet - Postflop Deep TF",28)]},
+      ]},
+    ]},
+
+    { name:"Pots Squeeze", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"elite", title:"Élite", lessons:[
+          L("Squeeze - Théories et exploit 1",48),
+          L("Squeeze - Théories et exploit 2",41),
+          L("Squeeze - ICM",46)]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("Squeeze - Postflop à 80bb - BUvsHJ (+LJ) partie1",30),
+          L("Squeeze - Postflop à 80bb - BUvsHJ (+LJ) partie2",25),
+          L("Squeeze - Postflop à 80bb - SB vs HJ (+ CO preflop)",38),
+          L("Squeeze - Postflop à 80bb - SB vs CO (+ HJ preflop)",35),
+          L("Squeeze - Postflop à 80bb - SB vs HJ ET CO (3 way flop)",18)]},
+      ]},
+    ]},
+  ]
+},
+
+{
+  tag:"autre", name:"Autre",
+  modules:[
+    { name:"Multiway", cols:[
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Préflop", lessons:[L("Introduction",30)]},
+        {lvl:"avance", title:"Préflop", lessons:[S("Chartes GTO 3-way")]},
+        {lvl:"elite", title:"Préflop", lessons:[S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Postflop", lessons:[L("Introduction",24)]},
+        {lvl:"avance", title:"Postflop", lessons:[L("Concepts du jeu multiway",35)]},
+        {lvl:"elite", title:"30 à 50bb deep dive", lessons:[
+          L("30bb-BUvsSB+BB : theorie",45),
+          L("30bb-BUvsSB+BB : exemples (partie 1)",38),
+          L("30bb-BUvsSB+BB : exemples (partie 2)",50),
+          L("50bb-EPvsBU+BB",43),
+          L("50bb-COvsBU+BB",37),
+          L("BU vs SB+BB NODELOCK : SB 0% lead",41),
+          L("BU vs SB+BB NODELOCK (partie 2)",34)]},
+        {lvl:"elite", title:"Turn", lessons:[
+          L("Multiway postflop : BB turn leads (Part 1)",44),
+          L("Multiway postflop : BB turn leads (Part 2)",45)]},
+      ]},
+    ]},
+
+    { name:"KOs (PKO, Space KO, Mystery)", cols:[
+      { name:"Concepts", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Théorie",20), S("Erreurs des adversaires")]},
+        {lvl:"avance", title:"Outils", lessons:[]},
+        {lvl:"elite", title:"ICM", lessons:[S("ICM en PSKO : différences")]},
+        {lvl:"elite", title:"Autre", lessons:[S("All-in Multiway")]},
+      ]},
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Exemples de mains", lessons:[S("Illustration des concepts")]},
+        {lvl:"avance", title:"Adaptations préflop", lessons:[
+          L("first-in",44), L("vs open",45), L("vs 3bets et iso de limp",46),
+          L("BvB",47), L("vs all-in et multiway all-in",41), L("ICM et implications postflop",46)]},
+        {lvl:"elite", title:"Open first in", lessons:[
+          S("Quand limp ?"), S("En couvrant"), S("En étant couvert")]},
+        {lvl:"elite", title:"vs open : flat ou 3b", lessons:[
+          S("En couvrant"), S("En étant couvert")]},
+        {lvl:"elite", title:"BVB", lessons:[
+          S("Depuis la SB en couvrant"), S("Depuis la SB en étant couvert"),
+          S("Depuis la BB en couvrant"), S("Depuis la BB en étant couvert")]},
+        {lvl:"elite", title:"Exploits et nodelocks", lessons:[S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Exemples de mains", lessons:[S("Illustration des concepts")]},
+        {lvl:"avance", title:"Adaptation postflop", lessons:[S("Les concepts")]},
+        {lvl:"elite", title:"Adaptations postflop", lessons:[
+          L("BU vs BB : Low Boards (BU couvre)",50),
+          L("BU vs BB Low Boards (BB couvre)",50),
+          S("Exploits et nodelocks")]},
+      ]},
+    ]},
+
+    { name:"ICM", cols:[
+      { name:"Concepts", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Définition et utilisation pratique",18)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("Outils pour étudier",56), S("Definitions techniques")]},
+        {lvl:"elite", title:"Élite", lessons:[
+          L("Étude du RP à différents stades",27),
+          S("les satellites"),
+          S("FGS : les limites de l'ICM"),
+          S("ICM en PSKO : différences")]},
+      ]},
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[
+          L("Comment jouer la bulle : Introduction",17),
+          L("ICM : Introduction au jeu pré flop en Table Finale",16)]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("Concepts fondamentaux",41),
+          L("Impact des stacks derrière (face à un open) - flat ou 3bet ?",18),
+          L("Bulle : midstack vs bigstack",25)]},
+        {lvl:"elite", title:"Deep dive", lessons:[
+          S("BU vs BB"), S("BVB"), S("IP vs open"),
+          L("Défendre vs 3bet sous ICM - couvert",41),
+          L("Défendre vs 3bet sous ICM - couvrant",26)]},
+        {lvl:"elite", title:"Exploits et nodelocks", lessons:[
+          S("contre 3b de la BB"), S("BVB"), S("contre RFI du big stack")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[L("Concepts et exemples",41)]},
+        {lvl:"avance", title:"Avancé", lessons:[S("Adaptations postflop")]},
+        {lvl:"elite", title:"Deep dive", lessons:[
+          S("BU vs BB"),
+          L("BVB Postflop sous ICM - SRP",44),
+          L("OOP vs IP (no blind)",46),
+          S("pots 3b short stack"),
+          L("Bulle : midstack vs bigstack postflop",46)]},
+      ]},
+      { name:"Satellites", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[]},
+        {lvl:"avance", title:"Avancé", lessons:[
+          L("Satellites - Concepts PREFLOP",34),
+          L("Satellites - Concepts PREFLOP (partie 2)",23)]},
+        {lvl:"elite", title:"Élite", lessons:[L("Satellites Preflop - Nodelocks",29)]},
+      ]},
+    ]},
+
+    { name:"Heads-Up", cols:[
+      { name:"Concepts", groups:[
+        {lvl:"basique", title:"Erreurs classiques", lessons:[S("Exploiter en low stakes")]},
+        {lvl:"avance", title:"Erreurs classiques", lessons:[S("Exploiter en mid stakes")]},
+        {lvl:"elite", title:"Autres", lessons:[S("L'edge en HU")]},
+      ]},
+      { name:"Préflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[S("Intro au préflop en HU")]},
+        {lvl:"avance", title:"Préflop Avancé", lessons:[
+          S("Depuis le BU/SB"), S("Depuis la BB")]},
+        {lvl:"elite", title:"Préflop Élite", lessons:[
+          L("GTO et adaptations",51), S("avec BB ante"), S("Exploits et nodelocks")]},
+      ]},
+      { name:"Postflop", groups:[
+        {lvl:"basique", title:"Introduction", lessons:[S("Intro au postflop en HU")]},
+        {lvl:"avance", title:"Postflop avancé", lessons:[
+          S("40bb Depuis le BU/SB"), S("40bb Depuis la BB"), S("différences de stack sizes")]},
+        {lvl:"elite", title:"Postflop élite", lessons:[
+          L("SRP + Limp/Check",50),
+          L("Pots 3bet + pots ISO (limp/call)",39),
+          S("Exploits et nodelocks")]},
+      ]},
+    ]},
+  ]
+},
+];
+
+/* ===== RENDER ===== */
+var lvlClass={basique:"b",avance:"a",elite:"e"};
+var lvlLabel={basique:"Basique",avance:"Avancé",elite:"Élite"};
+var tree=document.getElementById("tree");
+var done={};
+
+data.forEach(function(cat,ci){
+  var catEl=document.createElement("section");
+  catEl.className="cat";
+  catEl.innerHTML='<div class="cat-head"><span class="cat-tag">'+cat.tag+'</span><span class="cat-name">'+cat.name+'</span><span class="cat-prog" id="catprog-'+ci+'"></span></div>';
+  cat.modules.forEach(function(mod,mi){
+    var det=document.createElement("details");
+    det.className="module";
+    var sum=document.createElement("summary");
+    sum.innerHTML='<span class="chevron">&#9654;</span><span class="mod-title">'+mod.name+'</span><span class="mod-mini"><span class="mini-bar"><i id="modbar-'+ci+'-'+mi+'"></i></span><span class="mpct" id="modpct-'+ci+'-'+mi+'">0%</span></span>';
+    det.appendChild(sum);
+    var body=document.createElement("div");
+    body.className="mod-body";
+    mod.cols.forEach(function(col,coi){
+      var colEl=document.createElement("div");
+      colEl.className="col";
+      colEl.innerHTML='<div class="col-name">'+col.name+'</div>';
+      col.groups.forEach(function(grp,gi){
+        var g=document.createElement("div");
+        g.className="grp "+lvlClass[grp.lvl];
+        var html='<div class="grp-head"><span class="lvl '+grp.lvl+'">'+lvlLabel[grp.lvl]+'</span><span class="grp-title">'+grp.title+'</span></div>';
+        grp.lessons.forEach(function(ls,li){
+          var id=ci+"-"+mi+"-"+coi+"-"+gi+"-"+li;
+          if(ls.soon){
+            html+='<div class="lesson soon"><span class="cb"></span><span class="name">'+ls.t+'</span><span class="soon-tag">bientôt</span></div>';
+          }else{
+            html+='<div class="lesson" data-id="'+id+'"><span class="cb"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="name">'+ls.t+'</span><span class="dur">'+ls.m+' min</span></div>';
+          }
+        });
+        g.innerHTML=html;
+        colEl.appendChild(g);
+      });
+      body.appendChild(colEl);
+    });
+    det.appendChild(body);
+    catEl.appendChild(det);
+  });
+  tree.appendChild(catEl);
+});
+
+/* ===== PROGRESSION ===== */
+function paintDone(){
+  var rows=tree.querySelectorAll(".lesson[data-id]");
+  for(var i=0;i<rows.length;i++){
+    if(done[rows[i].dataset.id])rows[i].classList.add("done");
+    else rows[i].classList.remove("done");
+  }
+}
+function recompute(){
+  var gTot=0,gDone=0,gMin=0,gMinDone=0;
+  data.forEach(function(cat,ci){
+    var cTot=0,cDone=0;
+    cat.modules.forEach(function(mod,mi){
+      var mTot=0,mDone=0;
+      mod.cols.forEach(function(col,coi){col.groups.forEach(function(grp,gi){grp.lessons.forEach(function(ls,li){
+        if(ls.soon)return;
+        var id=ci+"-"+mi+"-"+coi+"-"+gi+"-"+li;
+        mTot++;gTot++;gMin+=ls.m;
+        if(done[id]){mDone++;gMinDone+=ls.m;}
+      });});});
+      cTot+=mTot;cDone+=mDone;
+      var mp=mTot?Math.round(mDone/mTot*100):0;
+      var bar=document.getElementById("modbar-"+ci+"-"+mi);
+      var pct=document.getElementById("modpct-"+ci+"-"+mi);
+      if(bar)bar.style.width=mp+"%";
+      if(pct)pct.textContent=mp+"%";
+    });
+    gDone+=cDone;
+    var cp=document.getElementById("catprog-"+ci);
+    if(cp)cp.textContent=cDone+"/"+cTot+" · "+(cTot?Math.round(cDone/cTot*100):0)+"%";
+  });
+  var gp=gTot?Math.round(gDone/gTot*100):0;
+  document.getElementById("gPct").textContent=gp+"%";
+  document.getElementById("gBar").style.width=gp+"%";
+  function hm(v){return Math.floor(v/60)+"h"+("0"+(v%60)).slice(-2);}
+  document.getElementById("gMeta").textContent=gDone+" / "+gTot+" leçons · "+hm(gMinDone)+" visionnées (sur "+hm(gMin)+")";
+}
+recompute();
+
+(function(){
+const SB_URL="https://ibaltsrmocodbdljaqmw.supabase.co";
+const SB_KEY="sb_publishable_1iUxnH_DNsn9N7Y7xzDsEg_Al6YUF3T";
+window.__sb=(window.supabase&&typeof window.supabase.createClient==="function")?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}}):null;
+function $(id){return document.getElementById(id);}
+var uid=null;
+var KV="pokerTechProgress";
+var LS="purepoker_progress_v1";
+
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return r.data.v;}catch(e){}return null;}
+async function kvSet(k,v){try{await window.__sb.from("kv").upsert({user_id:uid,k:k,v:v},{onConflict:"user_id,k"});}catch(e){}}
+
+/* theme */
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);$("themeBtn").innerHTML=(t==="dark")?"☀":"☾";}
+$("themeBtn").addEventListener("click",async function(){var cur=document.documentElement.getAttribute("data-theme");var nt=cur==="dark"?"light":"dark";applyTheme(nt);if(uid)await kvSet("theme",nt);try{localStorage.setItem("mm_theme",nt);}catch(e){}});
+
+/* auth (meme pattern que les autres pages) */
+function showLogin(){var o=$("authOverlay");if(o)o.style.display="flex";}
+function hideLogin(){var o=$("authOverlay");if(o)o.style.display="none";var lo=$("logoutBtn");if(lo)lo.style.display="";}
+async function doAuth(mode){var email=$("authEmail").value.trim(),pw=$("authPw").value,msg=$("authMsg");
+if(!email||!pw){msg.textContent="E-mail et mot de passe requis.";return;}
+msg.textContent="…";
+try{var res;
+if(mode==="signup")res=await window.__sb.auth.signUp({email:email,password:pw});
+else res=await window.__sb.auth.signInWithPassword({email:email,password:pw});
+if(res.error){msg.textContent=res.error.message;return;}
+var session=res.data&&res.data.session;
+if(!session){var g=await window.__sb.auth.getSession();session=g.data.session;}
+if(!session){msg.textContent="Compte créé. Clique maintenant sur « Se connecter ».";return;}
+await afterLogin(session);}catch(e){msg.textContent="Erreur : "+(e&&e.message?e.message:e);}}
+$("authSignin").addEventListener("click",function(){doAuth("signin");});
+$("authSignup").addEventListener("click",function(){doAuth("signup");});
+var loBtn=$("logoutBtn");
+if(loBtn)loBtn.addEventListener("click",async function(){try{await window.__sb.auth.signOut();}catch(e){}location.reload();});
+
+/* progression : cache local + source de verite Supabase */
+function readLocal(k){try{var r=localStorage.getItem(k);return r?(JSON.parse(r)||{}):null;}catch(e){return null;}}
+function writeLocal(){try{localStorage.setItem(KV,JSON.stringify(done));}catch(e){}}
+function count(o){var n=0;for(var k in o)if(o[k])n++;return n;}
+
+var toastTimer;
+function toast(){var t=$("savedToast");if(!t)return;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show");},1100);}
+
+var pushTimer=null;
+function save(){
+  writeLocal();
+  toast();
+  if(!uid)return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(function(){kvSet(KV,JSON.stringify(done));},600);
+}
+
+async function loadProgress(){
+  var cloud=null;
+  var raw=await kvGet(KV);
+  if(raw){try{cloud=JSON.parse(raw)||{};}catch(e){cloud=null;}}
+  var local=readLocal(KV)||readLocal(LS);
+  if(cloud&&count(cloud)>0){
+    done=cloud;
+    /* si le local a des coches absentes du cloud (ancien fichier), on fusionne */
+    if(local){var add=false;for(var k in local){if(local[k]&&!done[k]){done[k]=1;add=true;}}if(add){writeLocal();await kvSet(KV,JSON.stringify(done));}}
+  }else if(local&&count(local)>0){
+    done=local;
+    await kvSet(KV,JSON.stringify(done));
+  }else{
+    done={};
+  }
+  writeLocal();
+  paintDone();
+  recompute();
+}
+
+/* interactions */
+tree.addEventListener("click",function(e){
+  var row=e.target.closest?e.target.closest(".lesson"):null;
+  if(!row||row.classList.contains("soon")||!row.dataset.id)return;
+  var id=row.dataset.id;
+  if(done[id]){delete done[id];row.classList.remove("done");}
+  else{done[id]=1;row.classList.add("done");}
+  save();
+  recompute();
+});
+$("expandAll").onclick=function(){var d=document.querySelectorAll("details.module");for(var i=0;i<d.length;i++)d[i].open=true;};
+$("collapseAll").onclick=function(){var d=document.querySelectorAll("details.module");for(var i=0;i<d.length;i++)d[i].open=false;};
+$("reset").onclick=async function(){
+  if(!confirm("Réinitialiser toute ta progression Pure Poker ?"))return;
+  done={};writeLocal();paintDone();recompute();
+  if(uid)await kvSet(KV,"{}");
+};
+
+/* resync au retour sur la page */
+var lastSync=0;
+async function resync(){
+  if(!uid||document.hidden)return;
+  var t=Date.now();if(t-lastSync<8000)return;lastSync=t;
+  await loadProgress();
+}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)resync();});
+window.addEventListener("focus",function(){resync();});
+
+async function afterLogin(session){
+  uid=session.user.id;hideLogin();
+  var t=await kvGet("theme");applyTheme(t==="dark"?"dark":"light");
+  await loadProgress();
+}
+
+async function boot(){
+  try{var t=localStorage.getItem("mm_theme");if(t)applyTheme(t);}catch(e){}
+  var l=readLocal(KV);if(l){done=l;paintDone();recompute();}
+  if(!window.__sb){showLogin();return;}
+  var s=(await window.__sb.auth.getSession()).data.session;
+  if(s){await afterLogin(s);}
+  else{showLogin();window.__sb.auth.onAuthStateChange(function(e,sess){if(sess)afterLogin(sess);});}
+}
+if(document.readyState!=="loading")boot();else window.addEventListener("DOMContentLoaded",boot);
+})();
+</script>
+<script>(function(){var nav=document.querySelector('.nav');if(!nav)return;function pad(){var fx=getComputedStyle(nav).position==='fixed';var h=nav.offsetHeight||64;document.body.style.paddingTop=fx?(h+'px'):'0px';document.documentElement.style.scrollPaddingTop=fx?((h+8)+'px'):'';}pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);})();</script>
+<script>(function(){var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});})();</script>
+<script>(function(){
+var loaded=false,uid=null;
+function $(id){return document.getElementById(id);}
+function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
+async function kvGet(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(r&&r.data&&r.data.v)return JSON.parse(r.data.v);}catch(e){}return null;}
+function dayOk(log,ids,seuil,day){if(!ids.length)return false;var arr=log[day]||[];var n=0;ids.forEach(function(i){if(arr.indexOf(i)>=0)n++;});var need=(seuil==="all"||seuil==null)?ids.length:Math.min(parseInt(seuil,10)||ids.length,ids.length);return n>=need;}
+async function refresh(){if(!uid)return;
+var habits=await kvGet("userHabits")||[];var ids=habits.map(function(h){return h.id;});
+var log=await kvGet("habitsLog")||{};var off=await kvGet("offDays")||{};var seuil=await kvGet("flameSeuil");if(seuil==null)seuil="all";
+var s=0,d=new Date();
+for(var i=0;i<730;i++){var day=iso(d);
+ if(off[day]){d.setDate(d.getDate()-1);continue;}
+ if(dayOk(log,ids,seuil,day)){s++;}
+ else{if(i===0){d.setDate(d.getDate()-1);continue;}break;}
+ d.setDate(d.getDate()-1);}
+var el=$("streakN");if(el){el.textContent=s;var p=el.parentNode;if(p)p.title="Chaîne d’habitudes : "+s+" jour(s) consécutifs";}}
+async function init(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;refresh();}
+if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange)window.__sb.auth.onAuthStateChange(function(e,s){if(s)init();});
+document.addEventListener("visibilitychange",function(){if(!document.hidden)init();});
+window.addEventListener("focus",function(){init();});
+if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
+})();</script>
+</body></html>
