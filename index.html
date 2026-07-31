@@ -481,6 +481,15 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 
 </section>
 
+<section class="sec" id="habitudes">
+  <div class="sec-h"><span class="no">02</span><h2>Mes habitudes du jour</h2></div>
+  <p class="sec-desc">Coche au fil de la journée. Les points montrent tes 7 derniers jours et la série par habitude.</p>
+  <div class="panel-x">
+    <div class="flrow"><button class="flbtn" id="flOffToday">Jour off aujourd&rsquo;hui</button><button class="flbtn" id="flOffYest">Hier &eacute;tait off</button><span class="flsep">Flamme&nbsp;: <select id="flSeuil" class="flbtn"><option value="all">toutes</option><option value="7">7</option><option value="6">6</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></span></div><div id="habitList"></div>
+    <div class="habitadd"><input type="text" id="habitInput" placeholder="Ajouter une habitude..."><input type="number" id="habitTarget" min="1" max="20" value="1" title="Nombre de fois par jour"><button class="addb" id="habitAdd">Ajouter</button></div>
+  </div>
+</section>
+
 
 
 <section class="sec" id="masession">
@@ -549,7 +558,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </section>
 
 <section class="sec" id="objectifs">
-  <div class="sec-h"><span class="no">02</span><h2>Mes objectifs</h2></div>
+  <div class="sec-h"><span class="no">03</span><h2>Mes objectifs</h2></div>
   <p class="sec-desc">Objectiver l'avancée : mets à jour tes chiffres, la couleur te situe (vert = dans les clous, ambre = à pousser, rouge = en retard).</p>
   <div class="panel-x">
     <p class="blocksub">Semaine, trimestre, année. Modifie la valeur actuelle ; ajoute ou retire des objectifs.</p>
@@ -570,14 +579,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   </div>
 </section>
 
-<section class="sec" id="majournee"><div class="card"><div class="lab" style="display:flex;align-items:center;gap:10px"><span>&Agrave; faire</span><span id="mjCount" style="margin-left:auto;color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0"></span></div><div class="mjrow"><input id="mjInput" placeholder="Une chose &agrave; faire&hellip;"><button class="mjchip" id="mjImp">Important</button><button class="mjchip" id="mjUrg">Urgent</button><button class="mjadd" id="mjAdd">Ajouter</button></div><div id="mjHint" class="mjhint" style="display:none">Plus de 3 t&acirc;ches importantes en cours &mdash; r&eacute;duis pour rester focalis&eacute;.</div><div id="mjList" class="mjlist"></div><button class="wthead" id="mjDoneHead" style="padding:12px 2px 2px"><span class="wttitle" style="font-size:13px;color:var(--muted)">Fait</span><span class="wtnow" id="mjDoneN"></span><span class="foldchev">&#8250;</span></button><div class="wtbody" id="mjDoneBody" style="padding:0 2px 6px"><div id="mjDoneList"></div></div></div></section><section class="sec" id="habitudes">
-  <div class="sec-h"><span class="no">03</span><h2>Mes habitudes du jour</h2></div>
-  <p class="sec-desc">Coche au fil de la journée. Les points montrent tes 7 derniers jours et la série par habitude.</p>
-  <div class="panel-x">
-    <div class="flrow"><button class="flbtn" id="flOffToday">Jour off aujourd&rsquo;hui</button><button class="flbtn" id="flOffYest">Hier &eacute;tait off</button><span class="flsep">Flamme&nbsp;: <select id="flSeuil" class="flbtn"><option value="all">toutes</option><option value="7">7</option><option value="6">6</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></span></div><div id="habitList"></div>
-    <div class="habitadd"><input type="text" id="habitInput" placeholder="Ajouter une habitude..."><input type="number" id="habitTarget" min="1" max="20" value="1" title="Nombre de fois par jour"><button class="addb" id="habitAdd">Ajouter</button></div>
-  </div>
-</section>
+<section class="sec" id="majournee"><div class="card"><div class="lab" style="display:flex;align-items:center;gap:10px"><span>&Agrave; faire</span><span id="mjCount" style="margin-left:auto;color:var(--muted);font-size:13px;font-weight:400;text-transform:none;letter-spacing:0"></span></div><div class="mjrow"><input id="mjInput" placeholder="Une chose &agrave; faire&hellip;"><button class="mjchip" id="mjImp">Important</button><button class="mjchip" id="mjUrg">Urgent</button><button class="mjadd" id="mjAdd">Ajouter</button></div><div id="mjHint" class="mjhint" style="display:none">Plus de 3 t&acirc;ches importantes en cours &mdash; r&eacute;duis pour rester focalis&eacute;.</div><div id="mjList" class="mjlist"></div><button class="wthead" id="mjDoneHead" style="padding:12px 2px 2px"><span class="wttitle" style="font-size:13px;color:var(--muted)">Fait</span><span class="wtnow" id="mjDoneN"></span><span class="foldchev">&#8250;</span></button><div class="wtbody" id="mjDoneBody" style="padding:0 2px 6px"><div id="mjDoneList"></div></div></div></section>
 
 <section class="sec" id="debrief">
   <div class="sec-h"><span class="no">04</span><h2>Le débrief du jour</h2></div>
