@@ -939,6 +939,10 @@ async function allKeys(){
   try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("mm_")===0)ks.push(k.slice(3));}return ks;}catch(e){}
   return Object.keys(mem);
 }
+// Toutes les dimensions deja collectees, y compris les schemas anterieurs (motivation / focus),
+// sinon l'historique d'avant le 23/06 n'apparait plus.
+const AMLAB={humeur:"humeur",energie:"énergie",tension:"calme",sommeil:"sommeil",motivation:"motivation",focus:"focus"};
+function fmtDur(h){if(h==null)return "—";const H=Math.floor(h),M=Math.round((h-H)*60);return M?`${H} h ${String(M).padStart(2,"0")}`:`${H} h`;}
 async function renderHistory(){
   const el=$("#histList");if(!el)return;
   const keys=await allKeys();const dates=new Set();
@@ -951,7 +955,9 @@ async function renderHistory(){
     const obj=(wo&&wo.trim())||(av&&av.intent&&av.intent.trim())||"&mdash;";
     const sc=pm?("décisions "+(pm.decisions||"–")+"/5"):"";
     let body="";
-    if(am)body+=`Météo matin : énergie ${am.energie||'–'}, humeur ${am.humeur||'–'}, motiv ${am.motivation||'–'}, focus ${am.focus||'–'}.<br>`;
+    if(am){const parts=Object.keys(AMLAB).filter(k=>am[k]!=null).map(k=>`${AMLAB[k]} ${am[k]}`);
+      if(am.duree!=null)parts.push(`sommeil ${fmtDur(am.duree)}${(am.coucher&&am.lever)?` (${am.coucher} → ${am.lever})`:""}`);
+      if(parts.length)body+=`Météo matin : ${parts.join(", ")}.${am.late?` <span style="color:var(--muted2)">— saisie rétrospective${am.ts?" ("+am.ts.slice(11,16)+")":""}</span>`:""}<br>`;}
     if(ap&&ap.proud)body+=`<b>Fier :</b> ${ap.proud}<br>`;
     if(ap&&ap.decision)body+=`<b>Bonne décision :</b> ${ap.decision}<br>`;
     if(ap&&ap.learned)body+=`<b>Appris :</b> ${ap.learned}`;
