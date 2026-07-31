@@ -853,7 +853,10 @@ function wupRender(){
 function wupGo(n){const i=wupIdx+n;if(i>=WUP.length){wupClose();return;}if(i<0)return;wupIdx=i;wupRender();}
 function wupOpen(){
  wupIdx=0;wupRender();
- const m=document.getElementById("wuModal");m.classList.add("show");
+ const m=document.getElementById("wuModal");
+ // sortir la modale de .wrap (z-index:1) sinon la nav du site (z-index:20) la recouvre
+ if(m.parentElement!==document.body)document.body.appendChild(m);
+ m.classList.add("show");
  // sur mobile : plein écran direct au lancement (immersif si l'API n'existe pas, ex. iPhone)
  if(window.matchMedia("(pointer:coarse)").matches){
   const act=navigator.userActivation?navigator.userActivation.isActive:true;
