@@ -856,7 +856,8 @@ function wupOpen(){
  const m=document.getElementById("wuModal");m.classList.add("show");
  // sur mobile : plein écran direct au lancement (immersif si l'API n'existe pas, ex. iPhone)
  if(window.matchMedia("(pointer:coarse)").matches){
-  if(m.requestFullscreen)m.requestFullscreen().catch(()=>wupImmersive(true));
+  const act=navigator.userActivation?navigator.userActivation.isActive:true;
+  if(act&&m.requestFullscreen)m.requestFullscreen().catch(()=>wupImmersive(true));
   else wupImmersive(true);
  }
 }
@@ -893,6 +894,8 @@ wupWrap.addEventListener("touchend",e=>{
  }
 },{passive:true});
 document.addEventListener("keydown",e=>{if(!document.getElementById("wuModal").classList.contains("show"))return;if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if(e.key==="ArrowRight"&&wupIdx<WUP.length-1)wupGo(1);if(e.key==="ArrowLeft")wupGo(-1);});
+// arrivée depuis une autre page via session.html#wu : ouvrir directement le warm-up
+if(location.hash==="#wu"){history.replaceState(null,"",location.pathname+location.search);wupOpen();}
 
 // (mur de mantras texte retiré — les mantras vivent dans le mur d'images)
 async function renderWall(){}
