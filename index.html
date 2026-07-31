@@ -257,6 +257,20 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 #habitList .habit{min-width:0}
 #habitList .hname{overflow-wrap:anywhere}
 @media(max-width:640px){#habitList .hstrip{display:none}#habitList .habit{gap:8px;padding:10px 2px}#habitList .hname{font-size:14px}#habitList .hstreak{min-width:28px}}
+.amsleep{margin:14px 0 4px;border-top:1px solid var(--line2);padding-top:14px}
+.amsleep .qt{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+.amsleep .qt small{color:var(--accent);font-size:13.5px;white-space:nowrap}
+.amsleep-r{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.amsleep-r label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+.amsleep-r input[type=time]{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:15px}
+.amlate{display:none;margin-top:12px;border-left:3px solid var(--accent);padding:6px 0 6px 12px;color:var(--muted);font-size:13px;line-height:1.5}
+.amlate.show{display:block}
+.amsig{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
+.amsig+.amsig{margin-top:8px}
+.amsig-h{font-size:12.5px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.amsig p{margin:0;color:var(--text);font-size:14px;line-height:1.55}
+.amfmt{margin-top:12px;border-top:1px solid var(--line2);padding-top:12px;color:var(--text);font-size:14.5px;line-height:1.5}
+.amfmt b{color:var(--accent)}
 .hck.mid{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:0}
 .hck.mid.some{border-color:var(--green);color:var(--green)}
 @media(max-width:820px){.dailycards{grid-template-columns:1fr}.wutools{grid-template-columns:1fr}.goaladd{grid-template-columns:1fr 1fr}}
@@ -462,9 +476,17 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   <p class="sec-desc">Lancer une journée de productivité, de bien-être et d'efficacité. Je prends ma météo, j'ouvre par la gratitude, je choisis ma priorité.</p>
   <div class="meteo" id="meteoAM">
     <div class="lab"><span>Météo du matin</span></div>
-    <p class="note">Réponds en 10 secondes. Je te mets en face le focus du jour, le levier et le mantra qui collent à ton état &mdash; pour toute la journée.</p>
+    <p class="note">Trois notes et tes heures de sommeil. Si rien ne sort de l&rsquo;ordinaire, l&rsquo;écran te le dit en une ligne et tu passes &agrave; la suite.</p>
     <div id="amQ"></div>
-    <div class="savebar" style="margin-top:8px"><button class="save" id="amBtn">Mon plan du jour</button><span class="saved" id="amSaved">Pris en compte &#10003;</span><button class="mdone" data-mdone="meteoAM">Terminé pour aujourd&rsquo;hui</button></div>
+    <div class="amsleep">
+      <div class="qt"><span>Sommeil cette nuit</span><small id="amDur">&mdash;</small></div>
+      <div class="amsleep-r">
+        <label>Couch&eacute; <input type="time" id="amBed"></label>
+        <label>Lev&eacute; <input type="time" id="amWake"></label>
+      </div>
+    </div>
+    <div class="amlate" id="amLate"></div>
+    <div class="savebar" style="margin-top:8px"><button class="save" id="amBtn">Ma consigne du jour</button><span class="saved" id="amSaved">Pris en compte &#10003;</span><button class="mdone" data-mdone="meteoAM">Terminé pour aujourd&rsquo;hui</button></div>
     <div class="mres" id="amRes"></div>
   </div>
   <div class="panel-x" id="ouvBlock" style="margin-bottom:18px">
@@ -753,60 +775,62 @@ renderSlide();
 async function renderWall(){}
 
 // METEO AM
-const amQ=[["humeur","Humeur (désagréable → agréable)"],["energie","Énergie (basse → haute)"],["sommeil","Sommeil cette nuit (mauvais → excellent)"],["tension","Calme / sérénité (tendu → détendu)"]];
+const amQ=[["humeur","Humeur (désagréable → agréable)"],["energie","Énergie (basse → haute)"],["tension","Calme / sérénité (tendu → détendu)"]];
 const amVals={};
 $("#amQ").innerHTML=amQ.map(([k,lab])=>`<div class="mq"><div class="qt"><span>${lab}</span><small>1 à 5</small></div><div class="seg" data-dim="${k}">${[1,2,3,4,5].map(n=>`<button data-v="${n}">${n}</button>`).join("")}</div></div>`).join("");
 $$('#amQ .seg').forEach(seg=>{const dim=seg.dataset.dim;seg.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");amVals[dim]=+b.dataset.v;}));});
 const AMW="session.html";
-function amState(v){const val=v.humeur,act=v.energie,slp=v.sommeil,ten=v.tension;
- if(val<=3&&(act>=4||ten<=2))return "tendu";
- if(val>=4&&act>=4)return "agame";
- if(val>=4&&act<=3)return "calme";
- if(val<=2&&act<=3)return "eteint";
- if(act<=2||slp<=2)return "eteint";
- if(ten<=2)return "tendu";
- return "neutre";}
-const AMC={
- tendu:{t:"État tendu — activation haute, humeur sous tension",
-  b:"Ton corps est en alerte : haute activation, valence basse. C'est l'état d'où partent l'anxiété et l'agitation. Le bon levier n'est pas de « se motiver » mais de faire <b>redescendre l'activation</b>, puis de reformuler ce qui pèse.",
-  lev:"Respiration : 6 cycles en allongeant l'expiration (inspire 4&nbsp;s, expire 6-8&nbsp;s). Puis réévaluation : écris en une phrase ce qui te tend, et <b>une</b> action concrète et contrôlable que tu peux faire dans l'heure.",
-  link:"Lancer une respiration dans le warm-up",
-  m:"Je fais baisser le volume avant d'agir."},
- eteint:{t:"État bas — peu d'énergie, humeur basse",
-  b:"Valence et activation basses : fatigue, retrait, peu d'allant. Le piège classique est d'attendre d'en avoir envie pour agir — or, dans cet état, <b>l'action précède l'envie</b>, jamais l'inverse.",
-  lev:"Active le corps avant le mental : expose-toi à la lumière (dehors ou à la fenêtre, 5-10&nbsp;min) et lance un mouvement léger. Choisis <b>une seule</b> petite action et enclenche-la maintenant — l'élan viendra du mouvement.",
-  link:"Lancer le warm-up (mouvement)",
-  m:"L'action précède l'envie."},
- agame:{t:"A-game — énergie haute, humeur positive",
-  b:"Haute activation et valence positive : ton meilleur état, une vraie fenêtre de performance. Elle ne dure pas la journée entière — ce qui compte, c'est <b>ce que tu en fais maintenant</b>.",
-  lev:"Attaque immédiatement ta tâche la plus exigeante de la journée — la plus importante, pas la plus facile — pendant que la fenêtre est ouverte. Coupe les distractions pour la protéger.",
-  link:"",
-  m:"Je mets mon meilleur créneau sur ce qui compte le plus."},
- calme:{t:"Calme positif — basse énergie, humeur agréable",
-  b:"Valence positive, activation basse : un état calme et agréable, <b>restaurateur</b>. Il n'a rien d'un problème — c'est ce qui prévient l'épuisement. Inutile de le brusquer.",
-  lev:"Pose une intention claire pour la matinée et démarre en douceur (warm-up léger). Si tu dois monter en régime pour jouer, ce sont le mouvement et la lumière qui élèveront ton activation, pas la contrainte.",
-  link:"Ouvrir le warm-up",
-  m:"Calme n'est pas faible : je pose une intention nette."},
- neutre:{t:"État médian — à orienter activement",
-  b:"Pas de signal fort, ni haut ni bas : une journée « neutre ». C'est précisément l'état le plus malléable — il bascule facilement du bon côté si tu lui donnes une direction.",
-  lev:"Une activation douce (warm-up + lumière) fait souvent passer un état neutre vers le positif. Choisis ta priorité du jour et démarre petit, tout de suite.",
-  link:"Ouvrir le warm-up",
-  m:"Je donne la direction à ma journée."}
-};
-function renderAM(v){const dims=amQ.map(q=>q[0]);if(dims.some(d=>v[d]==null))return false;
- const st=amState(v),c=AMC[st];
- let html=`<h4>${c.t}</h4><p>${c.b}</p>`;
- html+=`<div class="amtool"><div class="amtool-h">Ton levier maintenant</div><p style="margin:0 0 8px;color:var(--text);font-size:14px;line-height:1.55">${c.lev}</p>`;
- if(c.link)html+=`<a class="mlink" href="${AMW}">${c.link} &rarr;</a>`;
- html+=`</div>`;
- let notes=[];
- if(v.sommeil<=2)notes.push("Nuit courte : priorise la lumière du matin et le mouvement avant tout protocole mental, et sois indulgent sur ton niveau d'exigence aujourd'hui — le manque de sommeil pèse directement sur l'humeur et l'énergie.");
- if(v.tension<=2&&st!=="tendu")notes.push("Tension corporelle élevée : insère 5-6 respirations lentes (expiration allongée) avant de démarrer.");
- if(v.humeur>=4&&v.energie>=4&&v.sommeil>=4)notes.push("Tous les voyants au vert : note ce qui a produit cette journée (heure de coucher, charge, alimentation) pour la reproduire.");
- if(notes.length)html+=`<div style="margin-top:10px;border-left:3px solid var(--accent);padding:2px 0 2px 12px">${notes.map(n=>`<p style="margin:6px 0;color:var(--muted);font-size:13px;line-height:1.5">${n}</p>`).join("")}</div>`;
- html+=`<div class="mant-one">${c.m}</div>`;
- const res=$("#amRes");res.innerHTML=html;res.classList.add("show");return true;}
-$("#amBtn").addEventListener("click",async()=>{if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Réponds aux quatre pour avoir ton plan.</p>";r.classList.add("show");return;}await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);});
+// Sommeil mesuré en heures (coucher / lever) et non plus auto-noté : sous restriction répétée,
+// le ressenti décroche du déficit réel (Van Dongen 2003), la note est l'instrument qui casse en premier.
+function hhmm(s){if(!s||!/^\d{1,2}:\d{2}$/.test(s))return null;const[a,b]=s.split(":").map(Number);return a*60+b;}
+function sleepHours(bed,wake){const b=hhmm(bed),w=hhmm(wake);if(b==null||w==null)return null;let d=w-b;if(d<=0)d+=1440;if(d>16*60)return null;return d/60;}
+function fmtDur(h){if(h==null)return "—";const H=Math.floor(h),M=Math.round((h-H)*60);return M?`${H} h ${String(M).padStart(2,"0")}`:`${H} h`;}
+function amSleepRefresh(){const h=sleepHours($("#amBed").value,$("#amWake").value);amVals.coucher=$("#amBed").value||null;amVals.lever=$("#amWake").value||null;amVals.duree=h;$("#amDur").textContent=h==null?"—":fmtDur(h);return h;}
+["amBed","amWake"].forEach(id=>$("#"+id).addEventListener("change",amSleepRefresh));
+// Une saisie faite après le début de journée est un rappel rétrospectif, pas une mesure du matin.
+const AM_LATE_H=11;
+function amLateCheck(){const el=$("#amLate");const h=new Date().getHours();if(h>=AM_LATE_H){el.innerHTML=`Il est ${String(h).padStart(2,"0")}h. Cette saisie est rétrospective : elle est colorée par ce que la journée a déjà donné, et elle ne pilote plus rien. Elle sera marquée comme telle dans l'historique.`;el.classList.add("show");}else{el.classList.remove("show");}}
+amLateCheck();
+// Plus d'étiquette d'état ni de mantra : un feedback orienté soi (« tu es en A-game ») annule
+// le bénéfice du feedback (Kluger & DeNisi 1996). On ne sort que les signaux réels et une décision.
+function amSignals(v){
+ const out=[];
+ const dur=(v.duree!=null)?v.duree:null;
+ const slpNote=(dur==null&&v.sommeil!=null)?v.sommeil:null; // rétrocompat : anciennes saisies auto-notées
+ if(dur!=null&&dur<6)out.push({h:"Sommeil : "+fmtDur(dur),p:"Sous 6 h, le déficit ne se ressent pas à sa vraie hauteur : tu te sentiras à peu près normal et tes décisions, elles, ne le seront pas. Lumière dehors 10 min avant tout le reste, et baisse le niveau d'exigence que tu t'imposes aujourd'hui — pas celui de tes décisions."});
+ else if(slpNote!=null&&slpNote<=2)out.push({h:"Nuit courte",p:"Lumière du matin et mouvement avant tout protocole mental."});
+ if(v.tension<=2)out.push({h:"Tension haute",p:"6 respirations, expiration allongée (inspire 4 s, expire 6-8 s), avant de lancer quoi que ce soit. Puis écris en une phrase ce qui te tend, et la seule action contrôlable que tu peux faire dans l'heure."});
+ if(v.energie<=2)out.push({h:"Énergie basse",p:"Corps avant mental : lumière et mouvement léger. Choisis une seule action et enclenche-la maintenant — l'élan vient du mouvement, pas de l'envie."});
+ if(v.humeur<=2)out.push({h:"Humeur basse",p:"Une action, petite, tout de suite. L'envie vient après, jamais avant."});
+ return out;
+}
+function amFormat(v){
+ const dur=(v.duree!=null)?v.duree:null;
+ const court=(dur!=null&&dur<6)||(dur==null&&v.sommeil!=null&&v.sommeil<=2);
+ if(court||v.energie<=2)return "<b>Format réduit</b> : tu joues quand même, mais 2 tables au maximum et une session courte. On coupe la charge, pas le volume.";
+ if(v.tension<=2)return "<b>Format normal, après la respiration.</b> Ne lance pas les tables avant d'avoir fait redescendre l'activation.";
+ return "<b>Format normal.</b> Volume prévu, tables prévues.";
+}
+function renderAM(v){
+ const dims=amQ.map(q=>q[0]);if(dims.some(d=>v[d]==null))return false;
+ if(v.duree==null&&v.sommeil==null)return false;
+ const sig=amSignals(v);
+ let html="";
+ if(sig.length)html+=sig.map(s=>`<div class="amsig"><div class="amsig-h">${s.h}</div><p>${s.p}</p></div>`).join("");
+ else html+=`<div class="amsig"><div class="amsig-h">Rien à signaler</div><p>Aucun signal au-dessus du bruit ce matin. Pas de protocole à lancer : passe à ton intention du jour.</p></div>`;
+ html+=`<div class="amfmt">${amFormat(v)}</div>`;
+ if(v.late)html+=`<div class="amfmt" style="color:var(--muted);font-size:13px">Saisie rétrospective${v.ts?" ("+v.ts.slice(11,16)+")":""} : à lire comme un souvenir, pas comme une mesure.</div>`;
+ const res=$("#amRes");res.innerHTML=html;res.classList.add("show");return true;
+}
+$("#amBtn").addEventListener("click",async()=>{
+ amSleepRefresh();
+ const d=new Date();
+ amVals.ts=isoDay(d)+"T"+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+ amVals.late=d.getHours()>=AM_LATE_H?1:0;
+ if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Il manque les trois notes ou tes heures de sommeil.</p>";r.classList.add("show");return;}
+ await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));
+ const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);
+});
 
 // METEO PM
 const pmQ=[["decisions","Qualité de mes décisions"],["emo","Gestion émotionnelle"],["energie","Énergie restante"]];
@@ -909,7 +933,7 @@ async function loadDay(){
   const mf=await getJSON("mfold:"+TODAY,null);if(mf){if(mf.m)foldMorning("meteoAM");if(mf.o)foldMorning("ouvBlock");}
   const wo=await store.get("warmObj:"+TODAY);if(wo)$("#wuObj").value=wo;
   $("#wuObj").addEventListener("input",()=>store.set("warmObj:"+TODAY,$("#wuObj").value));
-  const am=await store.get("meteoAM:"+TODAY);if(am){try{const v=JSON.parse(am);for(const d in v){const seg=document.querySelector('#amQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}amVals[d]=v[d];}renderAM(amVals);}catch(e){}}
+  const am=await store.get("meteoAM:"+TODAY);if(am){try{const v=JSON.parse(am);for(const d in v){const seg=document.querySelector('#amQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}amVals[d]=v[d];}if(v.coucher)$("#amBed").value=v.coucher;if(v.lever)$("#amWake").value=v.lever;if(v.coucher||v.lever)amSleepRefresh();renderAM(amVals);}catch(e){}}
   const pm=await store.get("meteoPM:"+TODAY);if(pm){try{const v=JSON.parse(pm);for(const d in v){const seg=document.querySelector('#pmQ .seg[data-dim="'+d+'"]');if(seg){const b=seg.querySelector('button[data-v="'+v[d]+'"]');if(b)b.classList.add("on");}pmVals[d]=v[d];}renderPM(pmVals);}catch(e){}}
 }
 
@@ -971,6 +995,9 @@ async function allKeys(){
   try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("mm_")===0)ks.push(k.slice(3));}return ks;}catch(e){}
   return Object.keys(mem);
 }
+// Toutes les dimensions déjà collectées, y compris les schémas antérieurs (motivation / focus),
+// sinon l'historique d'avant le 23/06 n'apparaît plus.
+const AMLAB={humeur:"humeur",energie:"énergie",tension:"calme",sommeil:"sommeil",motivation:"motivation",focus:"focus"};
 async function renderHistory(){
   const el=$("#histList");if(!el)return;
   const keys=await allKeys();const dates=new Set();
@@ -983,7 +1010,9 @@ async function renderHistory(){
     const obj=(wo&&wo.trim())||(av&&av.intent&&av.intent.trim())||"&mdash;";
     const sc=pm?("décisions "+(pm.decisions||"–")+"/5"):"";
     let body="";
-    if(am)body+=`Météo matin : énergie ${am.energie||'–'}, humeur ${am.humeur||'–'}, sommeil ${am.sommeil||'–'}.<br>`;
+    if(am){const parts=Object.keys(AMLAB).filter(k=>am[k]!=null).map(k=>`${AMLAB[k]} ${am[k]}`);
+      if(am.duree!=null)parts.push(`sommeil ${fmtDur(am.duree)}${(am.coucher&&am.lever)?` (${am.coucher} → ${am.lever})`:""}`);
+      if(parts.length)body+=`Météo matin : ${parts.join(", ")}.${am.late?` <span style="color:var(--muted2)">— saisie rétrospective${am.ts?" ("+am.ts.slice(11,16)+")":""}</span>`:""}<br>`;}
     if(ap&&ap.proud)body+=`<b>Fier :</b> ${ap.proud}<br>`;
     if(ap&&ap.decision)body+=`<b>Bonne décision :</b> ${ap.decision}<br>`;
     if(ap&&ap.learned)body+=`<b>Appris :</b> ${ap.learned}`;
