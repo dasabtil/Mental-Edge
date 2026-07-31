@@ -382,6 +382,16 @@ textarea:focus,input:focus{outline:none;border-color:var(--accent-bright);box-sh
 .wumodal.fsmode .wup-full img{max-height:calc(100vh - 72px);border:none;border-radius:0;background:transparent}
 .wumodal.fsmode .wup-vid video{max-height:calc(100vh - 84px);border:none;border-radius:0}
 .wumodal.fsmode .wup-nav{background:color-mix(in srgb,var(--surface) 78%,transparent);border-top:none;padding:6px 12px}
+.wup-card{position:relative;width:100%;max-width:860px;min-height:56vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;border-radius:20px;padding:48px 26px;text-align:center;overflow:hidden;border:1px solid var(--line)}
+.wup-card .wc-k{position:relative;z-index:1;font-size:13px;letter-spacing:5px;text-transform:uppercase;font-weight:700}
+.wup-card .wc-t{position:relative;z-index:1;font-family:"Space Grotesk",serif;font-weight:700;font-size:clamp(30px,6.5vw,56px);line-height:1.14;max-width:18ch}
+.wup-fog{background:linear-gradient(165deg,#3d4753,#222933);color:#eef2f7}
+.wup-fog .wc-k{color:#a9b8c9}
+.wup-fog::before{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 30% 35%,rgba(255,255,255,.16),transparent 45%),radial-gradient(circle at 72% 62%,rgba(255,255,255,.10),transparent 40%);filter:blur(28px)}
+.wup-hot{background:linear-gradient(160deg,#40200f,#1e0e08);color:#ffe9d4}
+.wup-hot .wc-k{color:#f0a35e}
+.wup-hot::before{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 50% 88%,rgba(255,122,44,.30),transparent 55%),radial-gradient(circle at 20% 20%,rgba(255,180,90,.10),transparent 45%);filter:blur(26px)}
+.wumodal.fsmode .wup-card{min-height:calc(100vh - 120px)}
 .wup-nav{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 16px;background:var(--surface);border-top:1px solid var(--line)}
 .wup-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .wup-next{appearance:none;border:none;background:var(--accent);color:var(--on-accent);font:inherit;font-size:15px;font-weight:600;border-radius:11px;padding:11px 22px;cursor:pointer}
@@ -755,7 +765,7 @@ function mountBreath(el){if(!el)return;
 }
 
 
-// WARM-UP player : rendus fidèles des 20 diapos du deck "Warm up" (export PowerPoint pixel-perfect)
+// WARM-UP player : les 20 diapos du deck "Warm up" (export PowerPoint) + 2 diapos protocole in game
 const WUP=[
  {full:"media/warmup-full1.jpg"},
  {video:"media/warmup1.mp4",poster:"media/warmup-slide2-poster.jpg"},
@@ -776,7 +786,9 @@ const WUP=[
  {full:"media/warmup-full17.jpg"},
  {full:"media/warmup-full18.jpg"},
  {full:"media/warmup-full19.jpg"},
- {full:"media/warmup-full20.jpg"}
+ {full:"media/warmup-full20.jpg"},
+ {card:"fog"},
+ {card:"hot"}
 ];
 let wupIdx=0;
 // ---- Respiration 4-7-8 sonore : fichier audio complet joué via <audio>, pour continuer écran verrouillé (iOS) ----
@@ -825,6 +837,8 @@ function wupRender(){
  let h="";
  if(s.video)h+=`<div class="wup-vid"><video controls preload="metadata" playsinline${s.poster?` poster="${s.poster}"`:""}><source src="${s.video}" type="video/mp4"></video></div>`;
  if(s.full)h+=`<div class="wup-full"><img src="${s.full}" alt=""></div>`;
+ if(s.card==="fog")h+=`<div class="wup-card wup-fog"><div class="wc-k">Brouillard</div><div class="wc-t">Je note.</div></div>`;
+ if(s.card==="hot")h+=`<div class="wup-card wup-hot"><div class="wc-k">D&eacute;cision chaude</div><div class="wc-t">Damien, qu&rsquo;est-ce que tu vois&nbsp;?</div></div>`;
  if(s.obj)h+=`<div class="wup-obj"><textarea id="wuObjP" placeholder="Aujourd'hui je travaille..."></textarea></div>`;
  if(s.breath)h+=`<div class="wup-breath" id="wupBreath"><div class="wup-t1">RESPIRATION 4-7-8</div><div class="wup-t2">Inspire 4 s, retiens 7 s, souffle 8 s. Un bip à chaque changement de phase, un gong à la fin. Tu peux fermer les yeux et verrouiller l'écran.</div><div class="wb-circle"><div class="wb-disc" id="wbDisc"></div><div class="wb-phase" id="wbPhase">Prêt</div></div><div class="wb-cyc" id="wbCyc"></div><div class="wb-btns" id="wbBtns"><button class="wb-btn" data-c="4"><b>4 cycles</b><small>&asymp; 1 min 20</small></button><button class="wb-btn" data-c="8"><b>8 cycles</b><small>&asymp; 2 min 40</small></button></div><button class="wb-stop" id="wbStop" style="display:none">Arrêter</button></div>`;
  st.innerHTML=h;
@@ -853,7 +867,22 @@ $("#wuFs").addEventListener("click",()=>{
  else wupImmersive(true);
 });
 $("#wuImmExit").addEventListener("click",()=>{if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});}wupImmersive(false);});
-$("#wupStage").addEventListener("click",e=>{if(e.target.closest("video,textarea,button,a,audio,.wup-breath,.wup-obj"))return;wupGo(1);});
+$("#wupStage").addEventListener("click",e=>{if(e.target.closest("video,textarea,button,a,audio,.wup-breath,.wup-obj"))return;if(wupIdx>=WUP.length-1)return;wupGo(1);});
+// swipe gauche/droite (mobile) pour changer de diapo ; la fermeture ne passe que par le bouton Terminer
+let wupTX=null,wupTY=null;
+const wupWrap=document.querySelector("#wuModal .wup-wrap");
+wupWrap.addEventListener("touchstart",e=>{if(e.touches.length>1){wupTX=null;wupTY=null;return;}const t=e.touches[0];wupTX=t.clientX;wupTY=t.clientY;},{passive:true});
+wupWrap.addEventListener("touchcancel",()=>{wupTX=null;wupTY=null;},{passive:true});
+wupWrap.addEventListener("touchend",e=>{
+ if(wupTX==null||e.touches.length>0)return;
+ const t=e.changedTouches[0],dx=t.clientX-wupTX,dy=t.clientY-wupTY;
+ wupTX=null;wupTY=null;
+ if(e.target.closest("video,textarea,input,button,a,audio,.wup-breath,.wup-obj"))return;
+ if(Math.abs(dx)>60&&Math.abs(dx)>1.6*Math.abs(dy)){
+  if(dx<0){if(wupIdx<WUP.length-1)wupGo(1);}
+  else wupGo(-1);
+ }
+},{passive:true});
 document.addEventListener("keydown",e=>{if(!document.getElementById("wuModal").classList.contains("show"))return;if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;if(e.key==="ArrowRight")wupGo(1);if(e.key==="ArrowLeft")wupGo(-1);});
 
 // (mur de mantras texte retiré — les mantras vivent dans le mur d'images)
