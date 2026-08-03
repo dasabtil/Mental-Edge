@@ -589,7 +589,8 @@ const WEEKS=[
  {name:"Semaine 2",rule:"RIR 2-3 — nouvelles charges du coach. Trouve tes reps dessus, puis double progression à charge fixe."},
  {name:"Semaine 3",rule:"Départ en live le 22 : séances restantes en MAINTIEN. RIR 3-4, charges prescrites, sans chercher le haut de fourchette. Le sommeil prime sur la séance."},
  {name:"Semaine 4 · Entorse",rule:"Entorse pied gauche (26/07) : haut du corps normal, RIR 1-2, pas de +1 série. Séance Bas remplacée (tout au sol). Zéro appui unipodal gauche. Chaussure à semelle rigide en permanence, même à la maison."},
- {name:"Deload (3-9 août)",rule:"Haut du corps : moitié des séries, RIR 4-5, charges de S2. Bas du corps : réintroduction SEULEMENT si debout indolore + marche sans boiterie (goblet léger, RDL 2 × 6 kg, pas de bulgare)."}
+ {name:"Semaine 5 · Maintien",rule:"Pas de deload : rien à vider (RIR 4+ partout en S4), l'allègement tombera en Turquie. Chaque série s'arrête à RIR 2-3, jamais à 4+, jamais à l'échec ; les charges trop légères sont remontées. Haltères en main = assis, à genoux ou au sol ; debout en botte, rien de chargé. Si la semaine déborde : C, A, B d'abord, D puis E sautent."},
+ {name:"Semaine 6 · Turquie",rule:"Si tu fais quelque chose : A et B, 2 séries par exercice, mêmes charges, RIR 2-3. Si tu ne fais rien, rien n'est perdu. Botte en permanence dehors, zéro mètre pieds nus sur sable ou sol mouillé."}
 ];
 /* Date de la dernière prescription de charges par le coach.
    Le pré-remplissage des kg repart du programme pour toute séance dont le dernier log
@@ -597,7 +598,7 @@ const WEEKS=[
    silencieusement les nouvelles. Dès qu'une séance est faite après cette date, c'est
    de nouveau la dernière charge saisie qui est proposée (sa progression est préservée).
    À rebumper à chaque changement de charges. */
-const PRESCRIBED_ON="2026-07-23";
+const PRESCRIBED_ON="2026-08-03";
 
 /* Les ids d'exercice (A1, B2…) sont des CLÉS DE STOCKAGE : elles servent à relire
    l'historique (training_logs) et à pré-remplir les charges. Elles ne sont JAMAIS affichées.
@@ -607,34 +608,36 @@ const PRESCRIBED_ON="2026-07-23";
    libre suivant de sa séance (C5, D5). Les logs déjà enregistrés restent donc lisibles. */
 const PROGRAM=[
  {id:"A",title:"Push",day:"Lundi",subtitle:"Poitrine · Épaules · Triceps",dur:18,exercises:[
-  {id:"A1",name:"Pompes",sets:3,target:"12-20 reps",weight:null,wl:"Poids du corps",type:"reps",note:"ENTORSE : sur genoux uniquement, dessus des pieds posés au tapis. Tempo 3 s à la descente, 1 s de pause en bas. Si 20 reps faciles : sac à dos chargé (5-10 kg). Ne compare pas ces reps aux pompes strictes, c'est un autre exercice."},
-  {id:"A2",name:"Développé épaules assis",sets:3,target:"6-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"ENTORSE : assis, dos calé contre un dossier. Même charge qu'en debout ; si tu fais un peu plus de reps c'est normal (position plus stable). Si la 1re série tombe sous 6 reps, redescends à 8 kg."},
-  {id:"A3",name:"Élévations latérales",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"ENTORSE : assis. Montée contrôlée, pas d'élan."},
+  {id:"A1",name:"Pompes",sets:3,target:"12-18 reps",weight:null,wl:"Poids du corps",type:"reps",note:"ENTORSE : sur genoux uniquement, dessus des pieds posés au tapis, même avec la botte (une seule botte = bassin de travers en planche, et la pointe de la semelle rocker bascule). STOP à RIR 2, plus d'échec : vise 16/14/12. Si 18 reps passent à RIR 2 : sac à dos chargé (5-10 kg)."},
+  {id:"A2",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg (2 × 12 si les disques de 5 kg passent)",type:"reps",note:"Assis, dos calé. 2 × 10 était à RIR 4+ : TESTE une paire à 12 kg (barre + un disque de 5 kg par côté). Si ça charge : 2 × 12 et repars à 8 reps. Sinon reste à 10 et monte les reps jusqu'à RIR 2, sans plafond."},
+  {id:"A3",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:6,wl:"2 × 6 kg",type:"reps",note:"Assis. Passe à 2 séries (acté à l'audit du 28/07) et 6 kg : tu tiens déjà 2 × 15 @ 6 kg en séance D. Montée contrôlée, pas d'élan."},
   /* A4b : remplace les pompes serrées (id A4, retiré). Id neuf pour ne pas hériter de leur historique. */
   {id:"A4b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates. Compense l'absence de séance E."}]},
  {id:"B",title:"Pull",day:"Mardi",subtitle:"Dos · Arrière d'épaules · Biceps",dur:18,exercises:[
-  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:12,wl:"12 kg",type:"reps",note:"ENTORSE : version À GENOUX (les deux genoux au sol sur le tapis, dessus des pieds posés), buste penché 45-60°, main libre en appui sur l'assise du canapé. PAS la version classique genou sur canapé (appui pied gauche instable). Attends-toi à 1-2 kg de moins, c'est la position, pas une régression : repars en bas de fourchette. Descente 2-3 s."},
-  {id:"B2",name:"Pull-over haltère au sol",sets:3,target:"10-15 reps",weight:10,wl:"10 kg",type:"reps",note:"Bas du dos plaqué au sol."},
-  {id:"B3",name:"Oiseau buste soutenu",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"Buste posé (front sur dossier de chaise haute, ou allongé sur le lit). Supprime la charge lombaire : c'est le dos qui lâchait avant l'épaule."},
+  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:14,wl:"14 kg",type:"reps",note:"ENTORSE : version À GENOUX (les deux genoux au sol sur le tapis, dessus des pieds posés), buste penché 45-60°, main libre en appui sur l'assise du canapé. 12 kg était à RIR 4+ : passe à 14 (même charge qu'en E) et repars à 8-12. Descente 2-3 s."},
+  {id:"B2",name:"Pull-over haltère au sol",sets:3,target:"10-15 reps",weight:12,wl:"12 kg",type:"reps",note:"Bas du dos plaqué au sol. 10 kg était à RIR 4+ : passe à 12 et repars en bas de fourchette."},
+  {id:"B3",name:"Oiseau buste soutenu",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"Buste posé (front sur dossier de chaise haute, ou allongé sur le lit). Supprime la charge lombaire. 3e série stoppée à RIR 2, plus de série à l'échec."},
   {id:"B4",name:"Curl biceps",sets:2,target:"10-15 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"ENTORSE : assis. Coudes fixes contre le tronc."}]},
- /* C : la proprioception (id C4) passe en 1er, en échauffement. On garde son id C4 :
-    déplacer une ligne du tableau suffit, renuméroter casserait la relecture des logs S1. */
  /* C (version entorse, depuis le 28/07) : goblet (C1), RDL (C2) et bulgare (C3) sont SUSPENDUS,
-    ids non réutilisés, réintroduction au deload si debout indolore + marche sans boiterie.
-    C4 réduit (droite seule), C5 conservé, C6-C8 nouveaux (séance au sol). */
- {id:"C",title:"Bas (au sol)",day:"Mercredi",subtitle:"Entorse — chaîne postérieure sans appui debout",dur:15,sessNote:"Tout au sol. En fin de séance : mobilité cheville gauche non chargée, 2 × 20 pompes de cheville + 2 × 10 cercles par sens, amplitude strictement indolore, jamais forcée.",exercises:[
-  {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:1,setNotes:["DROITE seule, yeux ouverts"],target:"30 s",weight:null,wl:"",type:"time",timeSec:30,note:"ENTORSE : jambe DROITE uniquement, 1 seule série, yeux ouverts, sol dur, pas de coussin. Zéro appui unipodal gauche cette semaine. Pas de progression : la droite encaisse déjà la boiterie."},
-  {id:"C6",name:"Glute bridge bilatéral",sets:3,target:"12-20 reps",weight:null,wl:"Poids du corps (haltère 8-10 kg sur le bassin si 20 faciles)",type:"reps",note:"Pieds à plat, talons proches des fesses, poussée dans les TALONS. Si l'appui plantaire gauche gêne : avant-pied gauche décollé, appui talon seul."},
-  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:4,wl:"4 kg (barre + 2 × 1 kg) sur le bassin",type:"reps",note:"DROITE d'abord, poussée talon. Côté GAUCHE seulement si strictement indolore, sinon on le saute cette semaine."},
+    ids non réutilisés. Réintroduction du bas du corps chargé debout (critère du 03/08, à confirmer
+    au contrôle ~06/09) : 1) botte retirée par le médecin, 2) 10 min de marche continue en chaussure
+    sans douleur pendant ni le lendemain, 3) 20 relevés de talon bipodaux sans douleur. Alors retour
+    à 50 % des charges de juillet, pas de bulgare avant 2 semaines propres. */
+ /* 03/08 : C resserrée à 3 exercices / 10 min pour qu'elle ne saute plus jamais (seul stimulus
+    jambes pendant la botte). C6 (glute bridge bilatéral) retiré : inchargeable sérieusement à 110 kg.
+    C4 (proprioception) SUSPENDUE des deux côtés jusqu'à la sortie de botte : une perte d'équilibre à
+    droite se rattrape par un pas brutal sur la botte, id conservé pour la reprise (indexée padel). */
+ {id:"C",title:"Bas (au sol)",day:"Mercredi",subtitle:"Entorse — 3 exercices, 10 min, elle ne saute pas",dur:10,sessNote:"Tout au sol. Seule séance jambes tant que la botte est là : si la semaine déborde, c'est D ou E qui saute, jamais elle. En fin de séance : mobilité cheville gauche non chargée, 2 × 20 pompes de cheville + 2 × 10 cercles par sens, amplitude strictement indolore, jamais forcée.",exercises:[
+  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:6,wl:"6 kg (barre + 2 × 2 kg) sur le bassin",type:"reps",note:"Le vrai stimulus jambes de la semaine (4 kg était à RIR 0-1 : passe à 6). DROITE d'abord, poussée talon. Côté GAUCHE seulement si strictement indolore, appui talon seul, jamais l'avant-pied : s'il passe, il ne se saute pas, c'est le seul frein à la fonte de la jambe gauche."},
   {id:"C7",name:"Abduction de hanche allongé",sets:2,target:"15-20 / côté",weight:null,wl:"Poids du corps",type:"reps",note:"Moyen fessier, zéro charge sur les pieds. Meilleur travail anti-valgus dispo : c'est un investissement direct pour le genou droit et le retour au padel."},
-  {id:"C8",name:"Dead bug",sets:3,target:"30-45 s",weight:null,wl:"",type:"time",timeSec:40,note:"Remplace la planche en C. Bas du dos plaqué au sol pendant tout le mouvement."}]},
+  {id:"C8",name:"Dead bug",sets:2,target:"30-45 s",weight:null,wl:"",type:"time",timeSec:40,note:"Bas du dos plaqué au sol pendant tout le mouvement."}]},
  {id:"D",title:"Push · Épaules",day:"Jeudi",subtitle:"Autres angles · Volume épaules",dur:20,exercises:[
   /* D6 remplace les pompes pieds surélevés (D1), D7 remplace les pompes pike (D2) : appui
      orteils exclu pendant l'entorse. Ids D1/D2 non réutilisés, retour prévu à la guérison. */
-  {id:"D6",name:"Développé incliné haltères (canapé)",sets:3,target:"8-12 reps",weight:8,wl:"2 × 8 kg",type:"reps",note:"Remplace les pompes pieds surélevés (entorse). Assis au sol, dos adossé au canapé avec coussins pour un angle de 30-45°. Même vecteur haut de poitrine / épaule avant. Repli si l'angle est impossible : pompes sur genoux avec sac à dos chargé."},
-  {id:"D7",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"Remplace les pompes pike (entorse). 2e exposition épaules de la semaine, même charge qu'en séance A."},
-  {id:"D3",name:"Floor press haltères",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"Inchangé (allongé, aucun appui pied). Coudes touchent le sol à chaque rep."},
-  {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"ENTORSE : assis."},
+  {id:"D6",name:"Développé incliné haltères (canapé)",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg",type:"reps",note:"Remplace les pompes pieds surélevés (entorse). Assis au sol, dos adossé au canapé avec coussins pour un angle de 30-45°. 2 × 8 était à RIR 4+ : passe à 2 × 10 et repars à 8 reps. Repli si l'angle est impossible : pompes sur genoux avec sac à dos chargé."},
+  {id:"D7",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg (2 × 12 si les disques de 5 kg passent)",type:"reps",note:"Remplace les pompes pike (entorse). 2e exposition épaules de la semaine, même charge et même consigne qu'en séance A : 12 kg si la paire charge, sinon 10 et reps jusqu'à RIR 2."},
+  {id:"D3",name:"Floor press haltères",sets:3,target:"8-12 reps",weight:10,wl:"2 × 10 kg (2 × 12 si les disques de 5 kg passent)",type:"reps",note:"Allongé, aucun appui pied. Coudes touchent le sol à chaque rep. Le « 11 kg » loggé le 01/08 est impossible à charger avec le kit : c'était 10 ou 12 ? Corrige au prochain log, et passe à 12 si la paire charge."},
+  {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:6,wl:"2 × 6 kg",type:"reps",note:"Assis. 6 kg confirmé : c'est ta charge du 01/08 (2 × 15, RIR 3/1)."},
   {id:"D5",name:"Planche",sets:2,target:"45-70 s",weight:null,wl:"",type:"time",timeSec:60,note:"ENTORSE : sur les GENOUX (avant-bras + genoux, dessus des pieds au tapis), jamais sur les orteils. Plus facile, donc durée allongée : 45-70 s. Corps en ligne des genoux à la tête."}]},
  /* E : recentrée sur la 2e exposition du dos. E3 (glute bridge) et E4 (planche) sont partis
     en C et D. Leurs ids ne sont pas réutilisés ; d'anciens logs E qui les contiendraient
@@ -670,7 +673,7 @@ const GLOSSARY={
  "RIR":"Reps In Reserve : nombre de répétitions que tu pourrais encore faire avec une forme parfaite. RIR 2 = tu t'arrêtes 2 reps avant l'échec. On ne va jamais à l'échec total en phase de reprise. 4+ = tu étais loin du max : la série ne compte pas pour valider une montée de charge.",
  "Hinge bilatéral à l'élastique":"Substitut du RDL quand le mi-dos tiraille. Debout, les deux pieds sur le milieu d'un élastique, poignées en mains, bras le long du corps. Même geste que le RDL : hanches en ARRIÈRE, dos neutre, omoplates serrées, arrêt juste sous le genou, excentrique 3 s. L'élastique tire vers le bas et l'arrière : la charge sur le rachis est quasi nulle. 3 × 12-15, tension réglée pour finir à RIR 2-3. Après 1-2 séances sans douleur, retour au RDL à 2 × 6 kg.",
  "Double progression":"Tu gardes la même charge et tu montes les reps de séance en séance. Quand tu atteins le HAUT de la fourchette sur TOUTES les séries (RIR 1-2), tu ajoutes le plus petit saut possible avec ton kit, soit +2 kg par haltère, et tu repars en bas de la fourchette.",
- "Kit haltères":"4 disques de 2 kg, 8 disques de 1 kg, 2 barres de 2 kg, plus 2 haltères FIXES de 5 kg. Le chargement est symétrique et le plus petit disque fait 1 kg, donc le plus petit saut possible est de +2 kg par haltère. Charges réellement montables en PAIRE : 4, 6, 8 et 10 kg. Sur un haltère SEUL (rowing, goblet, pull-over), tu peux aller jusqu'à 18 kg. Toute charge intermédiaire (7 kg, 9 kg…) est impossible à charger : si le programme t'en propose une, c'est un bug, signale-le.",
+ "Kit haltères":"4 disques de 2 kg, 8 disques de 1 kg, 4 disques de 5 kg (achetés fin juillet), 2 barres de 2 kg, plus 2 haltères FIXES de 5 kg. Le chargement est symétrique et le plus petit disque fait 1 kg, donc le plus petit saut possible est de +2 kg par haltère. Charges en PAIRE : 4, 6, 8, 10, et 12 kg et plus AVEC les disques de 5 kg, à condition qu'ils tiennent sur les barres courtes (à tester une fois, 2 minutes). Sur un haltère SEUL (rowing, pull-over), tu peux dépasser 18 kg. Toute charge impaire (7, 9, 11 kg…) est impossible à charger : si un log en contient une, c'est une erreur de saisie.",
  "Échauffement":"~2 min avant chaque séance : marche sur place 30 s, cercles d'épaules 10 par sens, cercles de hanches 10 par sens, cat-cow ×8, squats lents au poids du corps ×10, scapula push-ups ×10.",
  "Deload":"Semaine allégée : moitié des séries, RIR 4-5, sans jamais forcer. Vide la fatigue accumulée pour repartir plus haut.",
  "Série (assiduité)":"Nombre de séances enchaînées sans décrochage. La série tient tant que tu ne laisses pas passer plus de 3 jours pleins sans séance. Trois jours de marge, c'est exactement le week-end du bloc : finir vendredi et reprendre lundi ne casse rien. Au-delà (4 jours ou plus sans rien), la série tombe à zéro et repart de 1 à la séance suivante. Ce n'est pas la charge qui la casse, c'est l'absence."
