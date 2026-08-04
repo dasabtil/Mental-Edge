@@ -738,7 +738,7 @@ function renderHome(){
 /* ---- Séance ---- */
 function openSession(id){
  trCur=PROGRAM.find(s=>s.id===id);
- const wi=weekIdx(new Date());const deload=(wi===4);
+ const wi=weekIdx(new Date());const deload=/deload/i.test(((WEEKS[wi]||{}).name)||"");
  const last=[...trLogs].reverse().find(l=>l.sessionId===id);
  /* Le dernier log ne pré-remplit les kg que s'il est POSTÉRIEUR à la dernière prescription.
     Sinon les charges de S1 (ex. 7 kg au développé) écraseraient silencieusement les
@@ -822,7 +822,7 @@ function renderHistory(){
      ré-associer une entrée à un exercice : l'historique reste donc lisible quoi qu'il arrive. */
   const s=PROGRAM.find(p=>p.id===l.sessionId);let sets=0;
   Object.values(l.entries||{}).forEach(a=>{if(Array.isArray(a))a.forEach(x=>{if((x.reps&&x.reps!=="")||(x.sec&&x.sec!==""))sets++;});});
-  const wkl=(l.weekIndex>=0&&l.weekIndex<4)?("S"+(l.weekIndex+1)):(l.weekIndex===4?"deload":"hors bloc");
+  const wkl=(l.weekIndex>=0&&l.weekIndex<WEEKS.length)?("S"+(l.weekIndex+1)):"hors bloc";
   const del=(trConfirmDel===l.id)?'<button class="tr-btn warn" data-delok="'+l.id+'">Confirmer ?</button>':'<button class="tr-btn" data-del="'+l.id+'" style="color:var(--muted)">suppr.</button>';
   return '<div class="tr-histrow"><div><div class="hd"><span class="sid">'+l.sessionId+'</span> '+(s?esc(s.title):"")+'</div><div class="hm">'+trFmt(l.date)+' · '+sets+' séries · '+wkl+'</div></div>'+del+'</div>';
  }).join("");
