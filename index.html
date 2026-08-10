@@ -1243,6 +1243,7 @@ var CATS=[["mental","Mental"],["technique","Technique"],["physique","Physique"],
 var OBLIG=["mental","technique","physique","bienetre","social"];
 var MO=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 var reviewState={};
+var forceReview=false;
 var MQ=Promise.resolve();
 function enqueue(fn){MQ=MQ.then(fn).catch(function(e){dlog("ERREUR file: "+(e&&e.message?e.message:e));});return MQ;}
 // --- journal de diagnostic fixe (survit aux re-render ; persiste via sessionStorage) ---
@@ -1252,6 +1253,8 @@ function catLab(c){for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
 function weekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);if(dow===0&&new Date(now).getHours()<12)mon.setDate(mon.getDate()-7);return iso(mon);}
+// Lundi réel de la semaine en cours, sans la tolérance du lundi matin : sert à ancrer la nouvelle semaine après un bilan déclenché à la main.
+function realWeekStartIso(now){var z=new Date(now);z.setHours(0,0,0,0);var dow=(z.getDay()+6)%7;var mon=new Date(z);mon.setDate(z.getDate()-dow);return iso(mon);}
 function fmtRange(startIso){if(!startIso||typeof startIso!=="string"||startIso.indexOf("-")<0)return "semaine en cours";var p=startIso.split("-");var mon=new Date(+p[0],+p[1]-1,+p[2]);var sun=new Date(mon);sun.setDate(mon.getDate()+6);return mon.getMonth()===sun.getMonth()?("semaine du "+mon.getDate()+" au "+sun.getDate()+" "+MO[sun.getMonth()]):("semaine du "+mon.getDate()+" "+MO[mon.getMonth()]+" au "+sun.getDate()+" "+MO[sun.getMonth()]);}
 function $w(s){return document.querySelector(s);}
 function val(s){var e=$w(s);return e?e.value.trim():"";}
@@ -1311,7 +1314,8 @@ function renderNormal(panel,W,hasLegacy){
  html+='<div class="wkadd"><div class="wkadd-row"><input id="wkLabel" placeholder="Nouvel objectif..."><select id="wkCat">'+CATS.map(function(p){return '<option value="'+p[0]+'">'+p[1]+'</option>';}).join("")+'</select></div>'
   +'<div class="wkadd-row"><input id="wkTarget" placeholder="Cible (nb)"><input id="wkUnit" placeholder="Unité"></div>'
   +'<input id="wkIf" class="wkifin" placeholder="Plan si-alors : quand / où je le ferai (ex : après le dîner, au club…)">'
-  +'<button type="button" class="mini-add" id="wkAdd">Ajouter l\'objectif</button></div>';
+  +'<button type="button" class="mini-add" id="wkAdd">Ajouter l\'objectif</button></div>'
+  +'<button type="button" class="wkrb" id="wkForce" style="margin-top:14px">Faire le bilan de cette semaine et lancer la suivante</button>';
  panel.innerHTML=html;
 }
 function renderReview(panel,W){
@@ -1323,7 +1327,9 @@ function renderReview(panel,W){
   if(st.reached===false)html+='<textarea class="wkcause" data-cause="'+g.id+'" placeholder="Qu\'est-ce qui a bloqué ? Et qu\'est-ce que tu changes la semaine prochaine ?">'+esc(st.cause||"")+'</textarea>';
   html+='</div>';});
  var can=W.goals.every(function(g){var s=reviewState[g.id];return s&&(s.reached===true||(s.reached===false&&(s.cause||"").trim()));});
- html+='<button type="button" class="mini-add" id="wkValid"'+(can?'':' disabled style="opacity:.45;cursor:not-allowed"')+'>Valider le bilan et démarrer la semaine</button></div>';
+ html+='<button type="button" class="mini-add" id="wkValid"'+(can?'':' disabled style="opacity:.45;cursor:not-allowed"')+'>Valider le bilan et démarrer la semaine</button>';
+ if(forceReview)html+='<button type="button" class="wkrb" id="wkBack" style="margin-top:10px">Revenir sans valider</button>';
+ html+='</div>';
  panel.innerHTML=html;
 }
 window.renderWeek=async function(preW){
@@ -1335,7 +1341,8 @@ window.renderWeek=async function(preW){
  else{W=await wgGet();if(W===null){W={weekStart:curStart,goals:[]};}}   // jamais d'écriture ici : pas d'écrasement possible
  if(!W.weekStart)W.weekStart=curStart;if(!W.goals)W.goals=[];
  var legacy=(W.goals.length===0)?(await ugGetSem()):[];
- try{if(W.weekStart!==curStart)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);}catch(rerr){showErr("rendu: "+(rerr&&rerr.message?rerr.message:rerr));return;}
+ var realStart=realWeekStartIso(new Date());
+ try{if((W.weekStart!==curStart&&W.weekStart!==realStart)||forceReview)renderReview(panel,W);else renderNormal(panel,W,legacy.length>0);}catch(rerr){showErr("rendu: "+(rerr&&rerr.message?rerr.message:rerr));return;}
  panel.insertAdjacentHTML("beforeend",'<div style="text-align:right;color:var(--muted2,#9aa);font-size:10px;margin-top:10px;opacity:.7"></div>');
  updateBadge();
 };
@@ -1365,11 +1372,11 @@ async function addGoal(){try{var label=val("#wkLabel");if(!label)return;var cat=
  var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};W.goals.push({id:uid(),cat:cat,label:label,target:target,unit:unit,current:0,ifthen:ift});await wgSet(W);await window.renderWeek(W);}catch(err){showErr((err&&err.message?err.message:err)+"");}}
 async function delGoal(id){var W=await wgGet();if(!W)return;W.goals=W.goals.filter(function(x){return String(x.id)!==String(id);});await wgSet(W);window.renderWeek(W);}
 async function importLegacy(){var sem=await ugGetSem();if(!sem.length)return;var W=await wgGet();if(!W)W={weekStart:weekStartIso(new Date()),goals:[]};if(!W.goals)W.goals=[];W.goals=W.goals.concat(impMap(sem));await wgSet(W);window.renderWeek(W);}
-async function validate(){var W=await wgGet();if(!W)return;var curStart=weekStartIso(new Date());
+async function validate(){var W=await wgGet();if(!W)return;var newStart=realWeekStartIso(new Date());
  var arch=await getJSON("weekArchive",[]);if(!Array.isArray(arch))arch=[];var review={items:{},done:new Date().toISOString()};
  W.goals.forEach(function(g){var s=reviewState[g.id]||{};review.items[g.id]={label:g.label,reached:!!s.reached,cause:s.reached?"":((s.cause||"").trim())};});
- arch.push({weekStart:W.weekStart,endedAt:curStart,goals:W.goals,review:review});await setJSON("weekArchive",arch);
- await wgSet({weekStart:curStart,goals:[]});reviewState={};window.renderWeek();}
+ if(W.goals.length){arch.push({weekStart:W.weekStart,endedAt:newStart,goals:W.goals,review:review});await setJSON("weekArchive",arch);}
+ await wgSet({weekStart:newStart,goals:[]});reviewState={};forceReview=false;window.renderWeek();}
 function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
  panel.addEventListener("click",function(e){var t=e.target;
   var inc=t.getAttribute&&t.getAttribute("data-winc");if(inc){incGoal(inc,1);return;}
@@ -1378,6 +1385,8 @@ function init(){var panel=document.getElementById("weekPanel");if(!panel)return;
   if(t.id==="wkAdd"){enqueue(addGoal);return;}
   if(t.id==="wkImport"){enqueue(importLegacy);return;}
   if(t.id==="wkValid"&&!t.disabled){enqueue(validate);return;}
+  if(t.id==="wkForce"){forceReview=true;reviewState={};window.renderWeek();return;}
+  if(t.id==="wkBack"){forceReview=false;reviewState={};window.renderWeek();return;}
   var r=t.getAttribute&&t.getAttribute("data-reach");if(r){var pp=r.split(":");var rv=pp[0]==="1";var id=pp[1];if(!reviewState[id])reviewState[id]={};reviewState[id].reached=rv;if(rv)reviewState[id].cause="";var panel2=document.getElementById("weekPanel");wgGet().then(function(W){if(W)renderReview(panel2,W);});return;}});
  panel.addEventListener("change",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-wcur");if(c)onCur(c,e.target.value);});
  panel.addEventListener("input",function(e){var ca=e.target.getAttribute&&e.target.getAttribute("data-cause");if(ca){if(!reviewState[ca])reviewState[ca]={reached:false};reviewState[ca].cause=e.target.value;
