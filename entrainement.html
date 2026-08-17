@@ -601,7 +601,7 @@ const WEEKS=[
    silencieusement les nouvelles. Dès qu'une séance est faite après cette date, c'est
    de nouveau la dernière charge saisie qui est proposée (sa progression est préservée).
    À rebumper à chaque changement de charges. */
-const PRESCRIBED_ON="2026-08-03";
+const PRESCRIBED_ON="2026-08-17";
 
 /* Les ids d'exercice (A1, B2…) sont des CLÉS DE STOCKAGE : elles servent à relire
    l'historique (training_logs) et à pré-remplir les charges. Elles ne sont JAMAIS affichées.
@@ -617,7 +617,7 @@ const PROGRAM=[
   /* A4b : remplace les pompes serrées (id A4, retiré). Id neuf pour ne pas hériter de leur historique. */
   {id:"A4b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates. Compense l'absence de séance E."}]},
  {id:"B",title:"Pull",day:"Mardi",subtitle:"Dos · Arrière d'épaules · Biceps",dur:18,exercises:[
-  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:14,wl:"14 kg",type:"reps",note:"VERSION CLASSIQUE rendue (genou + main sur le canapé, l'autre pied au sol), des deux côtés : l'appui du pied gauche à plat dans la botte est sans danger, la coque absorbe la torsion. Semelle entière sur sol dur, pied un peu plus large ; si la botte roule sous la traction, recule le pied de 10 cm. 14 kg, monte à 16 dès que la 1re série sort à RIR 3. Descente 2-3 s. Au moindre réveil du médio-pied pendant ou le lendemain : retour à genoux."},
+  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:16,wl:"16 kg",type:"reps",note:"VERSION CLASSIQUE rendue (genou + main sur le canapé, l'autre pied au sol), des deux côtés : l'appui du pied gauche à plat dans la botte est sans danger, la coque absorbe la torsion. Semelle entière sur sol dur, pied un peu plus large ; si la botte roule sous la traction, recule le pied de 10 cm. 16 kg (monté le 17/08, la 1re série sortait à 22 reps RIR 3 à 14 kg). Monte à 18 dès que la 1re série sort à RIR 3. Descente 2-3 s. Au moindre réveil du médio-pied pendant ou le lendemain : retour à genoux."},
   {id:"B2",name:"Pull-over haltère au sol",sets:3,target:"10-15 reps",weight:12,wl:"12 kg",type:"reps",note:"Bas du dos plaqué au sol. 10 kg était à RIR 4+ : passe à 12 et repars en bas de fourchette."},
   {id:"B3",name:"Oiseau buste soutenu",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"Buste posé (front sur dossier de chaise haute, ou allongé sur le lit). Supprime la charge lombaire. 3e série stoppée à RIR 2, plus de série à l'échec."},
   {id:"B4",name:"Curl biceps",sets:2,target:"10-15 reps",weight:11,wl:"2 × 11 kg",type:"reps",note:"Debout PIEDS NUS pendant la série (assis entre les séries) ou assis. Coudes fixes contre le tronc, aucun coup de reins. 2 × 15 @ 10 kg le 30/07 = haut de fourchette : +1 kg avec les disques de 0,5, repars à 10-12 reps."}]},
@@ -648,7 +648,7 @@ const PROGRAM=[
     en C et D. Leurs ids ne sont pas réutilisés ; d'anciens logs E qui les contiendraient
     seraient simplement ignorés à la relecture, sans casser l'affichage. */
  {id:"E",title:"Dos (10 min)",day:"Samedi",subtitle:"Dos · 2e exposition de la semaine",dur:10,sessNote:"Séance courte, samedi matin. Si elle saute, rien d'irremplaçable n'est perdu.",exercises:[
-  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:14,wl:"14 kg",type:"reps",note:"VERSION CLASSIQUE, mêmes consignes qu'en B1 (semelle entière sur sol dur, pied un peu plus large, recule-le si la botte roule). 14 kg, monte à 16 dès que la 1re série sort à RIR 3. 2e exposition dos de la semaine."},
+  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:16,wl:"16 kg",type:"reps",note:"VERSION CLASSIQUE, mêmes consignes qu'en B1 (semelle entière sur sol dur, pied un peu plus large, recule-le si la botte roule). 16 kg, monte à 18 dès que la 1re série sort à RIR 3. 2e exposition dos de la semaine."},
   {id:"E2b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates, 1 s de tenue en fin de mouvement."}]}
 ];
 const GLOSSARY={
