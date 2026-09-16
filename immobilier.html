@@ -277,7 +277,7 @@ function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").
 
 /* ---- données ---- */
 var KEY="immoPlan";
-var CATS={credit:{l:"Crédit",c:"#2f6a45"},pip:{l:"PIP / urbanisme",c:"#8a5f10"},vente:{l:"Vente maison",c:"#3a5566"},travaux:{l:"Travaux",c:"#b0522b"},juridique:{l:"Juridique / notaire",c:"#6b4c9a"},autre:{l:"Autre",c:"#5e5749"}};
+var CATS={credit:{l:"Crédit",c:"#2f6a45"},pip:{l:"PIP / urbanisme",c:"#8a5f10"},vente:{l:"Vente maison",c:"#3a5566"},travaux:{l:"Travaux",c:"#b0522b"},juridique:{l:"Juridique / notaire",c:"#6b4c9a"},fiscal:{l:"Fiscal / admin",c:"#3f7f8c"},autre:{l:"Autre",c:"#5e5749"}};
 function seed(){return {v:1,tasks:[],milestones:[]};} /* plan vide : le vrai plan vit dans Supabase, jamais dans le code (repo public) */
 var P=seed(),planLoaded=false,seq=0,dragging=false;
 var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
