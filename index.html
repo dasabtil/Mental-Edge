@@ -442,7 +442,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
     <img class="mark" src="assets/ef25df956b012609.png" alt="">
     <div><b>Mental</b><small>Edge</small></div>
   </div>
-  <nav class="navlinks" id="nav"><a href="index.html" class="navon">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="bounty.html">Bounty</a><a href="technique.html">Technique</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
+  <nav class="navlinks" id="nav"><a href="index.html" class="navon">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="bounty.html">Bounty</a><a href="technique.html">Technique</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="immobilier.html">Immo</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
   <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button>
     <button class="themebtn" id="themeBtn" title="Changer de thème" aria-label="Changer de thème">&#9728;</button>
     <button class="themebtn" id="logoutBtn" title="Déconnexion" style="display:none">&#9099;</button><div class="streak"><span class="fl">&#128293;</span><b id="streakN">0</b><span>j</span></div>
@@ -1092,7 +1092,17 @@ window.addEventListener("focus",function(){init();if(loaded)refresh();});
 if(document.readyState!=="loading")init();else window.addEventListener("DOMContentLoaded",init);
 })();</script><script>(function(){
 var KEY="userTasks",D={todos:[],done:[]},uid=null,loaded=false,fImp=false,fUrg=false;
+var IMKEY="immoPlan",IM=null; /* échéances de la page Opération immo (immobilier.html) */
 function $(id){return document.getElementById(id);}
+var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
+function immoUpcoming(){if(!IM||!Array.isArray(IM.tasks))return [];var lim=new Date();lim.setDate(lim.getDate()+7);var l=iso(lim);
+return IM.tasks.filter(function(t){return t&&t.id&&ISO_RE.test(t.end||"")&&t.status!=="done"&&t.remind!==false&&t.end<=l;}).sort(function(a,b){return a.end<b.end?-1:(a.end>b.end?1:(a.id<b.id?-1:1));});}
+/* cocher « Fait » : on relit le plan juste avant d'écrire, pour ne pas écraser ce que la page Immo a pu changer entre-temps */
+async function markImmoDone(id){if(!uid)return;var plan=null;try{var raw=await kvGet(IMKEY);if(raw)plan=JSON.parse(raw);}catch(e){plan=null;}
+if(!plan||!Array.isArray(plan.tasks))plan=IM;if(!plan||!Array.isArray(plan.tasks))return;var tdy=iso(new Date());
+plan.tasks.forEach(function(x){if(x&&x.id===id){x.status="done";x.doneDate=tdy;}});IM=plan;await kvSet(IMKEY,JSON.stringify(plan));render();}
+async function reloadImmo(){if(!uid)return;var r=await kvGet(IMKEY);if(r){try{IM=JSON.parse(r);render();}catch(e){}}}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)reloadImmo();});window.addEventListener("focus",reloadImmo);
 function iso(d){var m=("0"+(d.getMonth()+1)).slice(-2),j=("0"+d.getDate()).slice(-2);return d.getFullYear()+"-"+m+"-"+j;}
 function fr(s){var p=(s||"").split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:s;}
 function uuid(){return "t"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -1103,7 +1113,14 @@ async function save(){if(uid)await kvSet(KEY,JSON.stringify(D));}
 function weight(t){return (t.imp&&t.urg)?0:(t.imp?1:(t.urg?2:3));}
 function render(){var box=$("mjList");if(!box)return;
 var a=D.todos.slice().sort(function(x,y){return weight(x)-weight(y);});
-box.innerHTML=a.length?"":'<div class="mjempty">Rien en cours. Note ce que tu as &agrave; faire aujourd&rsquo;hui.</div>';
+var im=immoUpcoming(),tdy=iso(new Date());
+box.innerHTML=(a.length||im.length)?"":'<div class="mjempty">Rien en cours. Note ce que tu as &agrave; faire aujourd&rsquo;hui.</div>';
+im.forEach(function(t){var r=document.createElement("div");r.className="mjit mjimmo";
+var dd=Math.round((new Date(t.end+"T12:00:00")-new Date(tdy+"T12:00:00"))/86400000);
+var when=dd<0?'<span class="mjb u">RETARD '+(-dd)+'&nbsp;J</span>':(dd===0?'<span class="mjb u">AUJOURD’HUI</span>':'<span class="mjage">J-'+dd+' · '+esc(fr(t.end))+'</span>');
+r.innerHTML='<div class="mjck" title="Fait !">&#10003;</div><a class="mjlab" href="immobilier.html" style="color:inherit;text-decoration:none" title="Ouvrir le planning immo">'+esc(t.label)+'</a>'+when+'<span class="mjb i">IMMO</span>';
+r.querySelector(".mjck").addEventListener("click",function(){t.status="done";t.doneDate=tdy;render();markImmoDone(t.id);});
+box.appendChild(r);});
 a.forEach(function(t){var r=document.createElement("div");r.className="mjit";
 var ag="";if(t.created){var dd=Math.floor((new Date(iso(new Date()))-new Date(t.created))/86400000);if(dd>=1)ag='<span class="mjage">depuis '+dd+'&nbsp;j</span>';}
 r.innerHTML='<div class="mjck" title="Fait !">&#10003;</div><span class="mjlab">'+esc(t.label)+'</span>'+ag+(t.imp?'<span class="mjb i">IMPORTANT</span>':"")+(t.urg?'<span class="mjb u">URGENT</span>':"");
@@ -1126,7 +1143,8 @@ function add(){var inp=$("mjInput"),v=(inp.value||"").trim();if(!v)return;
 D.todos.push({id:uuid(),label:v,imp:fImp,urg:fUrg,created:iso(new Date())});inp.value="";fImp=false;fUrg=false;
 $("mjImp").classList.remove("on");$("mjUrg").classList.remove("on");save();render();}
 async function load(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;
-var raw=await kvGet(KEY);if(raw){try{var p=JSON.parse(raw);D.todos=p.todos||[];D.done=p.done||[];}catch(e){}}render();}
+var raw=await kvGet(KEY);if(raw){try{var p=JSON.parse(raw);D.todos=p.todos||[];D.done=p.done||[];}catch(e){}}
+var rawIm=await kvGet(IMKEY);if(rawIm){try{IM=JSON.parse(rawIm);}catch(e){}}render();}
 function init(){var bI=$("mjImp"),bU=$("mjUrg"),bA=$("mjAdd"),inp=$("mjInput"),fh=$("mjDoneHead"),fb=$("mjDoneBody");
 if(!bA)return;
 bI.addEventListener("click",function(){fImp=!fImp;bI.classList.toggle("on",fImp);});
