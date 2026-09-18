@@ -98,10 +98,15 @@ h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2p
 .gdays span{position:absolute;top:0;height:26px;line-height:26px;text-align:center;font-size:10.5px;color:var(--muted2);font-variant-numeric:tabular-nums}
 .gdays span.we{background:var(--line2)}
 .gdays span.mo{color:var(--text);font-weight:600}
-.gdays span.td{color:var(--on-accent);background:var(--accent);border-radius:6px;font-weight:600}
-.gms{position:relative;height:60px;border-bottom:1px solid var(--line2)}
+.gdays span.td{color:var(--on-accent);background:var(--accent);border-radius:6px;font-weight:600;z-index:1}
+.gdays span.wk{text-align:left;padding-left:3px;border-left:1px solid var(--line2);overflow:visible}
+.gms{position:relative;height:44px;border-bottom:1px solid var(--line2)}
+.ms.lv2 .mlab{margin-top:36px}
+.ms.lv3 .mlab{margin-top:52px}
+.ms.lv4 .mlab{margin-top:68px}
 .ms{position:absolute;top:5px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none;z-index:4}
 .ms.lv1 .mlab{margin-top:20px}
+.ms .mlab{background:var(--surface);padding:0 3px;border-radius:4px}
 .ms.drag{cursor:grabbing;z-index:6}
 .ms .dia{width:13px;height:13px;background:var(--rust);transform:rotate(45deg);border-radius:3px;box-shadow:0 0 0 2px var(--surface)}
 .ms .mlab{font-size:10.5px;color:var(--rust);font-weight:600;white-space:nowrap;margin-top:4px;line-height:1.2}
@@ -115,6 +120,7 @@ h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2p
 .bar.drag{cursor:grabbing;box-shadow:0 8px 18px rgba(0,0,0,.28);z-index:5}
 .bar .lbl{position:absolute;left:9px;top:0;height:26px;line-height:26px;white-space:nowrap;pointer-events:none;font-size:12.5px;font-weight:500;text-shadow:0 1px 1px rgba(0,0,0,.25);max-width:none}
 .bar .lbl.out{left:100%;padding-left:8px;color:var(--text);text-shadow:none}
+.bar .lbl.outl{left:auto;right:100%;padding-right:8px;color:var(--text);text-shadow:none}
 .bar .h{position:absolute;top:0;bottom:0;width:11px;cursor:ew-resize}
 .bar .h.l{left:0}.bar .h.r{right:0}
 .bar.doing::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(255,255,255,.75);border-radius:8px 0 0 8px}
@@ -184,6 +190,7 @@ h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2p
   <div class="toolbar">
     <button class="btn pri" id="btnAddTask">+ Tâche</button>
     <button class="btn" id="btnAddMs">+ Jalon</button>
+    <button class="btn sm" id="btnFit" title="Toute la période jusqu&rsquo;à l&rsquo;escritura à l&rsquo;écran">Vue d&rsquo;ensemble</button>
     <button class="btn sm" id="btnToday">Aujourd&rsquo;hui</button>
     <button class="btn sm" id="btnZoomOut" title="Dézoomer">&minus;</button>
     <button class="btn sm" id="btnZoomIn" title="Zoomer">+</button>
@@ -312,7 +319,7 @@ document.addEventListener("visibilitychange",function(){if(!document.hidden)refr
 window.addEventListener("focus",refreshPlan);
 
 /* ---- planning ---- */
-var DW=28;try{var z=parseInt(localStorage.getItem("immoDW"),10);if(z>=16&&z<=48)DW=z;}catch(e){}
+var DW=28; /* largeur d'un jour en px ; recalculée par fitAll() à l'ouverture pour que toute la période tienne à l'écran */
 var range={start:null,end:null};
 function computeRange(){var t=new Date();var lo=addDays(t,-10),hi=addDays(t,75);
  P.tasks.forEach(function(x){var s=pd(x.start),e=pd(x.end);if(addDays(s,-4)<lo)lo=addDays(s,-4);if(addDays(e,10)>hi)hi=addDays(e,10);});
@@ -332,10 +339,21 @@ function renderGantt(){computeRange();var g=$("gantt"),gin=$("gin");var keep=g.s
  /* jours */
  h+='<div class="gdays">';d=pd(range.start);
  for(var i=0;i<nDays;i++){var s=iso(d),dow=d.getDay(),cls=[];if(dow===0||dow===6)cls.push("we");if(dow===1)cls.push("mo");if(s===today)cls.push("td");
-  h+='<span class="'+cls.join(" ")+'" style="left:'+(i*DW)+'px;width:'+DW+'px">'+(DW>=22||dow===1?d.getDate():'')+'</span>';d=addDays(d,1);}
+  if(DW>=20)h+='<span class="'+cls.join(" ")+'" style="left:'+(i*DW)+'px;width:'+DW+'px">'+d.getDate()+'</span>';
+  else{ /* vue compacte : un repère par lundi (numéro du jour), aujourd'hui en surbrillance */
+   if(dow===1)h+='<span class="mo wk" style="left:'+(i*DW)+'px;width:'+(7*DW)+'px">'+d.getDate()+'</span>';
+   if(s===today)h+='<span class="td" style="left:'+(i*DW)+'px;width:'+Math.max(DW,18)+'px;margin-left:'+(DW<18?-(18-DW)/2:0)+'px">'+d.getDate()+'</span>';}
+  d=addDays(d,1);}
  h+='</div>';
  /* jalons */
- h+='<div class="gms" id="gms">';var lastX=-1e9,lv=0;P.milestones.slice().sort(function(a,b){return cmp(a.date,b.date)||cmp(a.id,b.id);}).forEach(function(m){var mx=X(m.date)+DW/2;lv=(mx-lastX<150)?1-lv:0;lastX=mx;h+='<div class="ms lv'+lv+'" data-id="'+esc(m.id)+'" style="left:'+mx+'px"><div class="dia"></div><div class="mlab">'+esc(m.label)+'</div></div>';});h+='</div>';
+ /* étiquettes de jalons sur plusieurs niveaux : chaque étiquette prend le premier niveau où elle ne chevauche pas la précédente */
+ var lvEnd=[-1e9,-1e9,-1e9,-1e9,-1e9],maxLv=0,msH='';
+ P.milestones.slice().sort(function(a,b){return cmp(a.date,b.date)||cmp(a.id,b.id);}).forEach(function(m){var mx=X(m.date)+DW/2,half=(String(m.label).length*6.3+10)/2,lv=-1;
+  for(var k=0;k<lvEnd.length;k++){if(lvEnd[k]<mx-half-6){lv=k;break;}}
+  if(lv<0){lv=0;for(var k2=1;k2<lvEnd.length;k2++)if(lvEnd[k2]<lvEnd[lv])lv=k2;}
+  lvEnd[lv]=mx+half;if(lv>maxLv)maxLv=lv;
+  msH+='<div class="ms lv'+lv+'" data-id="'+esc(m.id)+'" style="left:'+mx+'px"><div class="dia"></div><div class="mlab">'+esc(m.label)+'</div></div>';});
+ h+='<div class="gms" id="gms" style="height:'+(44+16*maxLv)+'px">'+msH+'</div>';
  /* corps */
  h+='<div class="gbody" id="gbody">';
  d=pd(range.start);for(var j=0;j<nDays;j++){var dw=d.getDay();if(dw===0||dw===6)h+='<div class="gwe" style="left:'+(j*DW)+'px;width:'+DW+'px"></div>';d=addDays(d,1);}
@@ -351,8 +369,16 @@ function renderGantt(){computeRange();var g=$("gantt"),gin=$("gin");var keep=g.s
  gin.querySelectorAll(".ms").forEach(function(m){m.addEventListener("pointerdown",function(e){msDown(e,m);});});
  g.scrollLeft=keep;stickMonths();}
 function stickMonths(){var g=$("gantt"),sl=g.scrollLeft;g.querySelectorAll(".gmonths span").forEach(function(sp){var b=sp.querySelector("b");if(!b)return;var left=parseFloat(sp.style.left)||0,w=parseFloat(sp.style.width)||0,bw=b.offsetWidth;var off=Math.max(0,Math.min(sl-left,w-bw-16));b.style.left=(8+off)+"px";});}
-function fitLabel(b){var l=b.querySelector(".lbl");if(!l)return;l.classList.remove("out");if(l.offsetWidth+16>b.offsetWidth)l.classList.add("out");}
+function fitLabel(b){var l=b.querySelector(".lbl");if(!l)return;l.classList.remove("out");l.classList.remove("outl");if(l.offsetWidth+16>b.offsetWidth){var gin=$("gin");
+ /* étiquette à droite de la barre, ou à gauche si elle dépasserait la fin du planning */
+ if(b.offsetLeft+b.offsetWidth+l.offsetWidth+12>gin.offsetWidth&&b.offsetLeft>l.offsetWidth+12)l.classList.add("outl");else l.classList.add("out");}}
 function scrollToToday(){var g=$("gantt");g.scrollLeft=Math.max(0,X(todayIso())-g.clientWidth*0.3);}
+/* Vue d'ensemble : toute la période utile (d'aujourd'hui au dernier jalon dans les 4 mois) tient dans la largeur, sans défilement */
+function fitAll(){var g=$("gantt"),today=todayIso(),lo=addIso(today,-7),hi=addIso(today,100),cap=addIso(today,130);
+ P.milestones.forEach(function(m){if(m.date>hi&&m.date<=cap)hi=m.date;});
+ P.tasks.forEach(function(t){if(t.status!=="done"&&t.end>hi&&t.end<=cap)hi=t.end;});
+ hi=addIso(hi,4);var n=diff(lo,hi)+1,w=g.clientWidth-2;
+ DW=Math.max(6,Math.min(48,Math.floor(w/n)));renderGantt();g.scrollLeft=X(lo);stickMonths();}
 function findTask(id){for(var i=0;i<P.tasks.length;i++)if(P.tasks[i].id===id)return P.tasks[i];return null;}
 function findMs(id){for(var i=0;i<P.milestones.length;i++)if(P.milestones[i].id===id)return P.milestones[i];return null;}
 function edgeScroll(ev){var g=$("gantt"),r=g.getBoundingClientRect();if(ev.clientX>r.right-28)g.scrollLeft+=10;else if(ev.clientX<r.left+28)g.scrollLeft-=10;}
@@ -393,7 +419,7 @@ function renderLists(){var today=todayIso();var up=$("upList"),dl=$("doneList");
  var late=open.filter(function(t){return t.end<today;}).length,week=open.filter(function(t){return t.end>=today&&diff(today,t.end)<=7;}).length;
  $("upCount").textContent=open.length+" en cours"+(week?" · "+week+" cette semaine":"")+(late?" · "+late+" en retard":"");
  $("doneN").textContent=done.length?String(done.length):"";}
-function renderAll(first){renderLegend();renderGantt();renderLists();if(first)scrollToToday();}
+function renderAll(first){renderLegend();renderGantt();renderLists();if(first)fitAll();}
 
 /* ---- éditeurs ---- */
 var editing=null,editingNew=false,editStatus="todo";
@@ -420,9 +446,11 @@ function delMs(){if(!editingMs||editingMsNew)return;if(!confirm("Supprimer ce ja
 $("btnAddTask").addEventListener("click",function(){if(!canEdit())return;var t=todayIso();openTask({id:uuid("t"),label:"",start:t,end:addIso(t,2),cat:"autre",status:"todo",remind:true,note:""});});
 $("btnAddMs").addEventListener("click",function(){if(!canEdit())return;openMs({id:uuid("m"),label:"",date:todayIso()});});
 $("btnToday").addEventListener("click",scrollToToday);
-function setZoom(n){var g=$("gantt"),dayAtLeft=g.scrollLeft/DW;DW=Math.max(16,Math.min(48,n));try{localStorage.setItem("immoDW",String(DW));}catch(e){}renderGantt();g.scrollLeft=dayAtLeft*DW;stickMonths();}
-$("btnZoomIn").addEventListener("click",function(){setZoom(DW+6);});
-$("btnZoomOut").addEventListener("click",function(){setZoom(DW-6);});
+$("btnFit").addEventListener("click",fitAll);
+function setZoom(n){var g=$("gantt"),dayAtLeft=g.scrollLeft/DW;DW=Math.max(6,Math.min(48,n));renderGantt();g.scrollLeft=dayAtLeft*DW;stickMonths();}
+$("btnZoomIn").addEventListener("click",function(){setZoom(Math.round(DW*1.4));});
+$("btnZoomOut").addEventListener("click",function(){setZoom(Math.round(DW/1.4));});
+var rzT=null;window.addEventListener("resize",function(){clearTimeout(rzT);rzT=setTimeout(function(){if(!dragging)fitAll();},250);});
 $("tStatus").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){setStatus(b.dataset.v);});});
 $("tSave").addEventListener("click",saveTask);$("tCancel").addEventListener("click",closeTask);$("tDel").addEventListener("click",delTask);
 $("tLabel").addEventListener("keydown",function(e){if(e.key==="Enter")saveTask();});
