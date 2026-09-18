@@ -556,14 +556,101 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
   </div>
 </div>
 
+<style>
+/* ---- In-game : check horaire ---- */
+.igbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.igstatus{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.igstat{display:flex;flex-direction:column;gap:2px;min-width:92px}
+.igstat .igl{color:var(--muted);font-size:12px}
+.igstat b{font-family:"Space Grotesk",serif;font-size:22px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.igstat b.warn{color:#e6bd66}
+.igchecks{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.igc{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:13.5px;color:var(--text);border-left:3px solid var(--line);padding-left:10px}
+.igc .t{font-family:"Space Grotesk",serif;color:var(--muted);min-width:44px}
+.igc .n{color:var(--muted);font-style:italic}
+.igc.ident{border-left-color:var(--accent-bright)}
+.igsum{margin-top:12px;font-size:13.5px;color:var(--muted)}
+.igov{position:fixed;inset:0;background:rgba(7,17,31,.82);z-index:400;display:none;align-items:center;justify-content:center;padding:16px}
+.igov.show{display:flex}
+.igcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.igcard h3{margin:0 0 4px;font-family:"Space Grotesk",serif;font-size:22px;font-weight:600;color:var(--text)}
+.igcard .igsub{margin:0 0 12px;color:var(--muted);font-size:13px}
+.igcard .mq{margin:9px 0}
+.igcard .qt{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;font-size:14px;color:var(--text)}
+.igcard .qt small{color:var(--muted2);font-size:11.5px}
+.igcard .seg button{padding:10px 0;min-height:40px;font-size:15px}
+.igcard input[type=text],.igcard input[type=number]{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px}
+.igcard .igact{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.igcard .igskip{background:none;border:none;color:var(--muted);cursor:pointer;font:inherit;font-size:13px;text-decoration:underline}
+.igbig{font-family:"Space Grotesk",serif;font-style:italic;font-size:24px;line-height:1.35;color:var(--text);border-left:3px solid var(--accent-bright);padding-left:14px;margin:10px 0 14px}
+.igpills{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.igpills span{border:1px solid var(--accent-bright);color:var(--text);border-radius:999px;padding:5px 12px;font-size:13px;font-family:"Space Grotesk",serif}
+.igobj{color:var(--muted);font-size:14px;margin:0 0 6px}
+.igobj b{color:var(--text);font-weight:600}
+#igPanel .fld input{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px}
+</style>
+<section class="sec" id="ingame">
+  <div class="sec-h"><span class="no">4</span><h2>In-game &mdash; le check horaire</h2></div>
+  <p class="sec-desc">À :55, la pause : trois notes en quinze secondes, une main clé si tu veux. À l'heure pile, la reprise : qui je suis. Rien d'autre pendant la session.</p>
+  <div class="panel-x" id="igPanel">
+    <div class="fld"><label>Qui je suis aujourd'hui, en une phrase (rappelée à chaque reprise)</label><input type="text" id="igIdent" placeholder="Patient, précis, courageux&hellip;" autocomplete="off"></div>
+    <div class="igbar">
+      <button class="save" id="igStart">Démarrer ma session</button>
+      <button class="flbtn" id="igNow" style="display:none">Check maintenant</button>
+      <button class="flbtn" id="igPop" style="display:none">Ouvrir sur un autre écran</button>
+      <button class="flbtn" id="igStop" style="display:none">Terminer la session</button>
+      <span class="saved" id="igSaved">Enregistré &#10003;</span>
+    </div>
+    <div class="igstatus" id="igStatus" style="display:none">
+      <div class="igstat"><span class="igl">Session</span><b id="igDur">00:00</b></div>
+      <div class="igstat"><span class="igl">Prochain check</span><b id="igNext">--:--</b></div>
+      <div class="igstat"><span class="igl">Reprise</span><b id="igNextId">--:--</b></div>
+      <div class="igstat"><span class="igl">Checks</span><b id="igCount">0</b></div>
+    </div>
+    <div class="igchecks" id="igChecks"></div>
+    <div class="igsum" id="igSum"></div>
+  </div>
+</section>
+
+<div class="igov" id="igCheckOv">
+  <div class="igcard">
+    <h3>Check <span id="igCkTime"></span> &middot; la pause</h3>
+    <p class="igsub">Quinze secondes. Un score, pas un jugement.</p>
+    <p class="igobj" id="igCkCtx"></p>
+    <div id="igCkQ"></div>
+    <div class="fld" style="margin-top:8px"><input type="text" id="igCkNote" placeholder="Main clé, lecture, insight (optionnel)" maxlength="200" autocomplete="off"></div>
+    <div class="igact"><button class="save" id="igCkOk">Valider</button><button class="igskip" id="igCkSkip">Passer ce check</button></div>
+  </div>
+</div>
+
+<div class="igov" id="igIdOv">
+  <div class="igcard">
+    <h3>Reprise <span id="igIdTime"></span></h3>
+    <p class="igsub">Avant la première main : qui je suis.</p>
+    <div class="igbig" id="igIdText"></div>
+    <div class="igpills" id="igIdPills"></div>
+    <p class="igobj" id="igIdObj"></p>
+    <div class="igact"><button class="save" id="igIdOk">Je reprends</button></div>
+  </div>
+</div>
+
+<div class="igov" id="igEndOv">
+  <div class="igcard">
+    <h3>Fin de session</h3>
+    <p class="igsub">Une seule question, puis la météo du soir juste en dessous.</p>
+    <div class="fld"><label>MTT joués aujourd'hui (optionnel)</label><input type="number" id="igMtt" min="0" step="1" placeholder="ex : 22"></div>
+    <div class="igact"><button class="save" id="igEndOk">Terminer</button><button class="igskip" id="igEndCancel">Annuler</button></div>
+  </div>
+</div>
+
 <section class="sec" id="jeu">
-  <div class="sec-h"><span class="no">4</span><h2>Jeu &mdash; E + R&sup2; = R</h2></div>
+  <div class="sec-h"><span class="no">5</span><h2>Jeu &mdash; E + R&sup2; = R</h2></div>
   <p class="sec-desc">L'événement, je ne le contrôle pas. Ma réaction, oui. Et c'est elle qui fait le résultat. Mes protocoles, prêts quand un coup tape.</p>
   <div class="reacts" id="reacts"></div>
 </section>
 
 <section class="sec" id="bilan">
-  <div class="sec-h"><span class="no">5</span><h2>Bilan &mdash; après la session</h2></div>
+  <div class="sec-h"><span class="no">6</span><h2>Bilan &mdash; après la session</h2></div>
   <p class="sec-desc">Le cool-down. Je renforce le processus, pas le score. Une bonne décision compte, même si le coup est perdu.</p>
   <div class="meteo" id="meteoPM">
     <div class="lab"><span>Météo du soir</span></div>
@@ -1090,7 +1177,7 @@ function fmtDur(h){if(h==null)return "—";const H=Math.floor(h),M=Math.round((h
 async function renderHistory(){
   const el=$("#histList");if(!el)return;
   const keys=await allKeys();const dates=new Set();
-  keys.forEach(k=>{const m=k.match(/^(?:apres|avant|meteoAM|meteoPM|warmObj):(\d{4}-\d{2}-\d{2})$/);if(m)dates.add(m[1]);});
+  keys.forEach(k=>{const m=k.match(/^(?:apres|avant|meteoAM|meteoPM|warmObj|sess):(\d{4}-\d{2}-\d{2})$/);if(m)dates.add(m[1]);});
   const list=[...dates].sort().reverse().slice(0,60);
   if(!list.length){el.innerHTML=`<p class="blocksub">Pas encore de session enregistrée. Remplis ton matin et ton bilan, ils s'afficheront ici.</p>`;return;}
   const rows=[];
@@ -1102,6 +1189,8 @@ async function renderHistory(){
     if(am){const parts=Object.keys(AMLAB).filter(k=>am[k]!=null).map(k=>`${AMLAB[k]} ${am[k]}`);
       if(am.duree!=null)parts.push(`sommeil ${fmtDur(am.duree)}${(am.coucher&&am.lever)?` (${am.coucher} → ${am.lever})`:""}`);
       if(parts.length)body+=`Météo matin : ${parts.join(", ")}.${am.late?` <span style="color:var(--muted2)">— saisie rétrospective${am.ts?" ("+am.ts.slice(11,16)+")":""}</span>`:""}<br>`;}
+    const sd=await getJSON("sess:"+d,null);
+    if(sd&&sd.start){body+=(window.__igSummary?window.__igSummary(sd,true):"")+"<br>";}
     if(ap&&ap.proud)body+=`<b>Fier :</b> ${ap.proud}<br>`;
     if(ap&&ap.decision)body+=`<b>Bonne décision :</b> ${ap.decision}<br>`;
     if(ap&&ap.learned)body+=`<b>Appris :</b> ${ap.learned}`;
@@ -1227,6 +1316,184 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  window.addEventListener("focus",function(){cloudResync();});
  window.addEventListener("online",function(){cloudResync(true);});
  setInterval(function(){if(!document.hidden)cloudResync();},60000);
+})();
+</script>
+<script>
+/* ---- In-game : check horaire à :55 (pause MTT) et rappel d'identité à l'heure pile (reprise) ----
+   Etat du jour dans la cle kv "sess:AAAA-MM-JJ" : {start,end,ident,checks:[{t,slot,r,d,c,note}],mtt,lastCheckSlot,lastIdSlot}.
+   Fenetre detachable (second ecran) synchronisee par BroadcastChannel "me-ingame". */
+(function(){
+ function $(i){return document.getElementById(i);}
+ const CRIT=[["r","Réactions émotionnelles"],["d","Discipline sur le plan"],["c","Concentration"]];
+ const GUARD=3*60000; // pas de check ni de rappel dans les 3 premieres minutes
+ const KEY=()=>"sess:"+TODAY;
+ let S=null,bc=null,pop=null,ckVals={},ckSlot=null;
+ const pad=n=>String(n).padStart(2,"0");
+ const hm=d=>pad(d.getHours())+":"+pad(d.getMinutes());
+ function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+ function fmtDur(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h>0?h+":"+pad(m):"00:"+pad(m);}
+ function f1(v){return v==null?"–":(Math.round(v*10)/10).toString().replace(".",",");}
+ function nextSlot(min){const d=new Date();const t=new Date(d);t.setSeconds(0,0);t.setMinutes(min);if(t<=d)t.setHours(t.getHours()+1);return t;}
+ window.__igSummary=function(sd,short){
+   const cks=sd.checks||[],n=cks.length;
+   const m=k=>{const a=cks.map(c=>c[k]).filter(v=>v!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;};
+   let s=`<b>In-game :</b> ${n} check${n>1?"s":""}`;
+   if(n)s+=` · réactions ${f1(m("r"))} · discipline ${f1(m("d"))} · concentration ${f1(m("c"))}`;
+   if(sd.mtt!=null)s+=` · ${sd.mtt} MTT`;
+   if(sd.start&&sd.end)s+=` · ${fmtDur(new Date(sd.end)-new Date(sd.start))}`;
+   const notes=cks.filter(c=>c.note).map(c=>`${c.t} ${esc(c.note)}`);
+   if(notes.length)s+=`<br><i>${notes.join(" · ")}</i>`;
+   return s;
+ };
+ async function load(){S=await getJSON(KEY(),null);}
+ async function save(){await setJSON(KEY(),S);const e=$("igSaved");if(e){e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1500);}}
+ function active(){return !!(S&&S.start&&!S.end);}
+ function chime(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();[[659,0],[880,.18],[1175,.36]].forEach(([f,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=f;const t=ctx.currentTime+d;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.start(t);o.stop(t+.9);});}catch(e){}}
+ function notify(title,body){try{if("Notification" in window&&Notification.permission==="granted"){const n=new Notification(title,{body:body,tag:"me-ig",silent:true});n.onclick=()=>{try{window.focus();}catch(e){}n.close();};setTimeout(()=>{try{n.close();}catch(e){}},9000);}}catch(e){}}
+ function identText(){const v=($("igIdent").value||"").trim();return v||(S&&S.ident)||"";}
+ function objText(){const o=$("wuObj");return o&&o.value.trim()?o.value.trim():"";}
+ function ctxLine(){const i=identText(),o=objText();let s="";if(i)s+=`<b>${esc(i)}</b>`;if(o)s+=(s?" · ":"")+esc(o);return s;}
+ function renderChecks(){
+   const el=$("igChecks");if(!el)return;
+   if(!S||!S.start){el.innerHTML="";$("igSum").innerHTML="";$("igCount").textContent="0";return;}
+   el.innerHTML=(S.checks||[]).map(c=>`<div class="igc"><span class="t">${c.t}</span><span>réactions <b>${c.r}</b></span><span>discipline <b>${c.d}</b></span><span>concentration <b>${c.c}</b></span>${c.note?`<span class="n">${esc(c.note)}</span>`:""}</div>`).join("");
+   $("igSum").innerHTML=S.end?window.__igSummary(S,false):"";
+   $("igCount").textContent=(S.checks||[]).length;
+ }
+ function ui(){
+   const on=active(),ended=!!(S&&S.end);
+   $("igStart").style.display=on?"none":"";$("igStart").textContent=ended?"Nouvelle session":"Démarrer ma session";
+   $("igNow").style.display=on?"":"none";$("igPop").style.display=on?"":"none";$("igStop").style.display=on?"":"none";
+   $("igStatus").style.display=(S&&S.start)?"flex":"none";
+   if(S&&S.ident&&!$("igIdent").value)$("igIdent").value=S.ident;
+   if(!on){$("igDur").textContent=(S&&S.start&&S.end)?fmtDur(new Date(S.end)-new Date(S.start)):"00:00";$("igNext").textContent="--:--";$("igNextId").textContent="--:--";$("igNext").classList.remove("warn");}
+   renderChecks();
+ }
+ // ---- overlay de check ----
+ function openCheck(slot){
+   ckSlot=slot;ckVals={};
+   $("igCkTime").textContent=hm(new Date());
+   $("igCkCtx").innerHTML=ctxLine();
+   $("igCkQ").innerHTML=CRIT.map(([k,l])=>`<div class="mq"><div class="qt"><span>${l}</span><small>1 bas · 5 au top</small></div><div class="seg" data-dim="${k}">${[1,2,3,4,5].map(n=>`<button type="button" data-v="${n}">${n}</button>`).join("")}</div></div>`).join("");
+   $("igCkQ").querySelectorAll(".seg").forEach(seg=>{seg.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");ckVals[seg.dataset.dim]=+b.dataset.v;}));});
+   $("igCkNote").value="";
+   $("igCheckOv").classList.add("show");
+ }
+ async function submitCheck(vals,note,slot){
+   if(!active())return false;
+   if(vals.r==null||vals.d==null||vals.c==null)return false;
+   S.checks=S.checks||[];
+   if(slot)S.checks=S.checks.filter(c=>c.slot!==slot);
+   S.checks.push({t:hm(new Date()),slot:slot||null,r:vals.r,d:vals.d,c:vals.c,note:(note||"").trim().slice(0,200)});
+   S.checks.sort((a,b)=>a.t<b.t?-1:(a.t>b.t?1:0));
+   await save();ui();sync();return true;
+ }
+ // ---- overlay de reprise (identite) ----
+ function openIdent(){
+   $("igIdTime").textContent=hm(new Date());
+   $("igIdText").textContent=identText()||"Je suis prêt. Je joue mon jeu, une décision à la fois.";
+   $("igIdPills").innerHTML=(typeof DATA!=="undefined"&&DATA.pillars)?DATA.pillars.map(p=>`<span>${esc(p.key)}</span>`).join(""):"";
+   const o=objText();$("igIdObj").innerHTML=o?`Objectif de session : <b>${esc(o)}</b>`:"";
+   $("igIdOv").classList.add("show");
+   clearTimeout(openIdent._t);openIdent._t=setTimeout(()=>$("igIdOv").classList.remove("show"),60000);
+ }
+ // ---- horloge ----
+ function loop(){
+   if(!active())return;
+   const d=new Date(),h=d.getHours(),m=d.getMinutes(),since=d-new Date(S.start);
+   $("igDur").textContent=fmtDur(since);
+   const inCheck=(m>=55),inId=(m<=4);
+   $("igNext").textContent=inCheck?"maintenant":hm(nextSlot(55));$("igNext").classList.toggle("warn",inCheck);
+   $("igNextId").textContent=inId?"maintenant":hm(nextSlot(0));
+   const slot=pad(h)+":55";
+   if(inCheck&&S.lastCheckSlot!==slot&&since>GUARD){S.lastCheckSlot=slot;save();chime();notify("Mental Edge · check de la pause","Trois notes, quinze secondes.");openCheck(slot);if(bc)bc.postMessage({type:"check-ready",slot:slot});}
+   const islot=pad(h)+":00";
+   if(inId&&S.lastIdSlot!==islot&&since>GUARD){S.lastIdSlot=islot;save();chime();notify("Mental Edge · reprise",identText()||"Qui je suis.");openIdent();if(bc)bc.postMessage({type:"ident",text:identText()});}
+   sync();
+ }
+ // ---- fenetre detachable ----
+ function popHTML(){return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Mental Edge · Session</title><style>
+ body{margin:0;background:#0B0E14;color:#E6E9EE;font-family:Outfit,-apple-system,"Segoe UI",sans-serif;padding:14px 16px;user-select:none}
+ .h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#A6AFBF;letter-spacing:.08em;text-transform:uppercase}
+ .big{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 8px}
+ .row{display:flex;gap:14px;font-size:13px;color:#A6AFBF;margin-bottom:10px;flex-wrap:wrap}.row b{color:#E6E9EE;font-variant-numeric:tabular-nums}
+ .id{font-style:italic;color:#E6E9EE;border-left:3px solid #3D5AFE;padding-left:10px;margin:6px 0 10px;font-size:14px;min-height:18px}
+ .q{margin:8px 0}.q .l{font-size:12.5px;color:#A6AFBF;margin-bottom:4px}.seg{display:flex;gap:5px}.seg button{flex:1;border:1px solid rgba(166,175,191,.2);background:#121822;color:#A6AFBF;border-radius:8px;padding:8px 0;font:inherit;font-size:14px;cursor:pointer}.seg button.on{background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;border-color:transparent;font-weight:600}
+ input{width:100%;box-sizing:border-box;background:#121822;border:1px solid rgba(166,175,191,.2);color:#E6E9EE;border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;margin-top:6px}
+ .act{display:flex;gap:8px;margin-top:10px;align-items:center}.ok{flex:1;border:none;background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;font-weight:700;border-radius:8px;padding:10px;font:inherit;cursor:pointer}.gh{border:1px solid rgba(166,175,191,.2);background:none;color:#A6AFBF;border-radius:8px;padding:9px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+ #form{display:none}#form.on{display:block}.pulse{width:8px;height:8px;border-radius:50%;background:#e6bd66;display:inline-block;margin-right:6px;animation:p 1.6s infinite}@keyframes p{50%{opacity:.25}}
+ </style></head><body>
+ <div class="h"><span><span class="pulse"></span>Session</span><span id="clock"></span></div>
+ <div class="big" id="dur">00:00</div>
+ <div class="row"><span>Check <b id="nx">--:--</b></span><span>Reprise <b id="ni">--:--</b></span><span>Checks <b id="cnt">0</b></span></div>
+ <div class="id" id="ident"></div>
+ <div id="wait"><button class="gh" id="now">Check maintenant</button></div>
+ <div id="form"><div id="qs"></div><input id="note" placeholder="Main clé, lecture, insight (optionnel)" maxlength="200"><div class="act"><button class="ok" id="ok">Valider</button><button class="gh" id="skip">Passer</button></div></div>
+ <script>
+ const bc=new BroadcastChannel("me-ingame");const C=[["r","Réactions émotionnelles"],["d","Discipline sur le plan"],["c","Concentration"]];let V={},slot=null;
+ function $(i){return document.getElementById(i);}
+ function chime(){try{const ctx=new AudioContext();[[659,0],[880,.18],[1175,.36]].forEach(([f,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=f;const t=ctx.currentTime+d;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.start(t);o.stop(t+.9);});}catch(e){}}
+ function showForm(s){slot=s||null;V={};$("qs").innerHTML=C.map(([k,l])=>'<div class="q"><div class="l">'+l+' · 1 bas, 5 au top</div><div class="seg" data-k="'+k+'">'+[1,2,3,4,5].map(n=>'<button data-v="'+n+'">'+n+'</button>').join("")+'</div></div>').join("");
+  $("qs").querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(b=>b.onclick=()=>{s.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");V[s.dataset.k]=+b.dataset.v;}));
+  $("note").value="";$("form").classList.add("on");$("wait").style.display="none";try{window.focus();}catch(e){}}
+ function hideForm(){$("form").classList.remove("on");$("wait").style.display="";}
+ $("now").onclick=()=>showForm(null);
+ $("skip").onclick=()=>{hideForm();bc.postMessage({type:"skip",slot:slot});};
+ $("ok").onclick=()=>{if(V.r==null||V.d==null||V.c==null){$("ok").textContent="Les trois notes";setTimeout(()=>$("ok").textContent="Valider",1200);return;}bc.postMessage({type:"check",vals:V,note:$("note").value,slot:slot});hideForm();};
+ bc.onmessage=e=>{const d=e.data||{};if(d.type==="sync"){$("dur").textContent=d.dur;$("nx").textContent=d.next;$("ni").textContent=d.nextId;$("cnt").textContent=d.count;$("ident").textContent=d.ident||"";$("clock").textContent=d.clock;if(d.ended){document.body.innerHTML='<div class="h">Session terminée</div>';setTimeout(()=>window.close(),2500);}}
+  else if(d.type==="check-ready"){chime();showForm(d.slot);}
+  else if(d.type==="ident"){chime();$("ident").textContent=d.text||"";}};
+ bc.postMessage({type:"hello"});
+ <\/script></body></html>`;}
+ function openPop(){
+   try{pop=window.open("","me-ingame","width=400,height=440,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no");
+     if(!pop){alert("Fenêtre bloquée par le navigateur : autorise les fenêtres pour ce site.");return;}
+     pop.document.open();pop.document.write(popHTML());pop.document.close();setTimeout(sync,400);
+   }catch(e){}
+ }
+ function sync(){
+   if(!bc||!S||!S.start)return;const d=new Date();
+   bc.postMessage({type:"sync",dur:fmtDur(d-new Date(S.start)),next:d.getMinutes()>=55?"maintenant":hm(nextSlot(55)),nextId:d.getMinutes()<=4?"maintenant":hm(nextSlot(0)),count:(S.checks||[]).length,ident:identText(),clock:hm(d),ended:!active()});
+ }
+ // ---- actions ----
+ async function start(){
+   if(!S||S.end)S={start:new Date().toISOString(),end:null,ident:"",checks:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};
+   S.ident=($("igIdent").value||"").trim();
+   try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();}catch(e){}
+   await save();ui();loop();
+ }
+ async function stop(mtt){
+   if(!S)return;S.end=new Date().toISOString();
+   if(mtt!=null&&String(mtt).trim()!=="")S.mtt=Math.max(0,parseInt(mtt,10)||0);
+   $("igCheckOv").classList.remove("show");$("igIdOv").classList.remove("show");
+   await save();ui();sync();
+   if(typeof renderHistory==="function"){try{renderHistory();}catch(e){}}
+ }
+ async function reload(){await load();ui();if(S&&S.start&&typeof renderHistory==="function"){try{renderHistory();}catch(e){}}}
+ async function init(){
+   if(!$("igPanel"))return;
+   bc=("BroadcastChannel" in window)?new BroadcastChannel("me-ingame"):null;
+   if(bc)bc.onmessage=async e=>{const d=e.data||{};
+     if(d.type==="check"){await submitCheck(d.vals||{},d.note,d.slot);$("igCheckOv").classList.remove("show");}
+     else if(d.type==="hello")sync();
+     else if(d.type==="skip")$("igCheckOv").classList.remove("show");
+   };
+   await reload();
+   $("igStart").addEventListener("click",start);
+   $("igStop").addEventListener("click",()=>{$("igMtt").value="";$("igEndOv").classList.add("show");});
+   $("igEndOk").addEventListener("click",()=>{stop($("igMtt").value);$("igEndOv").classList.remove("show");});
+   $("igEndCancel").addEventListener("click",()=>$("igEndOv").classList.remove("show"));
+   $("igNow").addEventListener("click",()=>openCheck(null));
+   $("igPop").addEventListener("click",openPop);
+   $("igCkOk").addEventListener("click",async()=>{const ok=await submitCheck(ckVals,$("igCkNote").value,ckSlot);if(!ok){$("igCkOk").textContent="Les trois notes";setTimeout(()=>$("igCkOk").textContent="Valider",1200);return;}$("igCheckOv").classList.remove("show");});
+   $("igCkSkip").addEventListener("click",()=>$("igCheckOv").classList.remove("show"));
+   $("igIdOk").addEventListener("click",()=>$("igIdOv").classList.remove("show"));
+   $("igIdent").addEventListener("change",async()=>{if(S&&!S.end){S.ident=$("igIdent").value.trim();await save();sync();}});
+   setInterval(loop,5000);loop();
+   // apres connexion ou resynchronisation, boot() est rappele : on recharge l'etat du jour
+   if(typeof boot==="function"){const orig=boot;boot=async function(){await orig();await reload();};}
+ }
+ if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);
 })();
 </script>
 </body></html>
