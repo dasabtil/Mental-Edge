@@ -799,7 +799,7 @@ const dayOfYear=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
 function isoDay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 const TODAY=isoDay(now);
 // Nouveau jour : si la page est restee ouverte depuis la veille, on recharge pour repartir sur la date du jour (formulaires vierges)
-(function(){function chkDay(){if(isoDay(new Date())!==TODAY)location.reload();}document.addEventListener("visibilitychange",function(){if(!document.hidden)chkDay();});window.addEventListener("focus",chkDay);setInterval(chkDay,60000);})();
+(function(){function chkDay(){if(window.__igActive&&window.__igActive())return;if(isoDay(new Date())!==TODAY)location.reload();}document.addEventListener("visibilitychange",function(){if(!document.hidden)chkDay();});window.addEventListener("focus",chkDay);setInterval(chkDay,60000);})();
 const jours=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const moisL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const moisS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
@@ -1326,7 +1326,8 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  function $(i){return document.getElementById(i);}
  const CRIT=[["r","Réactions émotionnelles"],["d","Discipline sur le plan"],["c","Concentration"]];
  const GUARD=3*60000; // pas de check ni de rappel dans les 3 premieres minutes
- const KEY=()=>"sess:"+TODAY;
+ let DAY=TODAY; // jour de depart de la session (une session peut passer minuit)
+ const KEY=()=>"sess:"+DAY;
  let S=null,bc=null,pop=null,ckVals={},ckSlot=null;
  const pad=n=>String(n).padStart(2,"0");
  const hm=d=>pad(d.getHours())+":"+pad(d.getMinutes());
@@ -1345,9 +1346,13 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    if(notes.length)s+=`<br><i>${notes.join(" · ")}</i>`;
    return s;
  };
- async function load(){S=await getJSON(KEY(),null);}
+ async function load(){
+   DAY=TODAY;S=await getJSON(KEY(),null);
+   if(!S||!S.start){const y=new Date();y.setDate(y.getDate()-1);const yk=isoDay(y);const ys=await getJSON("sess:"+yk,null);if(ys&&ys.start&&!ys.end){S=ys;DAY=yk;}} // session de la veille encore ouverte : on la reprend
+ }
  async function save(){await setJSON(KEY(),S);const e=$("igSaved");if(e){e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1500);}}
  function active(){return !!(S&&S.start&&!S.end);}
+ window.__igActive=active;
  function chime(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();[[659,0],[880,.18],[1175,.36]].forEach(([f,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=f;const t=ctx.currentTime+d;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.start(t);o.stop(t+.9);});}catch(e){}}
  function notify(title,body){try{if("Notification" in window&&Notification.permission==="granted"){const n=new Notification(title,{body:body,tag:"me-ig",silent:true});n.onclick=()=>{try{window.focus();}catch(e){}n.close();};setTimeout(()=>{try{n.close();}catch(e){}},9000);}}catch(e){}}
  function identText(){const v=($("igIdent").value||"").trim();return v||(S&&S.ident)||"";}
@@ -1362,7 +1367,7 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  }
  function ui(){
    const on=active(),ended=!!(S&&S.end);
-   $("igStart").style.display=on?"none":"";$("igStart").textContent=ended?"Nouvelle session":"Démarrer ma session";
+   $("igStart").style.display=on?"none":"";$("igStart").textContent=ended?"Reprendre la session":"Démarrer ma session";
    $("igNow").style.display=on?"":"none";$("igPop").style.display=on?"":"none";$("igStop").style.display=on?"":"none";
    $("igStatus").style.display=(S&&S.start)?"flex":"none";
    if(S&&S.ident&&!$("igIdent").value)$("igIdent").value=S.ident;
@@ -1384,8 +1389,8 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    if(vals.r==null||vals.d==null||vals.c==null)return false;
    S.checks=S.checks||[];
    if(slot)S.checks=S.checks.filter(c=>c.slot!==slot);
-   S.checks.push({t:hm(new Date()),slot:slot||null,r:vals.r,d:vals.d,c:vals.c,note:(note||"").trim().slice(0,200)});
-   S.checks.sort((a,b)=>a.t<b.t?-1:(a.t>b.t?1:0));
+   S.checks.push({t:hm(new Date()),ts:new Date().toISOString(),slot:slot||null,r:vals.r,d:vals.d,c:vals.c,note:(note||"").trim().slice(0,200)});
+   S.checks.sort((a,b)=>{const x=a.ts||a.t,y=b.ts||b.t;return x<y?-1:(x>y?1:0);});
    await save();ui();sync();return true;
  }
  // ---- overlay de reprise (identite) ----
@@ -1446,6 +1451,7 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  bc.postMessage({type:"hello"});
  <\/script></body></html>`;}
  function openPop(){
+   if(pop&&!pop.closed){try{pop.focus();}catch(e){}sync();return;} // deja ouverte : on ne reecrit pas le document (le script serait redeclare)
    try{pop=window.open("","me-ingame","width=400,height=440,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no");
      if(!pop){alert("Fenêtre bloquée par le navigateur : autorise les fenêtres pour ce site.");return;}
      pop.document.open();pop.document.write(popHTML());pop.document.close();setTimeout(sync,400);
@@ -1457,21 +1463,24 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  }
  // ---- actions ----
  async function start(){
-   if(!S||S.end)S={start:new Date().toISOString(),end:null,ident:"",checks:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};
+   if(S&&S.end&&DAY===TODAY){S.end=null;S.resumedAt=new Date().toISOString();} // reprise : on garde les checks et les MTT deja saisis
+   else if(!S||S.end){DAY=TODAY;S={start:new Date().toISOString(),end:null,ident:"",checks:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};}
    S.ident=($("igIdent").value||"").trim();
    try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();}catch(e){}
    await save();ui();loop();
  }
  async function stop(mtt){
    if(!S)return;S.end=new Date().toISOString();
-   if(mtt!=null&&String(mtt).trim()!=="")S.mtt=Math.max(0,parseInt(mtt,10)||0);
+   if(mtt!=null&&String(mtt).trim()!=="")S.mtt=Math.max(0,parseInt(mtt,10)||0); // total du jour (prerempli a la reprise)
    $("igCheckOv").classList.remove("show");$("igIdOv").classList.remove("show");
    await save();ui();sync();
    if(typeof renderHistory==="function"){try{renderHistory();}catch(e){}}
  }
- async function reload(){await load();ui();if(S&&S.start&&typeof renderHistory==="function"){try{renderHistory();}catch(e){}}}
+ async function reload(hist){await load();ui();if(hist!==false&&S&&S.start&&typeof renderHistory==="function"){try{renderHistory();}catch(e){}}}
  async function init(){
    if(!$("igPanel"))return;
+   // apres connexion ou resynchronisation, boot() est rappele : on recharge l'etat du jour (patch pose avant tout await)
+   if(typeof boot==="function"){const orig=boot;boot=async function(){await orig();await reload(false);};}
    bc=("BroadcastChannel" in window)?new BroadcastChannel("me-ingame"):null;
    if(bc)bc.onmessage=async e=>{const d=e.data||{};
      if(d.type==="check"){await submitCheck(d.vals||{},d.note,d.slot);$("igCheckOv").classList.remove("show");}
@@ -1480,7 +1489,7 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    };
    await reload();
    $("igStart").addEventListener("click",start);
-   $("igStop").addEventListener("click",()=>{$("igMtt").value="";$("igEndOv").classList.add("show");});
+   $("igStop").addEventListener("click",()=>{$("igMtt").value=(S&&S.mtt!=null)?S.mtt:"";$("igEndOv").classList.add("show");});
    $("igEndOk").addEventListener("click",()=>{stop($("igMtt").value);$("igEndOv").classList.remove("show");});
    $("igEndCancel").addEventListener("click",()=>$("igEndOv").classList.remove("show"));
    $("igNow").addEventListener("click",()=>openCheck(null));
@@ -1490,8 +1499,6 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    $("igIdOk").addEventListener("click",()=>$("igIdOv").classList.remove("show"));
    $("igIdent").addEventListener("change",async()=>{if(S&&!S.end){S.ident=$("igIdent").value.trim();await save();sync();}});
    setInterval(loop,5000);loop();
-   // apres connexion ou resynchronisation, boot() est rappele : on recharge l'etat du jour
-   if(typeof boot==="function"){const orig=boot;boot=async function(){await orig();await reload();};}
  }
  if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);
 })();
