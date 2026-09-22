@@ -783,9 +783,22 @@ const AMW="session.html";
 // Sommeil mesuré en heures (coucher / lever) et non plus auto-noté : sous restriction répétée,
 // le ressenti décroche du déficit réel (Van Dongen 2003), la note est l'instrument qui casse en premier.
 function hhmm(s){if(!s||!/^\d{1,2}:\d{2}$/.test(s))return null;const[a,b]=s.split(":").map(Number);return a*60+b;}
-function sleepHours(bed,wake){const b=hhmm(bed),w=hhmm(wake);if(b==null||w==null)return null;let d=w-b;if(d<=0)d+=1440;if(d>16*60)return null;return d/60;}
+// Durée brute coucher → lever (peut dépasser 16 h si l'heure de coucher est mal saisie, ex. 10:30 pour 22:30).
+function rawSleepHours(bed,wake){const b=hhmm(bed),w=hhmm(wake);if(b==null||w==null)return null;let d=w-b;if(d<=0)d+=1440;return d/60;}
+const SLEEP_MAX_H=16;
+function sleepHours(bed,wake){const h=rawSleepHours(bed,wake);if(h==null||h>SLEEP_MAX_H)return null;return h;}
 function fmtDur(h){if(h==null)return "—";const H=Math.floor(h),M=Math.round((h-H)*60);return M?`${H} h ${String(M).padStart(2,"0")}`:`${H} h`;}
-function amSleepRefresh(){const h=sleepHours($("#amBed").value,$("#amWake").value);amVals.coucher=$("#amBed").value||null;amVals.lever=$("#amWake").value||null;amVals.duree=h;$("#amDur").textContent=h==null?"—":fmtDur(h);return h;}
+function amSleepRefresh(){const bed=$("#amBed").value,wake=$("#amWake").value;const raw=rawSleepHours(bed,wake);const h=sleepHours(bed,wake);amVals.coucher=bed||null;amVals.lever=wake||null;amVals.duree=h;$("#amDur").textContent=h!=null?fmtDur(h):(raw!=null?fmtDur(raw)+" ? (vérifie l'heure de coucher)":"—");return h;}
+// Message d'erreur précis : dire exactement ce qui bloque, pas un « il manque quelque chose » générique.
+function amMissingMsg(v){
+ const miss=amQ.filter(q=>v[q[0]]==null).map(q=>q[1].split(" (")[0].toLowerCase());
+ if(miss.length)return "Il manque la note "+miss.join(", ")+".";
+ if(v.duree!=null||v.sommeil!=null)return null;
+ const bed=$("#amBed").value,wake=$("#amWake").value;
+ if(!bed||!wake)return "Il manque ton heure de "+(!bed?"coucher":"lever")+" (heures et minutes, format 24 h).";
+ const raw=rawSleepHours(bed,wake);
+ return "Couché "+bed+", levé "+wake+" : ça fait "+fmtDur(raw)+" de sommeil, ce n'est pas plausible. Vérifie l'heure de coucher en format 24 h (22:30 plutôt que 10:30, par exemple).";
+}
 ["amBed","amWake"].forEach(id=>$("#"+id).addEventListener("change",amSleepRefresh));
 // Une saisie faite après le début de journée est un rappel rétrospectif, pas une mesure du matin.
 const AM_LATE_H=11;
@@ -827,7 +840,7 @@ $("#amBtn").addEventListener("click",async()=>{
  const d=new Date();
  amVals.ts=isoDay(d)+"T"+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
  amVals.late=d.getHours()>=AM_LATE_H?1:0;
- if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>Il manque les trois notes ou tes heures de sommeil.</p>";r.classList.add("show");return;}
+ if(!renderAM(amVals)){const r=$("#amRes");r.innerHTML="<p>"+(amMissingMsg(amVals)||"Il manque les trois notes ou tes heures de sommeil.")+"</p>";r.classList.add("show");return;}
  await store.set("meteoAM:"+TODAY,JSON.stringify(amVals));
  const e=$("#amSaved");e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800);
 });
