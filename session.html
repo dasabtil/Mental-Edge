@@ -1373,12 +1373,13 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
      (S.notes||[]).map(x=>({ts:x.ts||"",h:`<div class="igc ident"><span class="t">${x.t}</span>${x.tag?`<span class="tx">${esc(x.tag)}</span>`:""}<span>${esc(x.text)}</span>${x.ctx?`<span class="n">état ${x.ctx.r}/${x.ctx.d}/${x.ctx.c}</span>`:""}</div>`})));
    rows.sort((a,b)=>a.ts<b.ts?-1:1);
    el.innerHTML=rows.map(r=>r.h).join("");
-   $("igSum").innerHTML=S.end?window.__igSummary(S,false):"";
+   $("igSum").innerHTML=S.end?(`<b style="color:var(--text)">Session clôturée.</b> `+window.__igSummary(S,false)+`<br><span style="font-size:12.5px">Une nouvelle session aujourd'hui s'ajoutera à celle-ci (checks et mains conservés).</span>`):"";
    $("igCount").textContent=(S.checks||[]).length;
  }
  function ui(){
    const on=active(),ended=!!(S&&S.end);
-   $("igStart").style.display=on?"none":"";$("igStart").textContent=ended?"Reprendre la session":"Démarrer ma session";
+   $("igStart").style.display=on?"none":"";$("igStart").textContent="Démarrer ma session";
+   const lab=$("igStatus").querySelector(".igl");if(lab)lab.textContent=on?"Session en cours":(ended?"Session clôturée":"Session");
    $("igNow").style.display=on?"":"none";$("igPop").style.display=on?"":"none";$("igStop").style.display=on?"":"none";
    $("igPop").textContent=(pop&&!pop.closed)?"Fenêtre de session ouverte":"Rouvrir la fenêtre de session";
    $("igStatus").style.display=(S&&S.start)?"flex":"none";
@@ -1551,7 +1552,7 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  }
  /* ---------- actions de la page ---------- */
  async function start(){
-   if(S&&S.end&&DAY===TODAY){S.end=null;S.resumedAt=new Date().toISOString();} // reprise : on garde les checks, les mains et les MTT deja saisis
+   if(S&&S.end&&DAY===TODAY){S.end=null;S.resumedAt=new Date().toISOString();S.lastCheckSlot=null;S.lastIdSlot=null;} // meme jour : on garde les checks, les mains et les MTT deja saisis
    else if(!S||S.end){DAY=TODAY;S={start:new Date().toISOString(),end:null,ident:"",checks:[],notes:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};}
    S.ident=($("igIdent").value||"").trim();
    try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();}catch(e){}
