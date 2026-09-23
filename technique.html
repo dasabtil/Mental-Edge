@@ -1140,7 +1140,8 @@ if(document.readyState!=="loading")init();else window.addEventListener("DOMConte
    RS.items.push({id:uid(),text:text,src:src||"manuel",ref:ref||null,date:date||iso(new Date()),status:"todo"});return true;}
  async function rsHarvest(){ // notes rapides de session + "appris" du debrief, 90 derniers jours
    var lim=new Date();lim.setDate(lim.getDate()-90);var limIso=iso(lim),added=false;
-   var sess=await klike("sess:");Object.keys(sess).forEach(function(k){var d=k.slice(5);if(d<limIso)return;((sess[k]&&sess[k].checks)||[]).forEach(function(c){if(c&&c.note){if(rsAddItem(c.note,"note",k+"#"+(c.slot||c.ts||c.t),d))added=true;}});});
+   var sess=await klike("sess:");Object.keys(sess).forEach(function(k){var d=k.slice(5);if(d<limIso)return;((sess[k]&&sess[k].checks)||[]).forEach(function(c){if(c&&c.note){if(rsAddItem(c.note,"note",k+"#"+(c.slot||c.ts||c.t),d))added=true;}});
+     ((sess[k]&&sess[k].notes)||[]).forEach(function(x){if(x&&x.text){if(rsAddItem((x.tag?"["+x.tag+"] ":"")+x.text,"note",k+"#n"+(x.ts||x.t),d))added=true;}});});
    var ap=await klike("apres:");Object.keys(ap).forEach(function(k){var d=k.slice(6);if(d<limIso)return;var l=ap[k]&&ap[k].learned;if(l&&l.trim()){if(rsAddItem(l,"learned",k,d))added=true;}});
    if(added)await rsSave();
  }

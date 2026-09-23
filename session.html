@@ -569,6 +569,7 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 .igc .t{font-family:"Space Grotesk",serif;color:var(--muted);min-width:44px}
 .igc .n{color:var(--muted);font-style:italic}
 .igc.ident{border-left-color:var(--accent-bright)}
+.igc .tx{color:#b5742a;font-size:12px;border:1px solid rgba(230,189,102,.5);border-radius:999px;padding:1px 8px}
 .igsum{margin-top:12px;font-size:13.5px;color:var(--muted)}
 .igov{position:fixed;inset:0;background:rgba(7,17,31,.82);z-index:400;display:none;align-items:center;justify-content:center;padding:16px}
 .igov.show{display:flex}
@@ -591,13 +592,13 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 </style>
 <section class="sec" id="ingame">
   <div class="sec-h"><span class="no">4</span><h2>In-game &mdash; le check horaire</h2></div>
-  <p class="sec-desc">À :55, la pause : trois notes en quinze secondes, une main clé si tu veux. À l'heure pile, la reprise : qui je suis. Rien d'autre pendant la session.</p>
+  <p class="sec-desc">Au lancement, une petite fenêtre s'ouvre à côté des tables et reste là toute la session : tes mains clés taguées, le check de la pause à :55, la reprise à l'heure pile, et la clôture avec le cool-down avant d'éteindre.</p>
   <div class="panel-x" id="igPanel">
     <div class="fld"><label>Qui je suis aujourd'hui, en une phrase (rappelée à chaque reprise)</label><input type="text" id="igIdent" placeholder="Patient, précis, courageux&hellip;" autocomplete="off"></div>
     <div class="igbar">
       <button class="save" id="igStart">Démarrer ma session</button>
       <button class="flbtn" id="igNow" style="display:none">Check maintenant</button>
-      <button class="flbtn" id="igPop" style="display:none">Ouvrir sur un autre écran</button>
+      <button class="flbtn" id="igPop" style="display:none">Rouvrir la fenêtre de session</button>
       <button class="flbtn" id="igStop" style="display:none">Terminer la session</button>
       <span class="saved" id="igSaved">Enregistré &#10003;</span>
     </div>
@@ -1319,36 +1320,42 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
 })();
 </script>
 <script>
-/* ---- In-game : check horaire à :55 (pause MTT) et rappel d'identité à l'heure pile (reprise) ----
-   Etat du jour dans la cle kv "sess:AAAA-MM-JJ" : {start,end,ident,checks:[{t,slot,r,d,c,note}],mtt,lastCheckSlot,lastIdSlot}.
-   Fenetre detachable (second ecran) synchronisee par BroadcastChannel "me-ingame". */
+/* ---- In-game : check horaire à :55 (pause MTT), rappel d'identité à l'heure pile (reprise), mains clés, clôture ----
+   Etat dans la cle kv "sess:AAAA-MM-JJ" (jour de depart) : {start,end,ident,checks:[{ts,t,slot,r,d,c,note}],notes:[{ts,t,tag,text,ctx}],mtt,lastCheckSlot,lastIdSlot}.
+   La fenetre de session s'ouvre au lancement : Picture-in-Picture de document (reste au-dessus de Winamax) ou fenetre classique.
+   Elle est rendue depuis cette page (meme origine) : aucun script dans la fenetre elle-meme. */
 (function(){
  function $(i){return document.getElementById(i);}
  const CRIT=[["r","Réactions émotionnelles"],["d","Discipline sur le plan"],["c","Concentration"]];
+ const PMQ=[["decisions","Qualité de mes décisions"],["emo","Gestion émotionnelle"],["energie","Énergie restante"]];
+ const TAGS=["3-bet pot","Bounty","ICM","Bluff","Bluffcatch","Sizing","Tilt","À revoir"];
  const GUARD=3*60000; // pas de check ni de rappel dans les 3 premieres minutes
  let DAY=TODAY; // jour de depart de la session (une session peut passer minuit)
  const KEY=()=>"sess:"+DAY;
- let S=null,bc=null,pop=null,ckVals={},ckSlot=null;
+ let S=null,pop=null,popView="main",popTimer=null,ckVals={},ckSlot=null,endVals={},lastTag="";
  const pad=n=>String(n).padStart(2,"0");
  const hm=d=>pad(d.getHours())+":"+pad(d.getMinutes());
- function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
  function fmtDur(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h>0?h+":"+pad(m):"00:"+pad(m);}
  function f1(v){return v==null?"–":(Math.round(v*10)/10).toString().replace(".",",");}
  function nextSlot(min){const d=new Date();const t=new Date(d);t.setSeconds(0,0);t.setMinutes(min);if(t<=d)t.setHours(t.getHours()+1);return t;}
+ function mantra(){const m=(typeof DATA!=="undefined"&&DATA.mantras&&DATA.mantras.length)?DATA.mantras:["Une décision à la fois."];return m[new Date().getHours()%m.length];}
  window.__igSummary=function(sd,short){
-   const cks=sd.checks||[],n=cks.length;
+   const cks=sd.checks||[],n=cks.length,notes=sd.notes||[];
    const m=k=>{const a=cks.map(c=>c[k]).filter(v=>v!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;};
    let s=`<b>In-game :</b> ${n} check${n>1?"s":""}`;
    if(n)s+=` · réactions ${f1(m("r"))} · discipline ${f1(m("d"))} · concentration ${f1(m("c"))}`;
+   if(notes.length)s+=` · ${notes.length} main${notes.length>1?"s":""}`;
    if(sd.mtt!=null)s+=` · ${sd.mtt} MTT`;
    if(sd.start&&sd.end)s+=` · ${fmtDur(new Date(sd.end)-new Date(sd.start))}`;
-   const notes=cks.filter(c=>c.note).map(c=>`${c.t} ${esc(c.note)}`);
-   if(notes.length)s+=`<br><i>${notes.join(" · ")}</i>`;
+   const lines=[].concat(cks.filter(c=>c.note).map(c=>`${c.t} ${esc(c.note)}`),notes.map(x=>`${x.t}${x.tag?" ["+esc(x.tag)+"]":""} ${esc(x.text)}`));
+   if(lines.length)s+=`<br><i>${lines.join(" · ")}</i>`;
    return s;
  };
  async function load(){
    DAY=TODAY;S=await getJSON(KEY(),null);
    if(!S||!S.start){const y=new Date();y.setDate(y.getDate()-1);const yk=isoDay(y);const ys=await getJSON("sess:"+yk,null);if(ys&&ys.start&&!ys.end){S=ys;DAY=yk;}} // session de la veille encore ouverte : on la reprend
+   if(S&&!S.notes)S.notes=[];
  }
  async function save(){await setJSON(KEY(),S);const e=$("igSaved");if(e){e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1500);}}
  function active(){return !!(S&&S.start&&!S.end);}
@@ -1358,10 +1365,14 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
  function identText(){const v=($("igIdent").value||"").trim();return v||(S&&S.ident)||"";}
  function objText(){const o=$("wuObj");return o&&o.value.trim()?o.value.trim():"";}
  function ctxLine(){const i=identText(),o=objText();let s="";if(i)s+=`<b>${esc(i)}</b>`;if(o)s+=(s?" · ":"")+esc(o);return s;}
+ function lastCtx(){const c=(S&&S.checks||[]).slice(-1)[0];return c?{r:c.r,d:c.d,c:c.c,t:c.t}:null;}
  function renderChecks(){
    const el=$("igChecks");if(!el)return;
    if(!S||!S.start){el.innerHTML="";$("igSum").innerHTML="";$("igCount").textContent="0";return;}
-   el.innerHTML=(S.checks||[]).map(c=>`<div class="igc"><span class="t">${c.t}</span><span>réactions <b>${c.r}</b></span><span>discipline <b>${c.d}</b></span><span>concentration <b>${c.c}</b></span>${c.note?`<span class="n">${esc(c.note)}</span>`:""}</div>`).join("");
+   const rows=[].concat((S.checks||[]).map(c=>({ts:c.ts||"",h:`<div class="igc"><span class="t">${c.t}</span><span>réactions <b>${c.r}</b></span><span>discipline <b>${c.d}</b></span><span>concentration <b>${c.c}</b></span>${c.note?`<span class="n">${esc(c.note)}</span>`:""}</div>`})),
+     (S.notes||[]).map(x=>({ts:x.ts||"",h:`<div class="igc ident"><span class="t">${x.t}</span>${x.tag?`<span class="tx">${esc(x.tag)}</span>`:""}<span>${esc(x.text)}</span>${x.ctx?`<span class="n">état ${x.ctx.r}/${x.ctx.d}/${x.ctx.c}</span>`:""}</div>`})));
+   rows.sort((a,b)=>a.ts<b.ts?-1:1);
+   el.innerHTML=rows.map(r=>r.h).join("");
    $("igSum").innerHTML=S.end?window.__igSummary(S,false):"";
    $("igCount").textContent=(S.checks||[]).length;
  }
@@ -1369,13 +1380,40 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    const on=active(),ended=!!(S&&S.end);
    $("igStart").style.display=on?"none":"";$("igStart").textContent=ended?"Reprendre la session":"Démarrer ma session";
    $("igNow").style.display=on?"":"none";$("igPop").style.display=on?"":"none";$("igStop").style.display=on?"":"none";
+   $("igPop").textContent=(pop&&!pop.closed)?"Fenêtre de session ouverte":"Rouvrir la fenêtre de session";
    $("igStatus").style.display=(S&&S.start)?"flex":"none";
    if(S&&S.ident&&!$("igIdent").value)$("igIdent").value=S.ident;
    if(!on){$("igDur").textContent=(S&&S.start&&S.end)?fmtDur(new Date(S.end)-new Date(S.start)):"00:00";$("igNext").textContent="--:--";$("igNextId").textContent="--:--";$("igNext").classList.remove("warn");}
    renderChecks();
  }
- // ---- overlay de check ----
+ /* ---------- donnees ---------- */
+ async function submitCheck(vals,note,slot){
+   if(!active())return false;
+   if(vals.r==null||vals.d==null||vals.c==null)return false;
+   S.checks=S.checks||[];
+   if(slot)S.checks=S.checks.filter(c=>c.slot!==slot);
+   S.checks.push({t:hm(new Date()),ts:new Date().toISOString(),slot:slot||null,r:vals.r,d:vals.d,c:vals.c,note:(note||"").trim().slice(0,200)});
+   S.checks.sort((a,b)=>{const x=a.ts||a.t,y=b.ts||b.t;return x<y?-1:(x>y?1:0);});
+   await save();ui();return true;
+ }
+ async function addNote(text,tag){
+   text=(text||"").trim().slice(0,240);if(!active()||!text)return false;
+   S.notes=S.notes||[];S.notes.push({ts:new Date().toISOString(),t:hm(new Date()),tag:tag||"",text:text,ctx:lastCtx()});
+   await save();ui();return true;
+ }
+ async function endSession(v){ // v : {mtt, pm:{decisions,emo,energie}, proud, decision, learned}
+   if(!S)return;S.end=new Date().toISOString();
+   if(v.mtt!=null&&String(v.mtt).trim()!=="")S.mtt=Math.max(0,parseInt(v.mtt,10)||0);
+   const d=DAY;
+   if(v.pm&&v.pm.decisions!=null&&v.pm.emo!=null&&v.pm.energie!=null){await store.set("meteoPM:"+d,JSON.stringify(v.pm));S.pm=v.pm;}
+   if(v.proud||v.decision||v.learned){const ap=await getJSON("apres:"+d,{})||{};if(v.proud)ap.proud=v.proud;if(v.decision)ap.decision=v.decision;if(v.learned)ap.learned=v.learned;await store.set("apres:"+d,JSON.stringify(ap));}
+   $("igCheckOv").classList.remove("show");$("igIdOv").classList.remove("show");
+   await save();ui();
+   if(typeof renderHistory==="function"){try{renderHistory();}catch(e){}}
+ }
+ /* ---------- overlays de la page (secours quand la fenetre est fermee) ---------- */
  function openCheck(slot){
+   if(popOpen()){popView="check";ckVals={};ckSlot=slot;popRender();return;}
    ckSlot=slot;ckVals={};
    $("igCkTime").textContent=hm(new Date());
    $("igCkCtx").innerHTML=ctxLine();
@@ -1384,120 +1422,159 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
    $("igCkNote").value="";
    $("igCheckOv").classList.add("show");
  }
- async function submitCheck(vals,note,slot){
-   if(!active())return false;
-   if(vals.r==null||vals.d==null||vals.c==null)return false;
-   S.checks=S.checks||[];
-   if(slot)S.checks=S.checks.filter(c=>c.slot!==slot);
-   S.checks.push({t:hm(new Date()),ts:new Date().toISOString(),slot:slot||null,r:vals.r,d:vals.d,c:vals.c,note:(note||"").trim().slice(0,200)});
-   S.checks.sort((a,b)=>{const x=a.ts||a.t,y=b.ts||b.t;return x<y?-1:(x>y?1:0);});
-   await save();ui();sync();return true;
- }
- // ---- overlay de reprise (identite) ----
  function openIdent(){
+   if(popOpen()){popView="reprise";popRender();clearTimeout(openIdent._t);openIdent._t=setTimeout(()=>{if(popView==="reprise"){popView="main";popRender();}},60000);return;}
    $("igIdTime").textContent=hm(new Date());
-   $("igIdText").textContent=identText()||"Je suis prêt. Je joue mon jeu, une décision à la fois.";
+   $("igIdText").textContent=identText()||mantra();
    $("igIdPills").innerHTML=(typeof DATA!=="undefined"&&DATA.pillars)?DATA.pillars.map(p=>`<span>${esc(p.key)}</span>`).join(""):"";
    const o=objText();$("igIdObj").innerHTML=o?`Objectif de session : <b>${esc(o)}</b>`:"";
    $("igIdOv").classList.add("show");
    clearTimeout(openIdent._t);openIdent._t=setTimeout(()=>$("igIdOv").classList.remove("show"),60000);
  }
- // ---- horloge ----
+ /* ---------- horloge ---------- */
  function loop(){
-   if(!active())return;
+   if(!active()){popTick();return;}
    const d=new Date(),h=d.getHours(),m=d.getMinutes(),since=d-new Date(S.start);
    $("igDur").textContent=fmtDur(since);
    const inCheck=(m>=55),inId=(m<=4);
    $("igNext").textContent=inCheck?"maintenant":hm(nextSlot(55));$("igNext").classList.toggle("warn",inCheck);
    $("igNextId").textContent=inId?"maintenant":hm(nextSlot(0));
    const slot=pad(h)+":55";
-   if(inCheck&&S.lastCheckSlot!==slot&&since>GUARD){S.lastCheckSlot=slot;save();chime();notify("Mental Edge · check de la pause","Trois notes, quinze secondes.");openCheck(slot);if(bc)bc.postMessage({type:"check-ready",slot:slot});}
+   if(inCheck&&S.lastCheckSlot!==slot&&since>GUARD){S.lastCheckSlot=slot;save();chime();notify("Mental Edge · check de la pause","Trois notes, quinze secondes.");openCheck(slot);}
    const islot=pad(h)+":00";
-   if(inId&&S.lastIdSlot!==islot&&since>GUARD){S.lastIdSlot=islot;save();chime();notify("Mental Edge · reprise",identText()||"Qui je suis.");openIdent();if(bc)bc.postMessage({type:"ident",text:identText()});}
-   sync();
+   if(inId&&S.lastIdSlot!==islot&&since>GUARD){S.lastIdSlot=islot;save();chime();notify("Mental Edge · reprise",identText()||mantra());openIdent();}
+   popTick();
  }
- // ---- fenetre detachable ----
- function popHTML(){return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Mental Edge · Session</title><style>
- body{margin:0;background:#0B0E14;color:#E6E9EE;font-family:Outfit,-apple-system,"Segoe UI",sans-serif;padding:14px 16px;user-select:none}
- .h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#A6AFBF;letter-spacing:.08em;text-transform:uppercase}
- .big{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 8px}
- .row{display:flex;gap:14px;font-size:13px;color:#A6AFBF;margin-bottom:10px;flex-wrap:wrap}.row b{color:#E6E9EE;font-variant-numeric:tabular-nums}
- .id{font-style:italic;color:#E6E9EE;border-left:3px solid #3D5AFE;padding-left:10px;margin:6px 0 10px;font-size:14px;min-height:18px}
- .q{margin:8px 0}.q .l{font-size:12.5px;color:#A6AFBF;margin-bottom:4px}.seg{display:flex;gap:5px}.seg button{flex:1;border:1px solid rgba(166,175,191,.2);background:#121822;color:#A6AFBF;border-radius:8px;padding:8px 0;font:inherit;font-size:14px;cursor:pointer}.seg button.on{background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;border-color:transparent;font-weight:600}
- input{width:100%;box-sizing:border-box;background:#121822;border:1px solid rgba(166,175,191,.2);color:#E6E9EE;border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;margin-top:6px}
- .act{display:flex;gap:8px;margin-top:10px;align-items:center}.ok{flex:1;border:none;background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;font-weight:700;border-radius:8px;padding:10px;font:inherit;cursor:pointer}.gh{border:1px solid rgba(166,175,191,.2);background:none;color:#A6AFBF;border-radius:8px;padding:9px 12px;font:inherit;font-size:12.5px;cursor:pointer}
- #form{display:none}#form.on{display:block}.pulse{width:8px;height:8px;border-radius:50%;background:#e6bd66;display:inline-block;margin-right:6px;animation:p 1.6s infinite}@keyframes p{50%{opacity:.25}}
- </style></head><body>
- <div class="h"><span><span class="pulse"></span>Session</span><span id="clock"></span></div>
- <div class="big" id="dur">00:00</div>
- <div class="row"><span>Check <b id="nx">--:--</b></span><span>Reprise <b id="ni">--:--</b></span><span>Checks <b id="cnt">0</b></span></div>
- <div class="id" id="ident"></div>
- <div id="wait"><button class="gh" id="now">Check maintenant</button></div>
- <div id="form"><div id="qs"></div><input id="note" placeholder="Main clé, lecture, insight (optionnel)" maxlength="200"><div class="act"><button class="ok" id="ok">Valider</button><button class="gh" id="skip">Passer</button></div></div>
- <script>
- const bc=new BroadcastChannel("me-ingame");const C=[["r","Réactions émotionnelles"],["d","Discipline sur le plan"],["c","Concentration"]];let V={},slot=null;
- function $(i){return document.getElementById(i);}
- function chime(){try{const ctx=new AudioContext();[[659,0],[880,.18],[1175,.36]].forEach(([f,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=f;const t=ctx.currentTime+d;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.9);o.start(t);o.stop(t+.9);});}catch(e){}}
- function showForm(s){slot=s||null;V={};$("qs").innerHTML=C.map(([k,l])=>'<div class="q"><div class="l">'+l+' · 1 bas, 5 au top</div><div class="seg" data-k="'+k+'">'+[1,2,3,4,5].map(n=>'<button data-v="'+n+'">'+n+'</button>').join("")+'</div></div>').join("");
-  $("qs").querySelectorAll(".seg").forEach(s=>s.querySelectorAll("button").forEach(b=>b.onclick=()=>{s.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");V[s.dataset.k]=+b.dataset.v;}));
-  $("note").value="";$("form").classList.add("on");$("wait").style.display="none";try{window.focus();}catch(e){}}
- function hideForm(){$("form").classList.remove("on");$("wait").style.display="";}
- $("now").onclick=()=>showForm(null);
- $("skip").onclick=()=>{hideForm();bc.postMessage({type:"skip",slot:slot});};
- $("ok").onclick=()=>{if(V.r==null||V.d==null||V.c==null){$("ok").textContent="Les trois notes";setTimeout(()=>$("ok").textContent="Valider",1200);return;}bc.postMessage({type:"check",vals:V,note:$("note").value,slot:slot});hideForm();};
- bc.onmessage=e=>{const d=e.data||{};if(d.type==="sync"){$("dur").textContent=d.dur;$("nx").textContent=d.next;$("ni").textContent=d.nextId;$("cnt").textContent=d.count;$("ident").textContent=d.ident||"";$("clock").textContent=d.clock;if(d.ended){document.body.innerHTML='<div class="h">Session terminée</div>';setTimeout(()=>window.close(),2500);}}
-  else if(d.type==="check-ready"){chime();showForm(d.slot);}
-  else if(d.type==="ident"){chime();$("ident").textContent=d.text||"";}};
- bc.postMessage({type:"hello"});
- <\/script></body></html>`;}
- function openPop(){
-   if(pop&&!pop.closed){try{pop.focus();}catch(e){}sync();return;} // deja ouverte : on ne reecrit pas le document (le script serait redeclare)
-   try{pop=window.open("","me-ingame","width=400,height=440,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no");
-     if(!pop){alert("Fenêtre bloquée par le navigateur : autorise les fenêtres pour ce site.");return;}
-     pop.document.open();pop.document.write(popHTML());pop.document.close();setTimeout(sync,400);
-   }catch(e){}
+ /* ---------- fenetre de session ---------- */
+ const POPCSS=`
+ *{box-sizing:border-box}html,body{height:100%}
+ body{margin:0;background:#0B0E14;color:#E6E9EE;font-family:Outfit,-apple-system,"Segoe UI",sans-serif;font-size:13px;padding:10px 12px 12px;user-select:none;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+ .h{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:#A6AFBF;letter-spacing:.08em;text-transform:uppercase}
+ .pulse{width:7px;height:7px;border-radius:50%;background:#e6bd66;display:inline-block;margin-right:6px;animation:p 1.6s infinite}@keyframes p{50%{opacity:.25}}
+ .top{display:flex;align-items:baseline;gap:12px}.big{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+ .row{display:flex;gap:10px;font-size:12px;color:#A6AFBF;flex-wrap:wrap}.row b{color:#E6E9EE;font-variant-numeric:tabular-nums}.row b.w{color:#e6bd66}
+ .ctx{font-size:12.5px;color:#A6AFBF;border-left:3px solid #3D5AFE;padding-left:9px;line-height:1.4}.ctx b{color:#E6E9EE;font-style:italic;font-weight:500}
+ .tags{display:flex;gap:5px;flex-wrap:wrap}.tag{border:1px solid rgba(166,175,191,.25);background:transparent;color:#A6AFBF;border-radius:999px;padding:3px 9px;font:inherit;font-size:11.5px;cursor:pointer}.tag.on{background:#e6bd66;border-color:#e6bd66;color:#111;font-weight:600}
+ .in{display:flex;gap:6px}.in input{flex:1;min-width:0}
+ input,textarea{width:100%;background:#121822;border:1px solid rgba(166,175,191,.2);color:#E6E9EE;border-radius:8px;padding:8px 10px;font:inherit;font-size:13px}
+ textarea{resize:none;min-height:44px;line-height:1.4}
+ .ok{border:none;background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;font-weight:700;border-radius:8px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+ .gh{border:1px solid rgba(166,175,191,.2);background:none;color:#A6AFBF;border-radius:8px;padding:8px 11px;font:inherit;font-size:12px;cursor:pointer}.gh.end{border-color:rgba(217,123,108,.5);color:#d97b6c}
+ .list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:4px;min-height:40px}
+ .it{display:flex;gap:8px;align-items:baseline;font-size:12.5px;border-top:1px solid rgba(166,175,191,.1);padding:5px 0}.it .t{color:#6B7280;font-variant-numeric:tabular-nums;font-size:11.5px;flex:none}.it .g{flex:1;line-height:1.35}.it .tg{color:#e6bd66;font-size:11px;flex:none}.it .st{color:#6B7280;font-size:11px;flex:none}
+ .foot{display:flex;gap:6px;justify-content:space-between;margin-top:auto}
+ .q{margin:2px 0}.q .l{font-size:12px;color:#A6AFBF;margin-bottom:4px;display:flex;justify-content:space-between}.seg{display:flex;gap:4px}.seg button{flex:1;border:1px solid rgba(166,175,191,.2);background:#121822;color:#A6AFBF;border-radius:7px;padding:8px 0;font:inherit;font-size:14px;cursor:pointer}.seg button.on{background:linear-gradient(150deg,#e6bd66,#caa23e);color:#111;border-color:transparent;font-weight:600}
+ .ttl{font-size:17px;font-weight:600;margin:2px 0 0}.sub{color:#A6AFBF;font-size:12px;margin:0}
+ .mant{font-style:italic;font-size:19px;line-height:1.35;border-left:3px solid #3D5AFE;padding-left:10px;margin:8px 0}
+ .pills{display:flex;gap:6px;flex-wrap:wrap}.pills span{border:1px solid #3D5AFE;border-radius:999px;padding:3px 10px;font-size:11.5px}
+ .act{display:flex;gap:6px;align-items:center;margin-top:4px}.act .ok{flex:1}
+ .scroll{overflow:auto;display:flex;flex-direction:column;gap:8px;flex:1}
+ .done{font-size:13px;line-height:1.5;color:#A6AFBF}.done b{color:#E6E9EE}
+ `;
+ function popOpen(){return !!(pop&&!pop.closed&&pop.document&&pop.document.body);}
+ async function openPop(){
+   if(popOpen()){try{pop.focus();}catch(e){}popRender();return;}
+   pop=null;
+   try{if("documentPictureInPicture" in window){pop=await window.documentPictureInPicture.requestWindow({width:360,height:560});}}catch(e){pop=null;}
+   if(!pop){try{pop=window.open("","me-ingame","width=380,height=600,resizable=yes,scrollbars=no,menubar=no,toolbar=no,location=no,status=no");}catch(e){pop=null;}}
+   if(!pop){alert("Fenêtre bloquée par le navigateur : autorise les fenêtres pour ce site, puis clique « Rouvrir la fenêtre de session ».");return;}
+   const doc=pop.document;
+   try{doc.open();doc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Mental Edge · Session</title></head><body></body></html>');doc.close();}catch(e){}
+   const st=doc.createElement("style");st.textContent=POPCSS;doc.head.appendChild(st);
+   try{doc.title="Mental Edge · Session";}catch(e){}
+   pop.addEventListener("beforeunload",e=>{if(active()){e.preventDefault();e.returnValue="Session en cours : clôture-la depuis la fenêtre avant de fermer.";}});
+   pop.addEventListener("pagehide",()=>{setTimeout(ui,300);});
+   popView=active()?"main":"done";popRender();ui();
  }
- function sync(){
-   if(!bc||!S||!S.start)return;const d=new Date();
-   bc.postMessage({type:"sync",dur:fmtDur(d-new Date(S.start)),next:d.getMinutes()>=55?"maintenant":hm(nextSlot(55)),nextId:d.getMinutes()<=4?"maintenant":hm(nextSlot(0)),count:(S.checks||[]).length,ident:identText(),clock:hm(d),ended:!active()});
+ function pq(sel){return pop.document.querySelector(sel);}
+ function pqa(sel){return [...pop.document.querySelectorAll(sel)];}
+ function segHTML(items,store){return items.map(([k,l])=>`<div class="q"><div class="l"><span>${l}</span><span>1 bas · 5 top</span></div><div class="seg" data-dim="${k}">${[1,2,3,4,5].map(n=>`<button type="button" data-v="${n}"${store[k]===n?' class="on"':''}>${n}</button>`).join("")}</div></div>`).join("");}
+ function bindSeg(store){pqa(".seg").forEach(seg=>seg.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");store[seg.dataset.dim]=+b.dataset.v;})));}
+ function popHead(){
+   const d=new Date(),on=active();
+   const since=on?(d-new Date(S.start)):(S&&S.start&&S.end?new Date(S.end)-new Date(S.start):0);
+   return `<div class="h"><span><span class="pulse"></span>${on?"Session":"Session terminée"}</span><span id="pclock">${hm(d)}</span></div>
+   <div class="top"><span class="big" id="pdur">${fmtDur(since)}</span><span class="row"><span>check <b id="pnx"${d.getMinutes()>=55?' class="w"':''}>${on?(d.getMinutes()>=55?"maintenant":hm(nextSlot(55))):"--:--"}</b></span><span>reprise <b id="pni">${on?(d.getMinutes()<=4?"maintenant":hm(nextSlot(0))):"--:--"}</b></span><span>mains <b id="pnn">${(S&&S.notes||[]).length}</b></span></span></div>
+   <div class="ctx">${ctxLine()||"<b>Pose ton identité et ton objectif sur la page Session.</b>"}</div>`;
  }
- // ---- actions ----
+ function popRender(){
+   if(!popOpen())return;
+   const b=pop.document.body;let h=popHead();
+   if(popView==="check"){
+     h+=`<p class="ttl">Check ${hm(new Date())} · la pause</p><p class="sub">Trois notes, quinze secondes. Un score, pas un jugement.</p><div class="scroll">${segHTML(CRIT,ckVals)}<input id="pcknote" placeholder="Main clé, lecture, insight (optionnel)" maxlength="200"></div><div class="act"><button class="ok" id="pckok">Valider</button><button class="gh" id="pckskip">Passer</button></div>`;
+     b.innerHTML=h;bindSeg(ckVals);
+     pq("#pckok").addEventListener("click",async()=>{const ok=await submitCheck(ckVals,pq("#pcknote").value,ckSlot);if(!ok){pq("#pckok").textContent="Les trois notes";setTimeout(()=>{const x=pq("#pckok");if(x)x.textContent="Valider";},1200);return;}popView="main";popRender();});
+     pq("#pckskip").addEventListener("click",()=>{popView="main";popRender();});
+     try{pop.focus();}catch(e){}
+   }else if(popView==="reprise"){
+     const o=objText();
+     h+=`<p class="ttl">Reprise ${hm(new Date())}</p><p class="sub">Avant la première main.</p><div class="scroll"><div class="mant">« ${esc(mantra())} »</div><div class="ctx"><b>${esc(identText()||"Qui je suis.")}</b></div><div class="pills">${(typeof DATA!=="undefined"&&DATA.pillars?DATA.pillars.map(p=>`<span>${esc(p.key)}</span>`).join(""):"")}</div>${o?`<p class="sub">Objectif : <b style="color:#E6E9EE">${esc(o)}</b></p>`:""}</div><div class="act"><button class="ok" id="pidok">Je reprends</button></div>`;
+     b.innerHTML=h;pq("#pidok").addEventListener("click",()=>{popView="main";popRender();});try{pop.focus();}catch(e){}
+   }else if(popView==="end"){
+     h+=`<p class="ttl">Fin de session</p><p class="sub">Le cool-down, ici, avant d'éteindre. Deux minutes.</p><div class="scroll">
+       <div class="q"><div class="l"><span>MTT joués aujourd'hui</span></div><input id="pmtt" type="number" min="0" step="1" placeholder="ex : 22" value="${S&&S.mtt!=null?S.mtt:""}"></div>
+       ${segHTML(PMQ,endVals)}
+       <div class="q"><div class="l"><span>Une bonne décision (peu importe le résultat)</span></div><input id="pdec" maxlength="300"></div>
+       <div class="q"><div class="l"><span>Ce que j'ai appris</span></div><input id="plearn" maxlength="300"></div>
+       <div class="q"><div class="l"><span>De quoi je suis fier</span></div><input id="pproud" maxlength="300"></div>
+     </div><div class="act"><button class="ok" id="pendok">Clôturer la session</button><button class="gh" id="pendback">Retour</button></div>`;
+     b.innerHTML=h;bindSeg(endVals);
+     pq("#pendok").addEventListener("click",async()=>{if(endVals.decisions==null||endVals.emo==null||endVals.energie==null){pq("#pendok").textContent="Les trois notes du soir";setTimeout(()=>{const x=pq("#pendok");if(x)x.textContent="Clôturer la session";},1400);return;}
+       await endSession({mtt:pq("#pmtt").value,pm:{decisions:endVals.decisions,emo:endVals.emo,energie:endVals.energie},decision:pq("#pdec").value.trim(),learned:pq("#plearn").value.trim(),proud:pq("#pproud").value.trim()});
+       popView="done";popRender();});
+     pq("#pendback").addEventListener("click",()=>{popView="main";popRender();});
+   }else if(popView==="done"||!active()){
+     const n=(S&&S.checks||[]).length,nn=(S&&S.notes||[]).length;
+     h+=`<p class="ttl">Session clôturée.</p><div class="done"><b>${n}</b> check${n>1?"s":""} · <b>${nn}</b> main${nn>1?"s":""} notée${nn>1?"s":""}${S&&S.mtt!=null?` · <b>${S.mtt}</b> MTT`:""}<br>Le bilan est enregistré. Tu peux éteindre.</div><div class="foot"><span></span><button class="gh" id="pclose">Fermer la fenêtre</button></div>`;
+     b.innerHTML=h;pq("#pclose").addEventListener("click",()=>{try{pop.close();}catch(e){}});
+   }else{
+     const notes=(S.notes||[]).slice().reverse();
+     h+=`<div class="tags">${TAGS.map(t=>`<button class="tag${t===lastTag?" on":""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+     <div class="in"><input id="pnote" placeholder="Main clé : spot, lecture, ce qui s'est passé…" maxlength="240"><button class="ok" id="pnoteok">Noter</button></div>
+     <div class="list" id="plist">${notes.length?notes.map(x=>`<div class="it"><span class="t">${x.t}</span>${x.tag?`<span class="tg">${esc(x.tag)}</span>`:""}<span class="g">${esc(x.text)}</span>${x.ctx?`<span class="st" title="réactions / discipline / concentration au dernier check">${x.ctx.r}·${x.ctx.d}·${x.ctx.c}</span>`:""}</div>`).join(""):`<div class="it"><span class="g" style="color:#6B7280">Aucune main notée. Tague, écris une ligne, Entrée.</span></div>`}</div>
+     <div class="foot"><button class="gh" id="pchk">Check maintenant</button><button class="gh end" id="pend">Terminer la session</button></div>`;
+     b.innerHTML=h;
+     pqa(".tag").forEach(t=>t.addEventListener("click",()=>{lastTag=(lastTag===t.dataset.tag)?"":t.dataset.tag;pqa(".tag").forEach(x=>x.classList.toggle("on",x.dataset.tag===lastTag));pq("#pnote").focus();}));
+     const doNote=async()=>{const v=pq("#pnote").value;if(await addNote(v,lastTag)){lastTag="";popRender();pq("#pnote").focus();}};
+     pq("#pnoteok").addEventListener("click",doNote);
+     pq("#pnote").addEventListener("keydown",e=>{if(e.key==="Enter")doNote();});
+     pq("#pchk").addEventListener("click",()=>{openCheck(null);});
+     pq("#pend").addEventListener("click",()=>{endVals={};popView="end";popRender();});
+   }
+ }
+ function popTick(){ // met a jour les compteurs sans re-rendre (une saisie en cours doit survivre)
+   if(!popOpen())return;const d=new Date();
+   const set=(id,v)=>{const e=pop.document.getElementById(id);if(e&&e.textContent!==v)e.textContent=v;};
+   set("pclock",hm(d));
+   if(active()){set("pdur",fmtDur(d-new Date(S.start)));set("pnx",d.getMinutes()>=55?"maintenant":hm(nextSlot(55)));set("pni",d.getMinutes()<=4?"maintenant":hm(nextSlot(0)));const nx=pop.document.getElementById("pnx");if(nx)nx.classList.toggle("w",d.getMinutes()>=55);}
+   set("pnn",String((S&&S.notes||[]).length));
+ }
+ /* ---------- actions de la page ---------- */
  async function start(){
-   if(S&&S.end&&DAY===TODAY){S.end=null;S.resumedAt=new Date().toISOString();} // reprise : on garde les checks et les MTT deja saisis
-   else if(!S||S.end){DAY=TODAY;S={start:new Date().toISOString(),end:null,ident:"",checks:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};}
+   if(S&&S.end&&DAY===TODAY){S.end=null;S.resumedAt=new Date().toISOString();} // reprise : on garde les checks, les mains et les MTT deja saisis
+   else if(!S||S.end){DAY=TODAY;S={start:new Date().toISOString(),end:null,ident:"",checks:[],notes:[],mtt:null,lastCheckSlot:null,lastIdSlot:null};}
    S.ident=($("igIdent").value||"").trim();
    try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();}catch(e){}
    await save();ui();loop();
- }
- async function stop(mtt){
-   if(!S)return;S.end=new Date().toISOString();
-   if(mtt!=null&&String(mtt).trim()!=="")S.mtt=Math.max(0,parseInt(mtt,10)||0); // total du jour (prerempli a la reprise)
-   $("igCheckOv").classList.remove("show");$("igIdOv").classList.remove("show");
-   await save();ui();sync();
-   if(typeof renderHistory==="function"){try{renderHistory();}catch(e){}}
+   await openPop(); // dans le geste utilisateur : la fenetre s'ouvre sans blocage
  }
  async function reload(hist){await load();ui();if(hist!==false&&S&&S.start&&typeof renderHistory==="function"){try{renderHistory();}catch(e){}}}
  async function init(){
    if(!$("igPanel"))return;
    // apres connexion ou resynchronisation, boot() est rappele : on recharge l'etat du jour (patch pose avant tout await)
    if(typeof boot==="function"){const orig=boot;boot=async function(){await orig();await reload(false);};}
-   bc=("BroadcastChannel" in window)?new BroadcastChannel("me-ingame"):null;
-   if(bc)bc.onmessage=async e=>{const d=e.data||{};
-     if(d.type==="check"){await submitCheck(d.vals||{},d.note,d.slot);$("igCheckOv").classList.remove("show");}
-     else if(d.type==="hello")sync();
-     else if(d.type==="skip")$("igCheckOv").classList.remove("show");
-   };
    await reload();
    $("igStart").addEventListener("click",start);
-   $("igStop").addEventListener("click",()=>{$("igMtt").value=(S&&S.mtt!=null)?S.mtt:"";$("igEndOv").classList.add("show");});
-   $("igEndOk").addEventListener("click",()=>{stop($("igMtt").value);$("igEndOv").classList.remove("show");});
+   $("igStop").addEventListener("click",()=>{if(popOpen()){endVals={};popView="end";popRender();try{pop.focus();}catch(e){}return;}$("igMtt").value=(S&&S.mtt!=null)?S.mtt:"";$("igEndOv").classList.add("show");});
+   $("igEndOk").addEventListener("click",()=>{endSession({mtt:$("igMtt").value});$("igEndOv").classList.remove("show");});
    $("igEndCancel").addEventListener("click",()=>$("igEndOv").classList.remove("show"));
    $("igNow").addEventListener("click",()=>openCheck(null));
    $("igPop").addEventListener("click",openPop);
    $("igCkOk").addEventListener("click",async()=>{const ok=await submitCheck(ckVals,$("igCkNote").value,ckSlot);if(!ok){$("igCkOk").textContent="Les trois notes";setTimeout(()=>$("igCkOk").textContent="Valider",1200);return;}$("igCheckOv").classList.remove("show");});
    $("igCkSkip").addEventListener("click",()=>$("igCheckOv").classList.remove("show"));
    $("igIdOk").addEventListener("click",()=>$("igIdOv").classList.remove("show"));
-   $("igIdent").addEventListener("change",async()=>{if(S&&!S.end){S.ident=$("igIdent").value.trim();await save();sync();}});
+   $("igIdent").addEventListener("change",async()=>{if(S&&!S.end){S.ident=$("igIdent").value.trim();await save();popRender();}});
+   const wo=$("wuObj");if(wo)wo.addEventListener("change",()=>{if(popOpen()&&popView==="main")popRender();});
    setInterval(loop,5000);loop();
  }
  if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);
