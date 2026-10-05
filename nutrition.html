@@ -559,7 +559,7 @@ if(document.readyState!=="loading")init();else window.addEventListener("DOMConte
   try{
    if(typeof kvFlush==="function"){try{await kvFlush();}catch(e){}}
    var res=await window.__sb.from("kv").select("k,v");
-   if(res&&!res.error&&res.data){
+   if(res&&!res.error&&res.data&&res.data.length){
     var fresh={};res.data.forEach(function(r){fresh[r.k]=r.v;});
     var changed=false,k;
     for(k in fresh){if(cloud.cache[k]!==fresh[k]){changed=true;break;}}

@@ -790,7 +790,7 @@ async function cloudWrite(k,v){
 function kvQueue(k,v){try{const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");const i=q.findIndex(x=>x.k===k);if(i>=0)q[i].v=v;else q.push({k:k,v:v});localStorage.setItem("me_pendingKv",JSON.stringify(q));}catch(e){}}
 function kvSynced(ok){try{let b=document.getElementById("syncWarn");if(ok){if(b)b.remove();return;}
  if(!b){b=document.createElement("div");b.id="syncWarn";b.textContent="\u26a0 Sauvegarde non synchronis\u00e9e \u2014 v\u00e9rifie ta connexion, r\u00e9essai automatique en cours";b.setAttribute("style","position:fixed;left:10px;right:10px;bottom:10px;z-index:500;background:#b5483f;color:#fff;padding:10px 12px;border-radius:10px;font-size:13px;text-align:center");document.body.appendChild(b);}}catch(e){}}
-async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");if(!q.length)return;const rest=[];for(const it of q){try{if(it.k==="offDays"){try{const rr=await window.__sb.from("kv").select("v").eq("k","offDays").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=JSON.stringify(Object.assign({},JSON.parse(rr.data.v),JSON.parse(it.v)));}}catch(e2){}}const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);}catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
+async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]").filter(function(it){try{return !(typeof DATA!=="undefined"&&((it.k==="userHabits"&&it.v===JSON.stringify(DATA.habits))||(it.k==="userGoals"&&it.v===JSON.stringify(DATA.objectives))));}catch(e){return true;}});if(!q.length){localStorage.setItem("me_pendingKv","[]");return;}const rest=[];for(const it of q){try{if(it.k==="offDays"){try{const rr=await window.__sb.from("kv").select("v").eq("k","offDays").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=JSON.stringify(Object.assign({},JSON.parse(rr.data.v),JSON.parse(it.v)));}}catch(e2){}}const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);}catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
 try{document.addEventListener("visibilitychange",function(){if(!document.hidden)kvFlush();});setInterval(kvFlush,45000);setTimeout(kvFlush,4000);}catch(e){}
 
 async function getJSON(k,def){const v=await store.get(k);if(v==null)return def;try{return JSON.parse(v);}catch(e){return def;}}
@@ -1054,7 +1054,7 @@ let goalH="sem";
 function goalColor(p){return p>=80?"var(--green)":(p>=40?"#d8a64a":"#c2603f");}
 async function renderGoals(){
   let goals=await getJSON("userGoals",null);
-  if(goals==null){goals=JSON.parse(JSON.stringify(DATA.objectives));await setJSON("userGoals",goals);}
+  if(goals==null){if(typeof cloud!=="undefined"&&cloud){goals=[];}else{goals=JSON.parse(JSON.stringify(DATA.objectives));await setJSON("userGoals",goals);}}
   const list=goals.filter(g=>g.h===goalH);
   $("#goalList").innerHTML=list.map(g=>{
     const tgt=Number(g.target)||0;const cur=Number(g.current)||0;const pct=tgt>0?Math.round(cur/tgt*100):0;const w=Math.max(0,Math.min(100,pct));
@@ -1071,7 +1071,7 @@ function last7(){const a=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDat
 function streakFor(log,id,off){let s=0;for(let i=0;i<400;i++){const d=new Date(now);d.setDate(d.getDate()-i);const day=isoDay(d);if(off&&off[day])continue;if((log[day]||[]).includes(id))s++;else{if(i===0)continue;break;}}return s;}
 async function renderHabits(){
   let habits=await getJSON("userHabits",null);
-  if(habits==null){habits=JSON.parse(JSON.stringify(DATA.habits));await setJSON("userHabits",habits);}
+  if(habits==null){if(typeof cloud!=="undefined"&&cloud){habits=[];}else{habits=JSON.parse(JSON.stringify(DATA.habits));await setJSON("userHabits",habits);}}
   const log=await getJSON("habitsLog",{});const reps=await getJSON("habitsReps",{});const offd=await getJSON("offDays",{});const days=last7();const todayList=log[TODAY]||[];const todayReps=reps[TODAY]||{};
   $("#habitList").innerHTML=habits.map(hb=>{
     const tgt=Math.max(1,parseInt(hb.target,10)||1);
@@ -1082,9 +1082,9 @@ async function renderHabits(){
     return `<div class="habit">${box}<span class="hname">${hb.label}</span><div class="hstrip">${strip}</div><span class="hstreak">${streakFor(log,hb.id,offd)}j</span><button class="hdel" data-hd="${hb.id}" title="Retirer">&times;</button></div>`;
   }).join("")||`<p class="blocksub">Ajoute tes habitudes ci-dessous.</p>`;
   $$('#habitList .hck').forEach(c=>c.addEventListener("click",async()=>{const id=c.dataset.h;const hs=await getJSON("userHabits",[]);const hb=hs.find(x=>x.id===id);const tgt=Math.max(1,parseInt(hb&&hb.target,10)||1);const lg=await getJSON("habitsLog",{});const arr=lg[TODAY]||[];const idx=arr.indexOf(id);const rp=await getJSON("habitsReps",{});const tr=rp[TODAY]||{};if(idx>=0){arr.splice(idx,1);tr[id]=0;}else{const n=Math.min(tr[id]||0,tgt-1)+1;tr[id]=n;if(n>=tgt)arr.push(id);}lg[TODAY]=arr;rp[TODAY]=tr;const kp={};const yd=new Date(now);yd.setDate(yd.getDate()-1);[TODAY,isoDay(yd)].forEach(k=>{if(rp[k])kp[k]=rp[k];});await setJSON("habitsLog",lg);await setJSON("habitsReps",kp);renderHabits();}));
-  $$('#habitList [data-hd]').forEach(b=>b.addEventListener("click",async()=>{let hs=await getJSON("userHabits",[]);hs=hs.filter(x=>x.id!==b.dataset.hd);await setJSON("userHabits",hs);renderHabits();}));
+  $$('#habitList [data-hd]').forEach(b=>b.addEventListener("click",async()=>{if(typeof cloud!=="undefined"&&cloud&&!cloud.loaded){alert("Données non chargées : recharge la page avant de modifier tes habitudes.");return;}let hs=await getJSON("userHabits",[]);hs=hs.filter(x=>x.id!==b.dataset.hd);await setJSON("userHabits",hs);renderHabits();}));
 }
-$("#habitAdd").addEventListener("click",async()=>{const v=$("#habitInput").value.trim();if(!v)return;const t=Math.max(1,Math.min(20,parseInt($("#habitTarget").value,10)||1));const hs=await getJSON("userHabits",[]);hs.push({id:uid(),label:v,target:t});await setJSON("userHabits",hs);$("#habitInput").value="";$("#habitTarget").value="1";renderHabits();});
+$("#habitAdd").addEventListener("click",async()=>{const v=$("#habitInput").value.trim();if(!v)return;const t=Math.max(1,Math.min(20,parseInt($("#habitTarget").value,10)||1));if(typeof cloud!=="undefined"&&cloud&&!cloud.loaded){alert("Données non chargées : recharge la page avant de modifier tes habitudes.");return;}const hs=await getJSON("userHabits",[]);hs.push({id:uid(),label:v,target:t});await setJSON("userHabits",hs);$("#habitInput").value="";$("#habitTarget").value="1";renderHabits();});
 $("#habitInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#habitAdd").click();});
 
 // JOURNAL
@@ -1200,7 +1200,7 @@ async function renderHistory(){
   el.querySelectorAll(".hh").forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("open")));
 }
 async function boot(){const t=await store.get("theme");applyTheme(t==="dark"?"dark":"light");renderTools();await loadHeader();await loadDay();await renderWall();await renderImgWall();await renderJournal();await renderGoals();await renderHabits();await renderHistory();}
-async function loadCloud(uid){cloud={uid:uid,cache:{}};try{const{data,error}=await window.__sb.from("kv").select("k,v");if(!error&&data){data.forEach(r=>{cloud.cache[r.k]=r.v;});cloud.loaded=true;}}catch(e){console.error("load",e);}}
+async function loadCloud(uid){cloud={uid:uid,cache:{}};try{const{data,error}=await window.__sb.from("kv").select("k,v");if(!error&&data&&data.length){data.forEach(r=>{cloud.cache[r.k]=r.v;});cloud.loaded=true;}}catch(e){console.error("load",e);}}
 function showLogin(){const o=document.getElementById("authOverlay");if(o)o.style.display="flex";}
 async function afterLogin(session){await loadCloud(session.user.id);const o=document.getElementById("authOverlay");if(o)o.style.display="none";const lo=document.getElementById("logoutBtn");if(lo)lo.style.display="";await boot();if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}if(window.__progRefresh){try{window.__progRefresh();}catch(e){}}}
 async function doAuth(mode){const email=document.getElementById("authEmail").value.trim();const pw=document.getElementById("authPw").value;const msg=document.getElementById("authMsg");if(!email||!pw){msg.textContent="E-mail et mot de passe requis.";return;}msg.textContent="…";try{let res;if(mode==="signup")res=await window.__sb.auth.signUp({email:email,password:pw});else res=await window.__sb.auth.signInWithPassword({email:email,password:pw});if(res.error){msg.textContent=res.error.message;return;}let session=res.data&&res.data.session;if(!session){const g=await window.__sb.auth.getSession();session=g.data.session;}if(!session){msg.textContent="Compte créé. Clique maintenant sur « Se connecter ».";return;}await afterLogin(session);}catch(e){msg.textContent="Erreur : "+(e&&e.message?e.message:e);}}
@@ -1296,7 +1296,7 @@ if(document.readyState!=="loading")wire();else window.addEventListener("DOMConte
   try{
    if(typeof kvFlush==="function"){try{await kvFlush();}catch(e){}}
    var res=await window.__sb.from("kv").select("k,v");
-   if(res&&!res.error&&res.data){
+   if(res&&!res.error&&res.data&&res.data.length){cloud.loaded=true;
     var fresh={};res.data.forEach(function(r){fresh[r.k]=r.v;});
     var changed=false,k;
     for(k in fresh){if(cloud.cache[k]!==fresh[k]){changed=true;break;}}
