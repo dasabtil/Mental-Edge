@@ -504,11 +504,11 @@ body{background:linear-gradient(180deg,rgba(7,17,31,.42) 0%,rgba(7,17,31,.93) 58
 
 <section class="sec" style="padding-top:22px">
   <div class="sec-h"><span class="no">01</span><h2>Entraînement</h2></div>
-  <p class="sec-desc">Séances courtes, dans l'ordre de la file (C → A → B, puis D et E en bonus), peu importe le jour : si tu sautes un jour, la séance t'attend, rien ne se perd. Tape un nom d'exercice pour sa fiche technique. Synchronisé entre tes appareils.</p>
+  <p class="sec-desc">Cinq séances dans l'ordre de la file (C → A → B, puis D et E), peu importe le jour : si tu sautes un jour, la séance t'attend, rien ne se perd. Chaque séance s'ouvre par l'Ouverture (5 min, à la place de l'échauffement) et se ferme par les étirements de fin. Tape un nom d'exercice pour sa fiche technique. Synchronisé entre tes appareils.</p>
   <div class="card tr-week" id="trWeek"></div>
   <div id="trHome">
     <div class="tr-scards" id="trCards"></div>
-    <p style="font-size:13px;color:var(--muted);margin-top:14px">Avant chaque séance : <button class="tr-link" data-gloss="Échauffement">échauffement ~2 min</button>. Repos 60-90 s entre les séries.</p>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px">Avant chaque séance : <button class="tr-link" data-gloss="Ouverture">Ouverture ~5 min</button> (<button class="tr-link" data-gloss="Lever des bras en respirant">lever des bras</button> · <button class="tr-link" data-gloss="Charnière de hanche">charnière de hanche</button> · <button class="tr-link" data-gloss="Quadrupédie : chat-vache et rotation">quadrupédie</button> · <button class="tr-link" data-gloss="Fente basse en mouvement">fente basse</button>). Repos 60-90 s entre les séries. Après la dernière série : <button class="tr-link" data-gloss="Étirements de fin">étirements de fin</button> (<button class="tr-link" data-gloss="Ischios à la serviette">ischios</button> · <button class="tr-link" data-gloss="Fessier allongé (figure 4)">fessier</button>).</p>
   </div>
   <div id="trSession" style="display:none"></div>
 </section>
@@ -598,7 +598,13 @@ const WEEKS=[
  {name:"Semaine 9 · Bateau puis retour",rule:"Retour le 02/09. À bord : même règle que la semaine 8. À la maison : reprends les charges du 20/08, pas celles du bateau. Rapporte deux chiffres du voyage : rowing 1 bras et développé épaules assis (X kg × 10 reps un peu durs). Botte jusqu'au contrôle du 09/09 (CUF Gulbenkian, Faro) : le nouveau bloc se construit après, avec le verdict."},
  {name:"Semaine 10 · Retour",rule:"Semaine de retour de croisière et de contrôle médical (09/09 : pied libéré par le spécialiste). Aucune séance tracée."},
  {name:"Semaine 11",rule:"Aucune séance tracée. La reprise est calée sur la semaine 12."},
- {name:"Semaine 12 · Reprise",rule:"24 jours d'arrêt : rien de perdu en force, seulement en tolérance. RIR 3 partout, bas de fourchette, zéro série à l'échec sauf la dernière de pompes. Une seule charge bouge : développé incliné 10 → 12 kg. La semaine = C, A, B (la file te les propose dans cet ordre), plus 25 min de marche avant la session les jours de grind. C ne saute jamais ; D et E sont du bonus, pas un retard. Pied libéré par le spécialiste : pompes et planche repassent sur les pieds, sans cible chiffrée. Douleur pied, dos ou genou pendant ou le lendemain : tu arrêtes et tu le notes."}
+ {name:"Semaine 12 · Reprise",rule:"24 jours d'arrêt : rien de perdu en force, seulement en tolérance. RIR 3 partout, bas de fourchette, zéro série à l'échec sauf la dernière de pompes. Une seule charge bouge : développé incliné 10 → 12 kg. La semaine = C, A, B (la file te les propose dans cet ordre), plus 25 min de marche avant la session les jours de grind. C ne saute jamais ; D et E sont du bonus, pas un retard. Pied libéré par le spécialiste : pompes et planche repassent sur les pieds, sans cible chiffrée. Douleur pied, dos ou genou pendant ou le lendemain : tu arrêtes et tu le notes."},
+ {name:"Semaine 13",rule:"Aucune séance tracée. La reprise est calée sur la semaine 14."},
+ {name:"Semaine 14 · Reprise",rule:"S12 rejouée : C, A et B faites les 06, 08 et 09/10, charges de septembre, RIR 3. D et E non faites, elles étaient en bonus. Rien de noté côté douleur."},
+ /* S15 (12-18/10), décision du 13/10 (binôme coach-sport-science + coach-de-terrain) : passage à 5 séances, Ouverture à la place de l'échauffement, étirements de fin. */
+ {name:"Semaine 15 · Cinq séances",rule:"Cible 5, plancher 3 : C, A, B d'abord ; D et E sautent si ça coince, rien à rattraper. RIR 2 partout, dernière série de pompes à l'échec ; si tu passes le haut de la fourchette, continue et logge. Seule nouveauté jambes : goblet 10 kg, jamais C un jour de départ à 9h30. Ouverture au début (ne saute pas), Fin à la fin (saute si pressé) ; douleur pendant ou le lendemain : tu arrêtes et tu le notes."},
+ /* Garde-fou : si la mise à jour du lundi glisse, le bandeau n'affiche pas « Bloc terminé ». */
+ {name:"Semaine 16",rule:"Programme mis à jour lundi 19/10 après lecture de tes séances. Si rien n'a changé à l'écran : mêmes consignes que la semaine 15."}
 ];
 /* Date de la dernière prescription de charges par le coach.
    Le pré-remplissage des kg repart du programme pour toute séance dont le dernier log
@@ -606,7 +612,7 @@ const WEEKS=[
    silencieusement les nouvelles. Dès qu'une séance est faite après cette date, c'est
    de nouveau la dernière charge saisie qui est proposée (sa progression est préservée).
    À rebumper à chaque changement de charges. */
-const PRESCRIBED_ON="2026-09-21";
+const PRESCRIBED_ON="2026-10-12";
 
 /* Les ids d'exercice (A1, B2…) sont des CLÉS DE STOCKAGE : elles servent à relire
    l'historique (training_logs) et à pré-remplir les charges. Elles ne sont JAMAIS affichées.
@@ -614,43 +620,49 @@ const PRESCRIBED_ON="2026-09-21";
    tableau, rien d'autre), et on ne réutilise jamais un id pour un exercice différent.
    Un exercice remplacé prend un id neuf (A4b, E2b), un exercice ajouté prend le numéro
    libre suivant de sa séance (C5, D5). Les logs déjà enregistrés restent donc lisibles. */
+/* S15 (13/10/2026) : 5 séances pleines, charges +1 kg ou montées déjà écrites (épaules 13, rowing 18,
+   élévations 7, curl 11), goblet 10 kg = seule nouveauté sur le genou. Chaque séance se ferme par
+   « Étirements de fin » (ids neufs A5, B5, C11, D8, E5 : une seule saisie, le nombre de tenues faites,
+   type reps pour ne pas gonfler le compteur de séries ni exiger 4 chronos). `dur` inclut l'Ouverture
+   (~5 min) et la Fin (~4 min). Rapports : travail\2026-10-13-s15-cinq-seances-*.md */
 const PROGRAM=[
- {id:"A",title:"Push",day:"Mercredi",subtitle:"Poitrine · Épaules · Triceps",dur:18,exercises:[
-  {id:"A1",name:"Pompes",sets:3,target:"reps propres, sans cible",weight:null,wl:"Poids du corps",type:"reps",note:"Sur les PIEDS (pied libéré par le spécialiste). Autant de reps propres que possible, puis tu finis la série sur les genoux : ça ne compte pas comme un échec, tu reprends un exercice que tu n'as plus fait depuis le 26/07. Séries 1 et 2 stoppées à RIR 3 ; la DERNIÈRE va jusqu'à l'échec (poids du corps, zéro coût rachidien). Poignets qui tirent : prends les manches de deux haltères posés au sol. Logge le nombre de reps faites sur les pieds."},
-  {id:"A2",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"Assis, dos calé. 12 kg, RIR 3, bas de fourchette : tu sortais 18-20 reps à 12 kg avant le voyage, la charge est légère, mais le recalibrage attend la semaine 13 (un seul changement à la fois). Version debout : pas avant la semaine 14."},
-  {id:"A3",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:6,wl:"2 × 6 kg",type:"reps",note:"Debout ou assis, au choix, aucun coup de reins. Montée contrôlée, pas d'élan. 6 kg ; la montée à 7 attend la semaine 13."},
+ {id:"A",title:"Push",day:"Mercredi",subtitle:"Poitrine · Épaules · Triceps",dur:27,exercises:[
+  {id:"A1",name:"Pompes",sets:3,target:"reps propres, dernière à l'échec",weight:null,wl:"Poids du corps",type:"reps",note:"Sur les pieds. Rep valide : poitrine à un poing du sol, corps gainé. Séries 1 et 2 à RIR 2, la dernière à l'échec. 1re série au-delà de 25 : descente en 3 s. Poignets qui tirent : manches de deux haltères posés au sol."},
+  {id:"A2",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:13,wl:"2 × 13 kg (barre + 5 + 0,5 kg de chaque côté)",type:"reps",note:"Dos calé, RIR 2. Plus de 12 reps avant RIR 2 : continue et logge, c'est ce qui fait monter la charge."},
+  {id:"A3",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:7,wl:"2 × 7 kg (barre + 2 + 0,5 kg de chaque côté)",type:"reps",note:"Aucun coup de reins. Repars vers 12 reps, RIR 2."},
   /* A4b : remplace les pompes serrées (id A4, retiré). Id neuf pour ne pas hériter de leur historique. */
-  {id:"A4b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates. Compense l'absence de séance E."}]},
- {id:"B",title:"Pull",day:"Jeudi",subtitle:"Dos · Arrière d'épaules · Biceps",dur:18,exercises:[
-  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:16,wl:"16 kg",type:"reps",note:"Genou et main sur le canapé, l'autre pied au sol, des deux côtés, DROITE en premier. 16 kg reste : 18/17/15 à RIR 3/1/1 le 28/08, la charge est légère mais pas de montée en semaine de reprise. 18 kg en semaine 13 si la 1re série sort à RIR 3. Descente 2-3 s."},
-  {id:"B2",name:"Pull-over haltère au sol",sets:3,target:"10-15 reps",weight:18,wl:"18 kg (barre + tous les disques)",type:"reps",note:"Bas du dos plaqué au sol. 18 kg, plafond du kit sur un haltère seul (tu as sorti 20 kg en salle le 28/08). Repars en bas de fourchette, RIR 3."},
-  {id:"B3",name:"Oiseau buste soutenu",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"Buste posé (front sur dossier de chaise haute, ou allongé sur le lit). Supprime la charge lombaire. 3e série stoppée à RIR 2, plus de série à l'échec."},
-  {id:"B4",name:"Curl biceps",sets:2,target:"10-15 reps",weight:11,wl:"2 × 11 kg",type:"reps",note:"Debout ou assis. Coudes fixes contre le tronc, aucun coup de reins. 11 kg inchangé, RIR 3."}]},
- /* C, version REPRISE (21/09) : pied libéré par le spécialiste (consultation de début septembre,
-    rééducation nécessaire seulement avant un sport intensif à appuis). Trois exercices, elle ne saute
-    jamais (règle du 03/08). C4 (proprioception) et C1 (goblet) reprennent leur id d'origine : même
-    exercice, l'historique de juillet redevient lisible. C10 (assis-debout) et C7 (abduction) sortent de
-    la séance, ids conservés : C10 reste le repli genou du goblet, C7 revient en S13. C2 (RDL) revient
-    en S13 à 2 × 6 kg, pas cette semaine (lombalgie tout juste passée, 24 jours d'arrêt). C3 (bulgare) :
-    pas avant 2 semaines propres de goblet. Ids C6/C8 non réutilisés. */
- {id:"C",title:"Bas",day:"Mardi",subtitle:"Reprise — 3 exercices, 12 min, elle ne saute pas",dur:12,sessNote:"Première séance jambes chargée depuis le 26/07. Proprioception en premier : c'est l'échauffement de la cheville et du genou. Genou droit qui part en dedans, gonfle ou se dérobe : goblet remplacé par l'assis-debout sur chaise, et pas de padel avant avis du kiné.",exercises:[
-  {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:4,target:"30 s (D, G, D, G)",weight:null,wl:"",type:"time",timeSec:30,setNotes:["droite","gauche","droite","gauche"],note:"DROITE d'abord. Une jambe, genou souple, près d'un mur, doigts au mur seulement si tu pars. Yeux OUVERTS cette semaine, sol dur ; yeux fermés en semaine 13, coussin en semaine 14. Prérequis du retour au padel et au kickboxing. Bonus gratuit : 30 s sur une jambe au brossage de dents, droite le matin, gauche le soir."},
-  {id:"C1",name:"Goblet squat",sets:3,target:"10-15 reps",weight:5,wl:"5 kg (1 haltère fixe)",type:"reps",note:"50 % des charges de juillet, règle écrite le 03/08. La charge n'est pas le sujet, la flexion du genou droit sous charge l'est : il n'en a plus fait depuis le 26/07. Genoux dans l'axe des orteils, talons au sol, stop si le genou part en dedans. 10 kg en semaine 13 si RIR 4+ et rien le lendemain."},
-  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:6,wl:"6 kg (barre + 2 × 2 kg) sur le bassin",type:"reps",note:"DROITE d'abord, poussée talon. Côté gauche sans restriction. 6 kg sortait à RIR 4+ le 18/08 : 8 kg en semaine 13, pas cette semaine."}]},
- {id:"D",title:"Push · Épaules",day:"Vendredi · bonus",subtitle:"Autres angles · Volume épaules",dur:22,sessNote:"Bonus de la semaine 12, pas un retard : elle se fait si C, A et B sont passées et que ça vient tout seul. Retour en séance pleine en semaine 13.",exercises:[
-  /* D6 a remplacé les pompes pieds surélevés (D1), D7 les pompes pike (D2) pendant l'entorse.
-     Ids D1/D2 non réutilisés. D1 revient au plus tôt en S14 (position la plus chargeante sur l'avant-pied). */
-  {id:"D6",name:"Développé incliné haltères (canapé)",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"SEULE charge qui monte cette semaine : 10 kg te donnait 23/19/20 reps sur une cible de 8-12, c'était du volume creux. 12 kg = les disques déjà en main pour le floor press. Assis au sol, dos adossé au canapé avec coussins (30-45°). Repars à 8 reps, RIR 3."},
-  {id:"D7",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"2e exposition épaules de la semaine, même charge et même consigne qu'en séance A : 12 kg, RIR 3, bas de fourchette."},
-  {id:"D3",name:"Floor press haltères",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"Allongé, coudes touchent le sol à chaque rep. 12 kg inchangé, RIR 3."},
-  {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:6,wl:"2 × 6 kg",type:"reps",note:"Debout ou assis. 6 kg, charge confirmée."},
-  {id:"D5",name:"Planche",sets:2,target:"tenue propre, sans chrono cible",weight:null,wl:"",type:"time",timeSec:45,note:"Sur les PIEDS (pied libéré). Tenue propre, genoux au sol dès que le dos creuse, pas de chrono cible : tu reprends l'exercice. Corps en ligne des chevilles à la tête. Logge les secondes tenues sur les pieds."}]},
+  {id:"A4b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates. 2 s de tenue bras écartés à chaque rep."},
+  {id:"A5",name:"Étirements de fin",sets:1,target:"tenues faites (0 à 4)",weight:null,wl:"",type:"reps",note:"Ischios D, G, puis fessier D, G. 6 respirations lentes par tenue = 1 min. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol."}]},
+ {id:"B",title:"Pull",day:"Jeudi",subtitle:"Dos · Arrière d'épaules · Biceps",dur:30,exercises:[
+  {id:"B1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:18,wl:"18 kg (barre + 5 + 2 + 1 kg de chaque côté)",type:"reps",note:"Genou et main sur le canapé, DROITE d'abord. Descente 2-3 s, RIR 2. Plus de 12 reps : continue jusqu'à RIR 2 et logge."},
+  {id:"B2",name:"Pull-over haltère au sol",sets:3,target:"10-15 reps",weight:18,wl:"18 kg (le même haltère que le rowing)",type:"reps",note:"Bas du dos plaqué, RIR 2. 15/15/15 : 19 kg la fois suivante."},
+  {id:"B3",name:"Oiseau buste soutenu",sets:3,target:"12-15 reps",weight:5,wl:"2 × 5 kg (fixes)",type:"reps",note:"Buste posé (front sur dossier de chaise haute, ou allongé sur le lit). 3e série stoppée à RIR 1-2."},
+  {id:"B4",name:"Curl biceps",sets:2,target:"10-15 reps",weight:11,wl:"2 × 11 kg",type:"reps",note:"Coudes fixes contre le tronc. Démonte l'haltère du rowing, puis : un haltère 2 + 2 + 0,5 kg de chaque côté, l'autre 1 + 1 + 1 + 1 + 0,5. Trop pénible : 10 kg à RIR 1."},
+  {id:"B5",name:"Étirements de fin",sets:1,target:"tenues faites (0 à 4)",weight:null,wl:"",type:"reps",note:"Ischios D, G, puis fessier D, G. 6 respirations lentes par tenue = 1 min. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol."}]},
+ /* C : C4 (proprioception) et C1 (goblet) gardent leur id d'origine. C10 (assis-debout) reste le repli
+    genou du goblet, C7 (abduction) et C2 (RDL, retour prévu S16 à 2 × 6 kg) sont hors séance, ids
+    conservés. C3 (bulgare) : pas avant 2 semaines propres de goblet. Ids C6/C8/C9 non réutilisés. */
+ {id:"C",title:"Bas",day:"Mardi",subtitle:"Jambes, elle ne saute pas",dur:23,sessNote:"Genou droit qui part en dedans, gonfle ou se dérobe : goblet remplacé par l'assis-debout sur chaise, et pas de padel avant avis du kiné.",exercises:[
+  {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:4,target:"30 s (D, G, D, G)",weight:null,wl:"",type:"time",timeSec:30,setNotes:["droite","gauche","droite","gauche"],note:"DROITE d'abord, genou souple, près d'un mur. Yeux FERMÉS, sol dur : doigts au mur dès que tu pars. Logge les secondes tenues. Bonus : 30 s au brossage de dents, droite le matin, gauche le soir."},
+  {id:"C1",name:"Goblet squat",sets:3,target:"10-15 reps",weight:10,wl:"10 kg (barre + 2 + 2 kg de chaque côté)",type:"reps",note:"LA nouveauté de la semaine. Genoux dans l'axe des orteils, talons au sol, 3 premières reps lentes, RIR 3. Genou ou dos qui réagit pendant ou le lendemain : retour à 5 kg, et tu le notes."},
+  {id:"C5",name:"Single-leg glute bridge",sets:2,target:"12-15 / jambe",weight:6,wl:"6 kg (barre + 2 kg de chaque côté) sur le bassin",type:"reps",note:"DROITE d'abord, poussée talon. 6 kg reste (8 kg en semaine 17) : va jusqu'à RIR 2, même au-delà de 15."},
+  {id:"C11",name:"Étirements de fin",sets:1,target:"tenues faites (0 à 4)",weight:null,wl:"",type:"reps",note:"Ischios D, G, puis fessier D, G. 6 respirations lentes par tenue = 1 min. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol."}]},
+ /* D : D6 a remplacé les pompes pieds surélevés (D1), D7 les pompes pike (D2) pendant l'entorse, ids
+    D1/D2 non réutilisés. D3 (floor press) sort de D le 13/10 : format 18 min de fonte, développé
+    horizontal déjà couvert par A1 et D6. Id conservé, non réutilisé. */
+ {id:"D",title:"Push · Épaules",day:"Vendredi",subtitle:"Autres angles · Volume épaules",dur:27,sessNote:"Après C, A et B. Si la semaine coince, elle saute, rien à rattraper.",exercises:[
+  {id:"D6",name:"Développé incliné haltères (canapé)",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"Assis au sol, dos au canapé avec coussins (30-45°), RIR 2. Haut de fourchette sur les 3 séries : 13 kg."},
+  {id:"D7",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:13,wl:"2 × 13 kg",type:"reps",note:"Même charge qu'en séance A, RIR 2."},
+  {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:7,wl:"2 × 7 kg",type:"reps",note:"Comme en séance A."},
+  {id:"D5",name:"Planche",sets:2,target:"30-45 s",weight:null,wl:"",type:"time",timeSec:45,note:"Sur les pieds, fessiers serrés, arrêt dès que le dos creuse. Logge les secondes. 2 × 45 s propres : 60 s la fois suivante."},
+  {id:"D8",name:"Étirements de fin",sets:1,target:"tenues faites (0 à 4)",weight:null,wl:"",type:"reps",note:"Ischios D, G, puis fessier D, G. 6 respirations lentes par tenue = 1 min. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol."}]},
  /* E : recentrée sur la 2e exposition du dos. E3 (glute bridge) et E4 (planche) sont partis
     en C et D. Leurs ids ne sont pas réutilisés ; d'anciens logs E qui les contiendraient
     seraient simplement ignorés à la relecture, sans casser l'affichage. */
- {id:"E",title:"Dos (10 min)",day:"Samedi · bonus",subtitle:"Dos · 2e exposition de la semaine",dur:10,sessNote:"Séance courte du samedi. Bonus, pas un retard : le dos a déjà son exposition principale en B. C'est elle qui saute en premier.",exercises:[
-  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:16,wl:"16 kg",type:"reps",note:"Mêmes consignes qu'en B1 (genou et main sur le canapé, DROITE d'abord). 16 kg ; 18 kg en semaine 13 si la 1re série sort à RIR 3. 2e exposition dos de la semaine."},
-  {id:"E2b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates, 1 s de tenue en fin de mouvement."}]}
+ {id:"E",title:"Dos (10 min)",day:"Samedi",subtitle:"Dos · 2e exposition de la semaine",dur:20,sessNote:"Séance courte, elle compte. Dernière de la file : c'est elle qui saute en premier.",exercises:[
+  {id:"E1",name:"Rowing haltère 1 bras",sets:3,target:"8-12 / bras",weight:18,wl:"18 kg",type:"reps",note:"Comme en B1 : genou et main sur le canapé, DROITE d'abord, RIR 2. Si B1 est redescendu, idem ici."},
+  {id:"E2b",name:"Pull-apart élastique",sets:2,target:"15-20 reps",weight:null,wl:"Élastique",type:"reps",note:"Focus omoplates, 2 s de tenue bras écartés à chaque rep."},
+  {id:"E5",name:"Étirements de fin",sets:1,target:"tenues faites (0 à 4)",weight:null,wl:"",type:"reps",note:"Ischios D, G, puis fessier D, G. 6 respirations lentes par tenue = 1 min. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol."}]}
 ];
 const GLOSSARY={
  "Pompes":"À plat ventre, mains largeur d'épaules sous les épaules, corps en ligne droite. Descends jusqu'à ce que la poitrine frôle le sol, remonte. Trop dur en strict : pose les genoux.",
@@ -681,7 +693,15 @@ const GLOSSARY={
  "Hinge bilatéral à l'élastique":"Substitut du RDL quand le mi-dos tiraille. Debout, les deux pieds sur le milieu d'un élastique, poignées en mains, bras le long du corps. Même geste que le RDL : hanches en ARRIÈRE, dos neutre, omoplates serrées, arrêt juste sous le genou, excentrique 3 s. L'élastique tire vers le bas et l'arrière : la charge sur le rachis est quasi nulle. 3 × 12-15, tension réglée pour finir à RIR 2-3. Après 1-2 séances sans douleur, retour au RDL à 2 × 6 kg.",
  "Double progression":"Tu gardes la même charge et tu montes les reps de séance en séance. Quand tu atteins le HAUT de la fourchette sur TOUTES les séries (RIR 1-2), tu ajoutes le plus petit saut possible avec ton kit, soit +1 kg par haltère depuis les disques de 0,5 kg, et tu repars en bas de la fourchette.",
  "Kit haltères":"4 disques de 2 kg, 8 disques de 1 kg, 4 disques de 5 kg et 4 disques de 0,5 kg (achetés fin juillet), 2 barres de 2 kg, plus 2 haltères FIXES de 5 kg. Le chargement est symétrique et le plus petit disque fait 0,5 kg, donc le plus petit saut possible est de +1 kg par haltère : toutes les charges au kilo près sont montables en PAIRE (7, 9, 11 kg…), jusqu'à 12 kg et au-delà avec les disques de 5 kg, à condition qu'ils tiennent sur les barres courtes (à tester une fois, 2 minutes). Sur un haltère SEUL (rowing, pull-over), tu peux dépasser 18 kg.",
- "Échauffement":"~2 min avant chaque séance : marche sur place 30 s, cercles d'épaules 10 par sens, cercles de hanches 10 par sens, cat-cow ×8, squats lents au poids du corps ×10, scapula push-ups ×10.",
+ "Échauffement":"Remplacé le 13/10/2026 par l'Ouverture (5 min, même rôle, plus la respiration et la mobilité des hanches et du haut du dos).",
+ "Ouverture":"~5 min au début de CHAQUE séance, elle remplace l'échauffement et ne saute jamais : lever des bras en respirant, charnière de hanche, quadrupédie (chat-vache et rotation), fente basse en mouvement. Lent, sans forcer : sens où est ton poids et ce qui bouge. Puis les 3 premières reps du premier exercice se font lentement.",
+ "Lever des bras en respirant":"Debout, pieds largeur de hanches, genoux souples. Inspire par le nez 4 s en montant les bras tendus devant toi jusqu'au-dessus de la tête, expire 6 s en les redescendant, 6 fois. Sens ton poids se répartir entre talons et avant des pieds, sans cambrer.",
+ "Charnière de hanche":"Debout, mains sur les hanches, genoux légèrement pliés et fixes. Pousse les fesses en arrière en 3 s jusqu'à sentir l'arrière des cuisses, dos droit, puis reviens en serrant les fessiers. 8 fois : c'est le geste du RDL, sans charge.",
+ "Quadrupédie : chat-vache et rotation":"À quatre pattes, coussin sous les genoux. 5 chat-vache lents en suivant ton souffle, sans forcer l'arrondi du bas du dos. Puis main derrière la tête : coude vers le bras d'appui, puis ouvre vers le plafond en suivant le coude du regard, 4 fois par côté. Ne t'assieds jamais sur les talons.",
+ "Fente basse en mouvement":"Depuis la quadrupédie, avance le pied gauche entre les mains : genou droit sur le coussin, tibia avant vertical, dessus du pied arrière à plat au sol, orteils jamais retournés. Rentre le coccyx, avance le bassin en 3 s jusqu'à sentir l'avant de la hanche droite, reviens ; 5 fois, la dernière tenue 20 s. Puis l'autre côté. Pour te relever : repasse à quatre pattes, main sur le canapé.",
+ "Étirements de fin":"4 tenues après la dernière série : ischios à la serviette droite puis gauche, fessier allongé droite puis gauche. Une tenue = 6 respirations lentes (4 s inspire par le nez, 6 s expire), soit 1 minute, sans chrono. Tension 3 à 5 sur 10, jamais de douleur. Logge le nombre de tenues faites. Pressé : elle saute, ou tu la fais le soir au sol.",
+ "Ischios à la serviette":"Allongé sur le dos, jambe gauche tendue au sol. Serviette centrée sous la plante du pied droit, monte la jambe droite tendue jusqu'à sentir l'arrière de la cuisse, 6 respirations, puis change. Bassin au sol ; genou à peine fléchi si ça tire derrière le genou.",
+ "Fessier allongé (figure 4)":"Allongé sur le dos, genoux pliés, cheville droite posée sur le genou gauche. Tire doucement l'arrière de la cuisse gauche vers toi jusqu'à sentir la fesse droite, sans appuyer sur le genou croisé, 6 respirations, puis change. Tension dans le genou croisé : tu relâches ; si elle persiste, l'exercice sort.",
  "Deload":"Semaine allégée : moitié des séries, RIR 4-5, sans jamais forcer. Vide la fatigue accumulée pour repartir plus haut.",
  "Série (assiduité)":"Nombre de séances enchaînées sans décrochage. La série tient tant que tu ne laisses pas passer plus de 3 jours pleins sans séance. Trois jours de marge, c'est exactement le week-end du bloc : finir vendredi et reprendre lundi ne casse rien. Au-delà (4 jours ou plus sans rien), la série tombe à zéro et repart de 1 à la séance suivante. Ce n'est pas la charge qui la casse, c'est l'absence."
 };
@@ -782,7 +802,7 @@ function renderSession(deload,last){
  let h='<button class="tr-back" data-act="back">← Retour aux séances</button>';
  if(deload)h+='<div style="font-size:11px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;margin-top:4px">Deload : séries réduites</div>';
  h+='<h3 class="tr-sesstitle"><span class="sid">'+trCur.id+'</span> — '+esc(trCur.title)+'</h3>';
- h+='<p class="tr-sesssub">'+esc(trCur.subtitle)+' · <button class="tr-link" data-gloss="Échauffement">échauffement ~2 min d\'abord</button> · repos 60-90 s entre séries</p>';
+ h+='<p class="tr-sesssub">'+esc(trCur.subtitle)+' · <button class="tr-link" data-gloss="Ouverture">Ouverture ~5 min d\'abord</button> · repos 60-90 s entre séries</p>';
  if(trCur.sessNote)h+='<p class="tr-sesssub" style="color:var(--muted2);margin-top:-10px">'+esc(trCur.sessNote)+'</p>';
  trCur.exercises.forEach(ex=>{
   const le=(last&&last.entries)?last.entries[ex.id]:null;const ls=lastSummary(le,ex);
@@ -913,10 +933,10 @@ function renderAssiduite(){
  h+='<div class="tr-atile"><div class="tr-alab">Série en cours</div>'
   +'<div class="tr-abig '+(st.n>0?"acc":"off")+'">'+st.n+'<span class="u">séance'+(st.n>1?"s":"")+'</span></div>'
   +'<div class="tr-asub">'+ssub+' <button class="tr-link" data-gloss="Série (assiduité)">règle ?</button></div></div>';
- h+='<div class="tr-atile"><div class="tr-alab">Bloc juillet</div>'
+ h+='<div class="tr-atile"><div class="tr-alab">Bloc en cours</div>'
   +'<div class="tr-abig">'+pct+'<span class="u">%</span></div>'
   +'<div class="tr-aline"><i style="width:'+pct+'%"></i></div>'
-  +'<div class="tr-asub">'+inBlock+' / '+BLOCK_TOTAL+' séances · 6 juil → 9 août</div></div>';
+  +'<div class="tr-asub">'+inBlock+' / '+BLOCK_TOTAL+' séances · depuis le 6 juil. ('+BLOCK_WEEKS+' semaines)</div></div>';
  h+='<div class="tr-atile full"><div class="tr-anx">'
   +'<div><div class="tr-alab">Dernière séance</div>'
   +(lg
