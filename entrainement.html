@@ -546,10 +546,10 @@ const store={
     try{if(window.storage){const r=await window.storage.get(k);return r?r.value:null;}}catch(e){}
     try{return localStorage.getItem("mm_"+k);}catch(e){}
     return (k in mem)?mem[k]:null; },
-  async set(k,v){ if(cloud){ cloud.cache[k]=v; await cloudWrite(k,v); return; }
-    try{if(window.storage){await window.storage.set(k,v);return;}}catch(e){}
-    try{localStorage.setItem("mm_"+k,v);return;}catch(e){}
-    mem[k]=v; }
+  async set(k,v){ if(cloud){ cloud.cache[k]=v; return await cloudWrite(k,v); }
+    try{if(window.storage){await window.storage.set(k,v);return true;}}catch(e){}
+    try{localStorage.setItem("mm_"+k,v);return true;}catch(e){}
+    mem[k]=v; return true; }
 };
 /* ---- Fiabilisation des écritures kv : retry session + file locale + alerte ---- */
 async function cloudWrite(k,v){
@@ -566,11 +566,23 @@ async function cloudWrite(k,v){
 function kvQueue(k,v){try{const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]");const i=q.findIndex(x=>x.k===k);if(i>=0)q[i].v=v;else q.push({k:k,v:v});localStorage.setItem("me_pendingKv",JSON.stringify(q));}catch(e){}}
 function kvSynced(ok){try{let b=document.getElementById("syncWarn");if(ok){if(b)b.remove();return;}
  if(!b){b=document.createElement("div");b.id="syncWarn";b.textContent="\u26a0 Sauvegarde non synchronis\u00e9e \u2014 v\u00e9rifie ta connexion, r\u00e9essai automatique en cours";b.setAttribute("style","position:fixed;left:10px;right:10px;bottom:10px;z-index:500;background:#b5483f;color:#fff;padding:10px 12px;border-radius:10px;font-size:13px;text-align:center");document.body.appendChild(b);}}catch(e){}}
-async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]").filter(function(it){try{return !(typeof DATA!=="undefined"&&((it.k==="userHabits"&&it.v===JSON.stringify(DATA.habits))||(it.k==="userGoals"&&it.v===JSON.stringify(DATA.objectives))));}catch(e){return true;}});if(!q.length){localStorage.setItem("me_pendingKv","[]");return;}const rest=[];for(const it of q){try{if(it.k==="offDays"){try{const rr=await window.__sb.from("kv").select("v").eq("k","offDays").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=JSON.stringify(Object.assign({},JSON.parse(rr.data.v),JSON.parse(it.v)));}}catch(e2){}}const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);}catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
+/* Fusion des séances (training_logs) : union par id, jamais d'écrasement. Une séance notée hors
+   connexion sur le téléphone et une séance enregistrée entre-temps sur le PC survivent toutes les deux. */
+function mergeTrainingLogs(a,b){try{const pa=JSON.parse(a||"{}"),pb=JSON.parse(b||"{}");const m={};[].concat(Array.isArray(pa.logs)?pa.logs:[],Array.isArray(pb.logs)?pb.logs:[]).forEach(function(l){if(l&&l.id!=null)m[l.id]=l;});
+ /* Séances supprimées sur cet appareil : elles ne reviennent pas par la fusion (une suppression faite sur un AUTRE appareil pendant une saisie ici peut encore revenir, cas rare, à re-supprimer). */
+ try{JSON.parse(localStorage.getItem("me_trDeleted")||"[]").forEach(function(id){delete m[id];});}catch(e){}
+ return JSON.stringify({logs:Object.keys(m).map(function(k){return m[k];}).sort(function(x,y){return x.id-y.id;})});}catch(e){return b;}}
+async function kvFlush(){try{if(typeof cloud==="undefined"||!cloud||!cloud.uid)return;const q=JSON.parse(localStorage.getItem("me_pendingKv")||"[]").filter(function(it){try{return !(typeof DATA!=="undefined"&&((it.k==="userHabits"&&it.v===JSON.stringify(DATA.habits))||(it.k==="userGoals"&&it.v===JSON.stringify(DATA.objectives))));}catch(e){return true;}});if(!q.length){localStorage.setItem("me_pendingKv","[]");return;}const rest=[];for(const it of q){try{if(it.k==="offDays"){try{const rr=await window.__sb.from("kv").select("v").eq("k","offDays").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=JSON.stringify(Object.assign({},JSON.parse(rr.data.v),JSON.parse(it.v)));}}catch(e2){}}
+  if(it.k==="training_logs"){try{const rr=await window.__sb.from("kv").select("v").eq("k","training_logs").maybeSingle();if(rr&&rr.data&&rr.data.v){it.v=mergeTrainingLogs(rr.data.v,it.v);}}catch(e2){}}
+  const r=await window.__sb.from("kv").upsert({user_id:cloud.uid,k:it.k,v:it.v},{onConflict:"user_id,k"});if(r&&r.error)rest.push(it);
+  else{cloud.cache[it.k]=it.v;
+   /* La page garde en mémoire la liste des séances : on la met à jour, sans toucher à une saisie en cours. */
+   if(it.k==="training_logs"&&typeof trLogs!=="undefined"){try{const o=JSON.parse(it.v);trLogs=Array.isArray(o.logs)?o.logs:trLogs;if(typeof trCur!=="undefined"&&!trCur&&typeof renderHome==="function")renderHome();}catch(e3){}}}
+ }catch(e){rest.push(it);}}localStorage.setItem("me_pendingKv",JSON.stringify(rest));if(!rest.length)kvSynced(true);}catch(e){}}
 try{document.addEventListener("visibilitychange",function(){if(!document.hidden)kvFlush();});setInterval(kvFlush,45000);setTimeout(kvFlush,4000);}catch(e){}
 
 async function getJSON(k,def){const v=await store.get(k);if(v==null)return def;try{return JSON.parse(v);}catch(e){return def;}}
-async function setJSON(k,o){await store.set(k,JSON.stringify(o));}
+async function setJSON(k,o){return await store.set(k,JSON.stringify(o));}
 const now=new Date();
 function isoDay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 const jours=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -610,7 +622,7 @@ const WEEKS=[
  {name:"Semaine 13",rule:"Aucune séance tracée. La reprise est calée sur la semaine 14."},
  {name:"Semaine 14 · Reprise",rule:"S12 rejouée : jambes, push et pull faites les 06, 08 et 09/10, charges de septembre, RIR 3. D et E non faites, elles étaient en bonus. Rien de noté côté douleur."},
  /* S15 (12-18/10), décision du 13/10 (binôme coach-sport-science + coach-de-terrain) : passage à 5 séances, Ouverture à la place de l'échauffement, étirements de fin. */
- {name:"Semaine 15 · Cinq séances",rule:"Cible 5 séances, minimum 3 : A, B, C d'abord ; D et E sautent si ça coince, rien à rattraper. RIR 2 partout (tu t'arrêtes quand il te reste 2 reps dans le réservoir), sauf la dernière série de pompes, à fond. Si tu dépasses le haut de la cible (ex. 12 dans 8-12), continue et note les reps faites. Nouveautés : goblet 10 kg, et relevé de talon en A et B (les deux pieds, gauche d'abord). Jamais la séance A (jambes) un jour où ta session de poker démarre à 9h30. L'Ouverture ne saute jamais (pressé : 3 respirations par étirement). Douleur pendant ou le lendemain : tu arrêtes et tu le notes."},
+ {name:"Semaine 15 · Cinq séances",rule:"Cible 5 séances, minimum 3 : A, B, C d'abord ; D et E sautent si ça coince, rien à rattraper. RIR 2 partout (tu t'arrêtes quand il te reste 2 reps dans le réservoir), sauf la dernière série de pompes, à fond. Si tu dépasses le haut de la cible (ex. 12 dans 8-12), continue et note les reps faites. Nouveautés : goblet 10 kg, relevé de talon en A et B (les deux pieds, gauche d'abord), et depuis le 16/10 le développé épaules debout en tête de la séance D (2 × 12 kg, il remplace l'assis qui datait de la botte). Jamais la séance A (jambes) un jour où ta session de poker démarre à 9h30. L'Ouverture ne saute jamais (pressé : 3 respirations par étirement). Douleur pendant ou le lendemain : tu arrêtes et tu le notes."},
  /* Garde-fou : si la mise à jour du lundi glisse, le bandeau n'affiche pas « Bloc terminé ». */
  {name:"Semaine 16",rule:"Programme mis à jour lundi 19/10 après lecture de tes séances. Si rien n'a changé à l'écran : mêmes consignes que la semaine 15."}
 ];
@@ -657,10 +669,14 @@ const PROGRAM=[
   {id:"C12",name:"Relevé de talon 1 pied",sets:6,target:"8-15 reps (3 séries par pied, en alternant), RIR 2",weight:0,wl:"Poids du corps, sol plat",type:"reps",setNotes:["gauche","droite","gauche","droite","gauche","droite"],note:"Debout sur UN pied, l'autre pied décollé, main au mur : monte sur la pointe le plus haut possible, tiens 1 s, redescends en 2 s. Gauche puis droite sans pause, repos 60 s, 3 fois. Laisse 0 en kg tant que tu n'as pas l'haltère. Mal sur le dessus du pied gauche : tu arrêtes l'exercice et tu le notes. Progression : 15 reps par pied sur les 3 séries au sol → l'avant du pied sur le bord d'une marche, talon dans le vide. 12 reps par pied au bord → les petits sauts entrent. 15 au bord → haltère de 5 kg dans la main du côté du pied."}]},
  /* D : D6 a remplacé les pompes pieds surélevés (D1), D7 les pompes pike (D2) pendant l'entorse, ids
     D1/D2 non réutilisés. D3 (floor press) sort de D le 13/10 : format 18 min de fonte, développé
-    horizontal déjà couvert par A1 et D6. Id conservé, non réutilisé. */
- {id:"D",title:"Push · Épaules",day:"Vendredi",subtitle:"Autres angles · Volume épaules",dur:26,sessNote:"Après A, B et C. Si la semaine coince, elle saute, rien à rattraper.",exercises:[
+    horizontal déjà couvert par A1 et D6. Id conservé, non réutilisé.
+    16/10/2026 : D9 (développé épaules DEBOUT) remplace D7 (assis, hérité de la règle « haltères en main = assis »
+    de la botte, jamais retranché après la libération du pied). D9 ouvre la séance (lombaires à froid). Id D7
+    conservé, à remettre au premier signal lombaire. D6 (incliné canapé) est un choix volontaire du 13/10, il reste.
+    Rapports : travail\2026-10-16-exercices-herites-botte-*.md */
+ {id:"D",title:"Push · Épaules",day:"Vendredi",subtitle:"Autres angles · Volume épaules",dur:26,sessNote:"Après A, B et C. Si la semaine coince, elle saute, rien à rattraper. Le développé debout ouvre la séance : même montage que l'incliné (barre + 5 kg de chaque côté), tu enchaînes sans démonter.",exercises:[
+  {id:"D9",name:"Développé épaules debout",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg (barre + 5 kg de chaque côté)",type:"reps",note:"En premier dans la séance. Haltères pris sur une chaise, jamais au sol. Pieds largeur de hanches, fesses serrées, côtes rentrées. Le bas du dos se creuse : série finie. RIR 2. Moins de 8 reps : 11 kg la fois suivante. Mal au dos pendant ou le lendemain : finis assis, note-le, et le développé assis revient."},
   {id:"D6",name:"Développé incliné haltères (canapé)",sets:3,target:"8-12 reps",weight:12,wl:"2 × 12 kg",type:"reps",note:"Assis au sol, dos au canapé avec coussins (30-45°), RIR 2. 12 reps sur les 3 séries : 13 kg la fois suivante."},
-  {id:"D7",name:"Développé épaules assis",sets:3,target:"8-12 reps",weight:13,wl:"2 × 13 kg",type:"reps",note:"Même charge qu'en séance B, RIR 2."},
   {id:"D4",name:"Élévations latérales",sets:2,target:"12-15 reps",weight:7,wl:"2 × 7 kg",type:"reps",note:"Comme en séance B."},
   {id:"D5",name:"Planche",sets:2,target:"30-45 s",weight:null,wl:"",type:"time",timeSec:45,note:"Sur les pieds, fesses serrées, arrêt dès que le dos creuse. Note les secondes tenues. 2 × 45 s propres : 60 s la fois suivante."}]},
  /* E : recentrée sur la 2e exposition du dos. E3 (glute bridge) et E4 (planche) sont partis
@@ -749,6 +765,9 @@ function renderWeek(){
   h+='<div class="rl" style="margin-top:8px">'+(doneToday?'Séance du jour faite ✓ · prochaine : ':'À faire aujourd\'hui : ')
    +'<button class="tr-link" style="font-size:13.5px;font-weight:600" data-open="'+nid+'">'+lab(nid)+' — '+esc(ns.title)+'</button>'
    +' · <b style="color:var(--text)">'+wk+'/5</b> cette semaine</div>';
+  /* Saisie commencée et pas enregistrée (sur cet appareil) : on le dit, avec le bouton pour la reprendre. */
+  const dr=draftRead();const ds=dr?PROGRAM.find(s=>s.id===dr.sessionId):null;
+  if(ds){const dd=new Date(dr.at);h+='<div class="rl" style="margin-top:8px;color:var(--text)">Saisie en cours non enregistrée ('+jours[dd.getDay()].slice(0,3)+' '+String(dd.getHours()).padStart(2,"0")+'h'+String(dd.getMinutes()).padStart(2,"0")+') : <button class="tr-link" style="font-size:13.5px;font-weight:600" data-open="'+ds.id+'">reprendre '+lab(ds.id)+' — '+esc(ds.title)+'</button></div>';}
  }else if(wi<0){h+='<div class="rl">Le bloc démarre le lundi 6 juillet 2026.</div>';}
  else{h+='<div class="rl">Bloc terminé — demande à Claude le bloc suivant, la page sera mise à jour.</div>';}
  el.innerHTML=h;
@@ -795,7 +814,12 @@ function openSession(id){
    return{reps:"",weight:lw,rir:""};
   });
  });
+ /* Brouillon de cette séance encore valable : on reprend les chiffres déjà tapés (exercice par exercice,
+    un exercice retiré du programme entre-temps est ignoré). */
+ const d=draftRead();let resumed=false;
+ if(d&&d.sessionId===id){trCur.exercises.forEach(ex=>{const a=d.entries[ex.id];if(Array.isArray(a)&&a.length){trEntries[ex.id]=a.slice(0,6);resumed=true;}});}
  renderSession(deload,last);
+ if(resumed)toast("Saisie en cours retrouvée, rien n'est perdu");
  $("#trHome").style.display="none";$("#trSession").style.display="";
  window.scrollTo(0,0);
 }
@@ -1002,13 +1026,24 @@ async function checkSportHabit(){
 function openGloss(term){$("#trGlossT").textContent=term;$("#trGlossB").textContent=GLOSSARY[term]||"Définition à ajouter — demande à Claude lors de la prochaine mise à jour.";$("#trGloss").classList.add("show");}
 /* ---- Persistance ---- */
 async function trLoad(){const o=await getJSON(TKEY,{logs:[]});trLogs=Array.isArray(o.logs)?o.logs:[];}
-async function trSave(){await setJSON(TKEY,{logs:trLogs});}
+async function trSave(){return await setJSON(TKEY,{logs:trLogs});}
+/* ---- Brouillon de saisie (16/10/2026) : la séance jambes du 13/10 a été perdue parce que la saisie
+   n'existait qu'en mémoire. Chaque chiffre tapé est maintenant recopié dans localStorage de l'appareil ;
+   la séance se rouvre avec ses chiffres pendant 12 h (retour à l'accueil, rechargement, resync). ---- */
+const DRAFT_KEY="me_trDraft", DRAFT_TTL=12*3600*1000;
+function draftRead(){try{const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");if(!d||!d.sessionId||!d.entries||!d.at)return null;if(Date.now()-d.at>DRAFT_TTL){localStorage.removeItem(DRAFT_KEY);return null;}
+ const filled=Object.values(d.entries).some(a=>Array.isArray(a)&&a.some(s=>s&&((s.reps&&s.reps!=="")||(s.sec&&s.sec!==""))));if(!filled)return null;
+ /* Séance déjà enregistrée après le brouillon (autre appareil, ou envoi différé) : le brouillon est périmé. */
+ if(trLogs.some(l=>l.sessionId===d.sessionId&&l.id>=d.at)){localStorage.removeItem(DRAFT_KEY);return null;}
+ return d;}catch(e){return null;}}
+function draftSave(){try{if(!trCur)return;localStorage.setItem(DRAFT_KEY,JSON.stringify({sessionId:trCur.id,entries:trEntries,at:Date.now()}));}catch(e){}}
+function draftClear(){try{localStorage.removeItem(DRAFT_KEY);}catch(e){}}
 /* ---- Events ---- */
 document.addEventListener("input",e=>{
  const t=e.target;if(!t.dataset||!t.dataset.ex)return;
- if(t.tagName==="SELECT"){trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=t.value;return;}
+ if(t.tagName==="SELECT"){trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=t.value;draftSave();return;}
  const v=t.value.replace(t.dataset.f==="weight"?/[^0-9.,]/g:/[^0-9]/g,"");
- t.value=v;trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=v;
+ t.value=v;trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=v;draftSave();
 });
 document.addEventListener("click",async e=>{
  const b=e.target.closest("[data-gloss],[data-open],[data-act],[data-add],[data-rem],[data-timer],[data-del],[data-delok],[data-histall],#trGlossX");
@@ -1018,19 +1053,29 @@ document.addEventListener("click",async e=>{
  if(b.dataset.open){openSession(b.dataset.open);return;}
  if(b.dataset.timer){inlineTimer(b,+b.dataset.timer);return;}
  if(b.dataset.histall){histAll=!histAll;renderHistory();return;}
- if(b.dataset.add){const ex=trCur.exercises.find(x=>x.id===b.dataset.add);const arr=trEntries[ex.id];if(arr.length<6){arr.push(ex.type==="time"?{sec:""}:{reps:"",weight:arr[arr.length-1]?arr[arr.length-1].weight:"",rir:""});const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
- if(b.dataset.rem){const arr=trEntries[b.dataset.rem];if(arr.length>1){arr.pop();const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
+ if(b.dataset.add){const ex=trCur.exercises.find(x=>x.id===b.dataset.add);const arr=trEntries[ex.id];if(arr.length<6){arr.push(ex.type==="time"?{sec:""}:{reps:"",weight:arr[arr.length-1]?arr[arr.length-1].weight:"",rir:""});draftSave();const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
+ if(b.dataset.rem){const arr=trEntries[b.dataset.rem];if(arr.length>1){arr.pop();draftSave();const last=[...trLogs].reverse().find(l=>l.sessionId===trCur.id);renderSession(weekIdx(new Date())===4,last);}return;}
+ /* Retour à l'accueil : le brouillon reste, la séance se rouvre avec ses chiffres. */
  if(b.dataset.act==="back"){trCur=null;renderHome();return;}
  if(b.dataset.act==="finish"){
   const has=Object.values(trEntries).some(a=>a.some(s=>(s.reps&&s.reps!=="")||(s.sec&&s.sec!=="")));
   if(!has){toast("Note au moins une série avant d'enregistrer");return;}
+  /* Lecture avant écriture : une séance enregistrée sur un autre appareil pendant la saisie (resync sauté
+     parce qu'un champ avait le focus) n'est pas écrasée. Hors ligne, la lecture échoue et on garde la liste locale. */
+  try{if(cloud&&cloud.uid){const rr=await window.__sb.from("kv").select("v").eq("k",TKEY).maybeSingle();
+   if(rr&&rr.data&&rr.data.v){const m=JSON.parse(mergeTrainingLogs(rr.data.v,JSON.stringify({logs:trLogs})));if(Array.isArray(m.logs))trLogs=m.logs;}}}catch(e){}
   trLogs.push({id:Date.now(),date:new Date().toISOString(),weekIndex:weekIdx(new Date()),sessionId:trCur.id,entries:trEntries});
-  await trSave();
+  const ok=await trSave();
+  draftClear();
   const hab=await checkSportHabit();
   trCur=null;renderHome();
-  toast(hab?"Séance enregistrée ✓ · habitude Sport cochée":"Séance enregistrée ✓");return;}
+  /* Écriture cloud refusée (réseau) : la séance est dans la file d'attente locale, envoyée au prochain passage en ligne, et fusionnée avec ce qui existe. */
+  toast(ok===false?"Séance notée, envoi en attente (réseau) : rouvre l'app une fois connecté":(hab?"Séance enregistrée ✓ · habitude Sport cochée":"Séance enregistrée ✓"));return;}
  if(b.dataset.del){trConfirmDel=+b.dataset.del;renderHistory();return;}
- if(b.dataset.delok){trLogs=trLogs.filter(l=>l.id!==+b.dataset.delok);trConfirmDel=null;await trSave();renderWeek();renderAssiduite();renderHistory();toast("Séance supprimée");return;}
+ if(b.dataset.delok){
+  /* Suppression mémorisée sur l'appareil (me_trDeleted) : la fusion par id ne ressuscite pas une séance supprimée, même si l'écriture part en file d'attente. */
+  try{const t=JSON.parse(localStorage.getItem("me_trDeleted")||"[]");t.push(+b.dataset.delok);localStorage.setItem("me_trDeleted",JSON.stringify(t.slice(-50)));}catch(e){}
+  trLogs=trLogs.filter(l=>l.id!==+b.dataset.delok);trConfirmDel=null;await trSave();renderWeek();renderAssiduite();renderHistory();toast("Séance supprimée");return;}
 });
 $("#trGloss").addEventListener("click",e=>{if(e.target.id==="trGloss")$("#trGloss").classList.remove("show");});
 /* ---- Boot ---- */
@@ -1115,7 +1160,11 @@ if(document.readyState!=="loading")init();else window.addEventListener("DOMConte
     if(!changed)for(k in cloud.cache){if(!(k in fresh)){changed=true;break;}}
     if(changed&&!typing()&&!menuOpen()){
      cloud.cache=fresh;
-     if(typeof boot==="function"){try{await boot();}catch(e){}}
+     /* Séance en cours de saisie (16/10/2026) : on rafraîchit la liste des séances en mémoire, mais on
+        ne relance PAS boot(), qui renvoyait à l'accueil et faisait perdre la saisie dès qu'une autre
+        page (habitudes, météo du matin, session) écrivait quelque chose. */
+     if(typeof trCur!=="undefined"&&trCur){if(typeof trLoad==="function"){try{await trLoad();}catch(e){}}}
+     else if(typeof boot==="function"){try{await boot();}catch(e){}}
      if(window.__flameRefresh){try{window.__flameRefresh();}catch(e){}}
     }
    }
