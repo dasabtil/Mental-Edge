@@ -901,12 +901,15 @@ $("#goalAdd").addEventListener("click",async()=>{const l=$("#goalLabel").value.t
 
 // HABITS
 function last7(){const a=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);a.push(isoDay(d));}return a;}
+// Une habitude peut porter "days" (jours de la semaine, 0 = dimanche) : elle n'est affichée et comptée que ces jours-là.
+function habitActive(hb,d){return !hb||!Array.isArray(hb.days)||!hb.days.length||hb.days.indexOf(d.getDay())>=0;}
+window.__habitActive=habitActive;
 function streakFor(log,id,off){let s=0;for(let i=0;i<400;i++){const d=new Date(now);d.setDate(d.getDate()-i);const day=isoDay(d);if(off&&off[day])continue;if((log[day]||[]).includes(id))s++;else{if(i===0)continue;break;}}return s;}
 async function renderHabits(){
   let habits=await getJSON("userHabits",null);
   if(habits==null){if(typeof cloud!=="undefined"&&cloud){habits=[];}else{habits=JSON.parse(JSON.stringify(DATA.habits));await setJSON("userHabits",habits);}}
   const log=await getJSON("habitsLog",{});const reps=await getJSON("habitsReps",{});const offd=await getJSON("offDays",{});const days=last7();const todayList=log[TODAY]||[];const todayReps=reps[TODAY]||{};
-  $("#habitList").innerHTML=habits.map(hb=>{
+  $("#habitList").innerHTML=habits.filter(hb=>habitActive(hb,now)).map(hb=>{
     const tgt=Math.max(1,parseInt(hb.target,10)||1);
     const on=todayList.includes(hb.id);
     const cnt=on?tgt:Math.min(todayReps[hb.id]||0,tgt);
@@ -1069,12 +1072,13 @@ function storeReady(){return typeof getJSON==="function"&&typeof cloud!=="undefi
 async function readK(k,d){if(storeReady())return (await getJSON(k,d));var r=await kvGet(k);return r==null?d:r;}
 async function writeK(k,v){if(typeof setJSON==="function"&&storeReady()){await setJSON(k,v);return;}await kvSet(k,v);}
 async function refresh(){if(!uid&&!storeReady())return;
-var habits=await readK("userHabits",[])||[];var ids=habits.map(function(h){return h.id;});
+var habits=await readK("userHabits",[])||[];
+function idsFor(dt){return habits.filter(function(h){return !h||!Array.isArray(h.days)||!h.days.length||h.days.indexOf(dt.getDay())>=0;}).map(function(h){return h.id;});}
 var log=await readK("habitsLog",{})||{};var off=await readK("offDays",{})||{};var seuil=await readK("flameSeuil",null);if(seuil==null)seuil="all";
 var s=0,d=new Date();
 for(var i=0;i<730;i++){var day=iso(d);
  if(off[day]){d.setDate(d.getDate()-1);continue;}
- if(dayOk(log,ids,seuil,day)){s++;}
+ if(dayOk(log,idsFor(d),seuil,day)){s++;}
  else{if(i===0){d.setDate(d.getDate()-1);continue;}break;}
  d.setDate(d.getDate()-1);}
 var el=$("streakN");if(el){el.textContent=s;var p=el.parentNode;if(p)p.title="Cha\u00eene d\u2019habitudes : "+s+" jour(s) cons\u00e9cutifs"+(seuil==="all"?" (toutes coch\u00e9es)":" (seuil "+seuil+")")+" \u00b7 jours off non comptés";}
@@ -1185,7 +1189,9 @@ box.innerHTML='<svg viewBox="0 0 '+WD+' '+H+'" preserveAspectRatio="none"><path 
 function render(){var a=sorted();$("wtNow").textContent=a.length?num(a[a.length-1].kg).toFixed(1)+" kg":"";
 var t=$("wtTrend");if(a.length>=2){var last=num(a[a.length-1].kg),prev=num(a[a.length-2].kg),diff=last-prev,tot=last-num(a[0].kg);t.innerHTML='Derni\u00e8re mesure : <b>'+last.toFixed(1)+' kg</b> ('+(diff>0?"+":"")+diff.toFixed(1)+' kg vs pr\u00e9c.) \u00b7 depuis le d\u00e9but : '+(tot>0?"+":"")+tot.toFixed(1)+' kg';}else if(a.length===1){t.innerHTML='Derni\u00e8re mesure : <b>'+num(a[0].kg).toFixed(1)+' kg</b>';}else{t.textContent="";}
 chart();var box=$("wtList");box.innerHTML="";a.slice().reverse().forEach(function(p){var row=document.createElement("div");row.className="wtli";row.innerHTML='<span><b>'+num(p.kg).toFixed(1)+' kg</b><span class="d">'+fr(p.date)+'</span></span>';var b=document.createElement("button");b.innerHTML="&times;";b.title="Supprimer";b.addEventListener("click",function(){W=W.filter(function(x){return x.date!==p.date;});save();render();});row.appendChild(b);box.appendChild(row);});}
-function add(){var dt=$("wtDate").value||todayISO(),kg=num($("wtKg").value);if(!kg)return;W=W.filter(function(x){return x.date!==dt;});W.push({date:dt,kg:Math.round(kg*10)/10});$("wtKg").value="";save();render();}
+function add(){var dt=$("wtDate").value||todayISO(),kg=num($("wtKg").value);if(!kg)return;W=W.filter(function(x){return x.date!==dt;});W.push({date:dt,kg:Math.round(kg*10)/10});$("wtKg").value="";save();render();
+ // Un poids saisi pour aujourd'hui coche l'habitude "Pesée" (id pesee) par le même chemin qu'un clic, pour ne pas écrire habitsLog à côté du cache.
+ if(dt===todayISO()){try{var ck=document.querySelector('#habitList .hck[data-h="pesee"]');if(ck&&!ck.classList.contains("on"))ck.click();}catch(e){}}}
 async function load(){if(loaded||!window.__sb)return;try{var s=(await window.__sb.auth.getSession()).data.session;if(!s)return;uid=s.user.id;}catch(e){return;}loaded=true;var raw=await kvGet(KEY);if(raw){try{W=JSON.parse(raw)||[];}catch(e){W=[];}}render();}
 function init(){var h=$("wtHead"),b=$("wtBody");if(h&&b)h.addEventListener("click",function(){b.classList.toggle("open");h.classList.toggle("open");});var dd=$("wtDate");if(dd)dd.value=todayISO();var ab=$("wtAdd");if(ab)ab.addEventListener("click",add);
 if(window.__sb&&window.__sb.auth&&window.__sb.auth.onAuthStateChange){window.__sb.auth.onAuthStateChange(function(e,s){if(s)load();});}
@@ -1248,11 +1254,15 @@ async function quantCur(){if(!curId)return;
  }catch(e){}}
 async function open(id,label){curId=id;curLabel=label;if(!ov)build();
  var log=await kvGet("habitsLog")||{},offd=await kvGet("offDays")||{};
+ var hbs=await kvGet("userHabits")||[];var hb=(hbs||[]).find(function(x){return String(x.id)===String(id);});
+ var days=(hb&&Array.isArray(hb.days)&&hb.days.length)?hb.days:null;
  var done=new Set(),off=new Set();
  Object.keys(log).forEach(function(d){if((log[d]||[]).indexOf(id)>=0)done.add(d);});
  Object.keys(offd).forEach(function(d){if(offd[d])off.add(d);});
  var today=new Date();today.setHours(0,0,0,0);
  var start=new Date(today);start.setDate(start.getDate()-364);
+ // jours où l'habitude n'est pas prévue : comptés comme off, jamais comme manqués
+ if(days){var dd=new Date(start);while(dd<=today){if(days.indexOf(dd.getDay())<0&&!done.has(iso(dd)))off.add(iso(dd));dd.setDate(dd.getDate()+1);}}
  // compte sur la fenêtre
  var cnt=0,d=new Date(start);while(d<=today){if(done.has(iso(d)))cnt++;d.setDate(d.getDate()+1);}
  var best=longest(done,off,start,today);
@@ -1458,7 +1468,8 @@ function build(){styleOnce();ov=document.createElement("div");ov.id="yhOv";
  box.querySelector("#yhClose").addEventListener("click",close);
  ov.addEventListener("click",function(e){if(e.target===ov)close();});}
 async function render(){var hs=await getJSON("userHabits",[]),lg=await getJSON("habitsLog",{}),arr=lg[yday()]||[];
- listEl.innerHTML="";(hs||[]).forEach(function(h){var on=arr.indexOf(h.id)>=0;var row=document.createElement("div");row.className="yhItem"+(on?" on":"");
+ var yd=new Date();yd.setDate(yd.getDate()-1);
+ listEl.innerHTML="";(hs||[]).filter(function(h){return !window.__habitActive||window.__habitActive(h,yd);}).forEach(function(h){var on=arr.indexOf(h.id)>=0;var row=document.createElement("div");row.className="yhItem"+(on?" on":"");
   row.innerHTML='<div class="yhCk">'+(on?"\u2713":"")+'</div><div class="yhName">'+(h.label||"").replace(/</g,"&lt;")+'</div>';
   row.addEventListener("click",function(){toggle(h.id);});listEl.appendChild(row);});
  if(!hs||!hs.length)listEl.innerHTML='<p class="yhSub">Aucune habitude.</p>';}
