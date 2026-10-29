@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="fr" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mental Edge · Calculateurs</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/e220a9bbb233eb75.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/359bfa88608fb72e.png">
+<link rel="apple-touch-icon" href="assets/c7cdbfa6e1e417d4.png">
+<meta name="theme-color" content="#2f6a45">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3eee3;--bg2:#ece4d5;--surface:#fbf8f1;--surface2:#f6f0e6;
+  --text:#272320;--muted:#5e5749;--muted2:#726957;
+  --line:rgba(40,32,16,.12);--line2:rgba(40,32,16,.07);
+  --green:#2f6a45;--green-soft:#4f8a5f;--accent:#8a5f10;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.05);--tint2:rgba(63,107,74,.05);--grain:.10;
+  --r:18px;--maxw:1080px;
+}
+[data-theme=dark]{
+  --bg:#14120d;--bg2:#1b1812;--surface:#211d15;--surface2:#272219;
+  --text:#ece6d8;--muted:#b3ab98;--muted2:#8c8370;
+  --line:rgba(216,166,74,.18);--line2:rgba(236,230,216,.08);
+  --green:#86b079;--green-soft:#6f9e6a;--accent:#e7c272;--accent-bright:#d8a64a;--on-accent:#1c1810;
+  --tint1:rgba(216,166,74,.10);--tint2:rgba(63,107,74,.12);--grain:.14;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;background-image:radial-gradient(120% 80% at 50% -8%,var(--tint1),transparent 60%),radial-gradient(80% 60% at 92% 112%,var(--tint2),transparent 60%)}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grain);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.4'/></svg>")}
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 22px 60px}
+h1,h2,h3{font-family:"Space Grotesk",serif;font-weight:600;letter-spacing:.2px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin:0;padding:11px 22px}
+.nav-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .mark{width:30px;height:30px;flex:none;border-radius:9px;object-fit:cover;border:1px solid var(--line)}
+.brand b{font-family:"Space Grotesk",serif;font-weight:600;font-size:15px;letter-spacing:3px;color:var(--text)}
+.brand small{display:block;color:var(--muted);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.navlinks{display:flex;gap:2px;flex-wrap:wrap}
+.navlinks a{color:var(--muted);text-decoration:none;font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;padding:7px 9px;border-radius:999px;transition:.2s;white-space:nowrap}
+.navlinks a:hover{color:var(--text)}
+.navlinks a.navon,.navlinks a.on{color:var(--accent);font-weight:600}
+.navright{display:flex;align-items:center;gap:12px}
+.themebtn{appearance:none;cursor:pointer;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--accent);font-size:15px;display:grid;place-items:center;transition:.2s}
+.themebtn:hover{border-color:var(--accent);color:var(--text)}
+.menubtn{display:none;appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);font-size:20px;line-height:1;border-radius:10px;padding:6px 11px;cursor:pointer}
+.mobmenu{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;display:none}
+.mobmenu.show{display:block}
+.mobmenu-in{position:absolute;top:0;right:0;height:100%;width:80%;max-width:300px;background:var(--surface);border-left:1px solid var(--line);padding:62px 14px 22px;overflow:auto;display:flex;flex-direction:column;gap:2px;box-sizing:border-box}
+.mobmenu-in a{display:block;padding:13px 14px;border-radius:10px;color:var(--text);text-decoration:none;font-size:16px;border-bottom:1px solid var(--line)}
+.mobmenu-in a:active{background:var(--bg)}
+@media(max-width:760px){.menubtn{display:inline-flex}.navlinks{display:none}}
+
+/* ===== Calculateurs ===== */
+.calc{max-width:380px;margin:26px auto 0}
+.calc.large{max-width:560px}
+.calc .kicker{color:var(--accent);letter-spacing:3px;text-transform:uppercase;font-size:11px;font-weight:600;text-align:center;margin:0 0 12px}
+.rescard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);text-align:center;padding:20px 12px 14px;margin-bottom:14px;position:relative;overflow:hidden}
+.rescard::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 120% at 0 0,var(--tint1),transparent 55%);pointer-events:none}
+.rescard>*{position:relative}
+.resbig{font-family:"Space Grotesk",serif;font-size:54px;font-weight:700;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.resbig .unite{font-size:24px;font-weight:500;color:var(--muted)}
+.resline{margin-top:7px;font-size:15px;color:var(--green);font-variant-numeric:tabular-nums}
+.rescard .icm{margin-top:9px;font-size:11px;color:var(--muted2);line-height:1.4}
+#flDetail{font-size:12.5px;color:var(--muted)}
+.rescard .lecture{margin-top:10px;font-size:14px;font-weight:600;color:var(--green)}
+.rescard .alerte{margin-top:8px;font-size:12.5px;color:var(--accent);line-height:1.4}
+.champ{margin-bottom:10px}
+.champ label{display:block;color:var(--muted);font-size:12.5px;margin-bottom:4px}
+.calc input[type=number],.calc select{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:10px 13px;font-family:inherit;font-size:17px;font-variant-numeric:tabular-nums;transition:.2s}
+.calc select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:36px}
+.calc input[type=number]:focus,.calc select:focus{outline:none;border-color:var(--accent-bright);box-shadow:0 0 0 3px var(--tint1)}
+.calc input::-webkit-outer-spin-button,.calc input::-webkit-inner-spin-button{-webkit-appearance:none}
+.calc input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.duo{display:flex;gap:10px}
+.duo .champ{flex:1}
+.bloc{border:1px solid var(--line);border-radius:var(--r);padding:12px;background:var(--surface2)}
+.onglets{display:flex;gap:6px;margin-bottom:10px}
+.onglets button{flex:1;appearance:none;background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:inherit;font-size:12px;padding:6px 4px;cursor:pointer;transition:.15s;white-space:nowrap}
+.onglets button.actif{background:var(--accent-bright);border-color:var(--accent-bright);color:var(--on-accent);font-weight:600}
+.mode{display:none}.mode.actif{display:block}
+#bountyCalcule{font-size:12px;color:var(--muted);margin-top:6px;min-height:15px}
+.footer{margin-top:40px;color:var(--muted2);font-size:12.5px;text-align:center}
+/* sélecteur d'outil */
+.outils{display:flex;gap:8px;max-width:380px;margin:22px auto 0}
+.outils button{flex:1;appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--muted);font:inherit;font-size:13px;letter-spacing:.5px;padding:10px 6px;cursor:pointer;transition:.15s}
+.outils button.actif{background:var(--accent-bright);border-color:var(--accent-bright);color:var(--on-accent);font-weight:600}
+.outil{display:none}.outil.actif{display:block}
+/* tableau field left */
+.tablewrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.niv{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+table.niv th,table.niv td{text-align:right;padding:5px 5px;border-bottom:1px solid var(--line2);white-space:nowrap}
+table.niv th{color:var(--muted);font-weight:500;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+table.niv th:first-child,table.niv td:first-child,table.niv th:nth-child(2),table.niv td:nth-child(2){text-align:left}
+table.niv tr.cur td{background:var(--tint1);font-weight:600;color:var(--accent)}
+table.niv tr.itm td{border-top:2px solid var(--accent-bright)}
+table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-size:11px}
+.meta{font-size:12px;color:var(--muted2);margin-top:10px;line-height:1.5}
+</style>
+</head><body>
+<div id="mobMenu" class="mobmenu"><div class="mobmenu-in" id="mobMenuIn"></div></div><div class="nav"><div class="nav-in">
+  <div class="brand">
+    <img class="mark" src="assets/ef25df956b012609.png" alt="">
+    <div><b>Mental</b><small>Edge</small></div>
+  </div>
+  <nav class="navlinks" id="nav"><a href="index.html">Principale</a><a href="session.html">Session</a><a href="zen.html">Zen</a><a href="lecture.html">Lecture</a><a href="outils.html">Outils</a><a href="calculateurs.html" class="navon">Calculateurs</a><a href="technique.html">Technique</a><a href="vision.html">Vision</a><a href="organisation.html">Organisation</a><a href="immobilier.html">Immo</a><a href="entrainement.html">Entraînement</a><a href="nutrition.html">Nutrition</a></nav>
+  <div class="navright"><button id="menuBtn" class="menubtn" aria-label="Menu">&#9776;</button></div>
+</div></div>
+<div class="wrap">
+
+<div class="outils">
+  <button type="button" id="outilField" class="actif">Field restant</button>
+  <button type="button" id="outilBounty">Bounty en BB</button>
+</div>
+
+<!-- ===== Field restant ===== -->
+<div id="secField" class="outil actif">
+<div class="calc large">
+  <p class="kicker">Field restant</p>
+
+  <div class="rescard">
+    <div id="flBig" class="resbig">&ndash;<span class="unite"> %</span></div>
+    <div id="flLine" class="resline">du field encore en jeu</div>
+    <div id="flDetail" class="icm"></div>
+    <div id="flAlerte" class="alerte"></div>
+    <div id="flLecture" class="lecture"></div>
+  </div>
+
+  <div class="champ">
+    <label for="flTour">Tournoi</label>
+    <select id="flTour"></select>
+  </div>
+  <div class="duo">
+    <div class="champ">
+      <label for="flLevel">Niveau</label>
+      <select id="flLevel"></select>
+    </div>
+    <div class="champ">
+      <label for="flBB">ou grosse blinde</label>
+      <input type="number" id="flBB" inputmode="numeric" step="any" min="0" placeholder="2000">
+    </div>
+  </div>
+  <div class="champ">
+    <label for="flReg">Entrées du tournoi, re-entries comprises (vide = field habituel)</label>
+    <input type="number" id="flReg" inputmode="numeric" step="any" min="0" placeholder="">
+  </div>
+
+  <div class="tablewrap"><table class="niv" id="flTable"></table></div>
+  <div class="meta" id="flMeta"></div>
+</div>
+</div>
+
+<!-- ===== Bounty en BB ===== -->
+<div id="secBounty" class="outil">
+<div class="calc">
+  <p class="kicker">Bounty en BB</p>
+
+  <div class="rescard">
+    <div id="resBB" class="resbig">&ndash;<span class="unite"> BB</span></div>
+    <div id="resJetons" class="resline">&ndash; jetons</div>
+    <div class="icm">Plancher cEV, valeur r&eacute;elle sup&eacute;rieure en late game (ICM)</div>
+  </div>
+
+  <div class="duo">
+    <div class="champ">
+      <label for="buyin">Buy-in (&euro;)</label>
+      <input type="number" id="buyin" inputmode="decimal" step="any" min="0" placeholder="20">
+    </div>
+    <div class="champ">
+      <label for="tapis">Tapis de d&eacute;part</label>
+      <input type="number" id="tapis" inputmode="numeric" step="any" min="0" placeholder="20000">
+    </div>
+  </div>
+
+  <div class="champ">
+    <label for="bb">BB actuelle (jetons)</label>
+    <input type="number" id="bb" inputmode="numeric" step="any" min="0" placeholder="4000">
+  </div>
+
+  <div class="bloc">
+    <div class="onglets">
+      <button type="button" id="tabDirect" class="actif">Bounty direct</button>
+      <button type="button" id="tabMoyen">Bounty moyen</button>
+    </div>
+    <div id="modeDirect" class="mode actif">
+      <div class="champ" style="margin-bottom:0">
+        <label for="bounty">Bounty (&euro;)</label>
+        <input type="number" id="bounty" inputmode="decimal" step="any" min="0" placeholder="44,80">
+      </div>
+    </div>
+    <div id="modeMoyen" class="mode">
+      <div class="duo">
+        <div class="champ" style="margin-bottom:0">
+          <label for="pool">Pool bounties (&euro;)</label>
+          <input type="number" id="pool" inputmode="decimal" step="any" min="0" placeholder="12500">
+        </div>
+        <div class="champ" style="margin-bottom:0">
+          <label for="nb">Bounties restants</label>
+          <input type="number" id="nb" inputmode="numeric" step="any" min="0" placeholder="180">
+        </div>
+      </div>
+      <div id="bountyCalcule"></div>
+    </div>
+  </div>
+  <div class="footer">Mental Edge &middot; bounty = (bounty &euro; &divide; buy-in) &times; tapis de d&eacute;part, converti en BB</div>
+</div>
+</div>
+
+</div>
+
+<script src="assets/field-left-data.js"></script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+
+  /* thème : suit le réglage local du dashboard */
+  try{var t=localStorage.getItem("mm_theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}
+
+  /* ---------- sélecteur d'outil ---------- */
+  var CLE_OUTIL="calcOutil";
+  function setOutil(nom){
+    var field=(nom!=="bounty");
+    $("outilField").classList.toggle("actif",field);
+    $("outilBounty").classList.toggle("actif",!field);
+    $("secField").classList.toggle("actif",field);
+    $("secBounty").classList.toggle("actif",!field);
+    try{localStorage.setItem(CLE_OUTIL,field?"field":"bounty");}catch(e){}
+  }
+  $("outilField").addEventListener("click",function(){setOutil("field");});
+  $("outilBounty").addEventListener("click",function(){setOutil("bounty");});
+  try{setOutil(localStorage.getItem(CLE_OUTIL)||"field");}catch(e){setOutil("field");}
+
+  /* ---------- Bounty en BB (inchangé) ---------- */
+  var champs=["buyin","tapis","bb","bounty","pool","nb"];
+  var modeMoyen=false;
+  var CLE="bountyBB"; /* buy-in et tapis mémorisés */
+
+  function val(id){
+    var brut=$(id).value.replace(",",".");
+    var n=parseFloat(brut);
+    return isFinite(n)&&n>0?n:null;
+  }
+  function formatNombre(n,dec){
+    return n.toLocaleString("fr-FR",{maximumFractionDigits:dec,minimumFractionDigits:0});
+  }
+  function bountyEuros(){
+    if(!modeMoyen)return val("bounty");
+    var pool=val("pool"),nb=val("nb");
+    if(pool===null||nb===null)return null;
+    return pool/nb;
+  }
+  function calculer(){
+    var buyin=val("buyin"),tapis=val("tapis"),bb=val("bb");
+    var bounty=bountyEuros();
+    var infoMoyen=$("bountyCalcule");
+    if(modeMoyen&&bounty!==null){infoMoyen.textContent="Bounty moyen : "+formatNombre(bounty,2)+" €";}
+    else{infoMoyen.textContent="";}
+    if(buyin===null||tapis===null||bb===null||bounty===null){
+      $("resBB").innerHTML="–<span class=\"unite\"> BB</span>";
+      $("resJetons").textContent="– jetons";
+      return;
+    }
+    var jetons=(bounty/buyin)*tapis;
+    var enBB=jetons/bb;
+    $("resBB").innerHTML=formatNombre(enBB,enBB>=100?0:1)+"<span class=\"unite\"> BB</span>";
+    $("resJetons").textContent=formatNombre(jetons,0)+" jetons";
+  }
+  function sauvegarder(){
+    try{localStorage.setItem(CLE,JSON.stringify({buyin:$("buyin").value,tapis:$("tapis").value}));}catch(e){}
+  }
+  function restaurer(){
+    try{
+      var d=JSON.parse(localStorage.getItem(CLE)||"{}");
+      if(d.buyin)$("buyin").value=d.buyin;
+      if(d.tapis)$("tapis").value=d.tapis;
+    }catch(e){}
+  }
+  function setMode(moyen){
+    modeMoyen=moyen;
+    $("tabDirect").classList.toggle("actif",!moyen);
+    $("tabMoyen").classList.toggle("actif",moyen);
+    $("modeDirect").classList.toggle("actif",!moyen);
+    $("modeMoyen").classList.toggle("actif",moyen);
+    calculer();
+  }
+  $("tabDirect").addEventListener("click",function(){setMode(false);});
+  $("tabMoyen").addEventListener("click",function(){setMode(true);});
+  champs.forEach(function(id){
+    $(id).addEventListener("input",function(){
+      if(id==="buyin"||id==="tapis")sauvegarder();
+      calculer();
+    });
+  });
+  restaurer();
+  calculer();
+
+  /* ---------- Field restant ---------- */
+  var DATA=window.FIELD_LEFT||{};
+  var keys=Object.keys(DATA);
+  var tourSel=$("flTour"),levelSel=$("flLevel"),bbIn=$("flBB"),regIn=$("flReg");
+  var CLE_FL="fieldLeft";
+
+  var ITM_DEFAUT=0.13; /* Winamax paie en général ~13 % des entrées (mesuré sur les tournois de Damien) */
+  function pct(x){return Math.round(x*100)+" %";}
+  function lecture(remaining,paid,knockout){
+    var txt;
+    if(remaining<=9)txt="Table finale (ou juste avant) : ICM fort";
+    else if(remaining<=paid)txt=remaining>27?"Dans les places payées : ICM léger":"Approche de la table finale : ICM fort";
+    else if(remaining<=1.5*paid)txt="Bulle : ICM fort";
+    else if(remaining<=2*paid)txt="Bulle qui approche : ICM léger";
+    else txt="Loin de la bulle : chipEV";
+    if(knockout&&remaining>9)txt+=" · tournoi KO, ICM un peu réduit par les bounties";
+    return txt;
+  }
+  if(!keys.length){
+    $("flMeta").textContent="Données absentes (assets/field-left-data.js introuvable).";
+  }
+  keys.forEach(function(k){
+    var t=DATA[k];
+    var o=document.createElement("option");
+    o.value=k;o.textContent=t.name+" ("+t.buyin+") · "+t.n_tournaments+" tournois"+(t.n_points<30?" (peu de données)":"");
+    tourSel.appendChild(o);
+  });
+  function fillLevels(){
+    var t=DATA[tourSel.value];if(!t)return;
+    levelSel.innerHTML="";
+    t.rows.forEach(function(r){
+      var o=document.createElement("option");
+      o.value=r.level;
+      o.textContent=r.level+" · "+r.sb+"/"+r.bb+(r.ante?" ante "+r.ante:"");
+      levelSel.appendChild(o);
+    });
+    try{var d=JSON.parse(localStorage.getItem(CLE_FL)||"{}");if(d.levels&&d.levels[tourSel.value])levelSel.value=d.levels[tourSel.value];}catch(e){}
+  }
+  function sauverFL(){
+    try{
+      var d=JSON.parse(localStorage.getItem(CLE_FL)||"{}");
+      d.tour=tourSel.value;d.levels=d.levels||{};d.levels[tourSel.value]=levelSel.value;
+      localStorage.setItem(CLE_FL,JSON.stringify(d));
+    }catch(e){}
+  }
+  function render(){
+    var t=DATA[tourSel.value];if(!t)return;
+    var L=parseInt(levelSel.value,10);
+    var r=t.rows[L-1];if(!r)return;
+    sauverFL();
+    var reg=val("flReg");
+    var field=reg||t.entries_median;
+    var lateOpen=!!r.late||r.pct_left==null;
+    var remaining=lateOpen?null:r.pct_left*field;
+    var avgbb=(!lateOpen&&t.start_stack&&r.bb)?field*t.start_stack/Math.max(remaining,1)/r.bb:null;
+    var itm=(t.itm_frac!=null)?t.itm_frac:ITM_DEFAUT;
+    var paid=Math.round(itm*field);
+    var ko=(t.type==="knockout");
+    var bl=r.sb+"/"+r.bb+(r.ante?" ante "+r.ante:"");
+    var det=[];
+    if(lateOpen){
+      $("flBig").innerHTML="&ndash;<span class=\"unite\"> %</span>";
+      $("flLine").textContent="niveau "+L+" · "+bl+" · inscriptions ouvertes";
+      det.push("Late reg encore ouverte à ce niveau"+(t.late_reg_max_level?" (au moins jusqu'au niveau "+t.late_reg_max_level+", fin exacte inconnue)":"")+" : le field n'est pas encore formé, pas de % ni de tapis moyen.");
+    }else{
+      $("flBig").innerHTML=Math.round(r.pct_left*100)+"<span class=\"unite\"> %</span>";
+      $("flLine").textContent="des entrées encore en jeu · niveau "+L+" · "+bl;
+      det.push("Field de "+formatNombre(field,0)+" entrées"+(reg?"":" (habituel)")+" : environ "+formatNombre(Math.round(remaining),0)+" restants"+(avgbb?", tapis moyen "+formatNombre(Math.round(avgbb),0)+" bb":"")+".");
+    }
+    det.push("Places payées : environ "+(itm*100).toFixed(1).replace(".",",")+" % des entrées, soit "+formatNombre(paid,0)+(reg?"":" sur le field habituel")+(t.itm_source==="mesuré"?"":" (part habituelle payée sur Winamax, pas assez de données sur ce tournoi)")+".");
+    if(!lateOpen){
+      if(remaining>paid)det.push("Encore environ "+formatNombre(Math.round(remaining-paid),0)+" éliminations avant la bulle.");
+      else if(remaining>9)det.push("Encore environ "+formatNombre(Math.round(remaining-9),0)+" éliminations avant la table finale.");
+    }
+    $("flDetail").innerHTML=det.join("<br>");
+    var al=[];
+    if(!lateOpen){
+      if(r.p25!=null&&r.p25<=r.pct_left&&r.pct_left<=r.p75)al.push("Dans la moitié de tes tournois, il restait entre "+pct(r.p25)+" et "+pct(r.p75)+".");
+      if(r.n===0)al.push("Aucune mesure à ce niveau : valeur estimée entre les niveaux voisins.");
+      else if(r.n<3)al.push("Peu de mesures à ce niveau : ordre de grandeur.");
+    }
+    $("flAlerte").textContent=al.join(" ");
+    $("flLecture").textContent=lateOpen?"Inscriptions ouvertes : pas d'ICM, chipEV":lecture(remaining,paid,ko);
+
+    var rows="<tr><th>Niveau</th><th>Blindes</th><th>% entrées</th><th>Restants</th><th>Tapis moy.</th><th>Mesures</th></tr>";
+    var itmMarked=false;
+    t.rows.forEach(function(x){
+      var late=!!x.late||x.pct_left==null;
+      var rem=late?null:x.pct_left*field;
+      var ab=(!late&&t.start_stack&&x.bb)?field*t.start_stack/Math.max(rem,1)/x.bb:null;
+      var cls=[];
+      if(x.level===L)cls.push("cur");
+      var mark="";
+      if(!late&&!itmMarked&&x.pct_left<=itm){cls.push("itm");itmMarked=true;mark=" · payé dès ici";}
+      rows+="<tr class=\""+cls.join(" ")+"\"><td>"+x.level+"</td><td>"+x.sb+"/"+x.bb+(x.ante?" ante "+x.ante:"")+"</td><td class=\""+(late?"late":"")+"\">"+(late?"late reg":pct(x.pct_left)+mark)+"</td><td>"+(late?"":formatNombre(Math.round(rem),0))+"</td><td>"+(ab?formatNombre(Math.round(ab),0)+" bb":"")+"</td><td>"+(late?"":x.n)+"</td></tr>";
+    });
+    $("flTable").innerHTML=rows;
+    $("flMeta").innerHTML=t.n_tournaments+" tournois finis ("+t.n_points+" mesures, re-entries comprises) entre le "+fr(t.first_date)+" et le "+fr(t.last_date)+". Structure "+t.speed+". Field habituel : "+formatNombre(t.entries_median,0)+" entrées, soit "+formatNombre(t.registered_median,0)+" joueurs différents (de "+t.registered_min+" à "+t.registered_max+"). Tapis de départ "+(t.start_stack?formatNombre(t.start_stack,0):"?")+".<br>"+
+      "Comment c'est calculé : à chaque fois que tu as été éliminé à ce niveau, ta place finale divisée par le nombre d'entrées dit quelle part du field était encore en jeu. Le chiffre affiché est celui du milieu de tes mesures. Trait doré dans le tableau = premier niveau où tu es payé. Données au "+fr(window.FIELD_LEFT_DATE||"")+".";
+  }
+  function fr(iso){
+    if(!iso)return "?";
+    var m=/^(\d{4})[-\/](\d{2})[-\/](\d{2})/.exec(iso);
+    return m?m[3]+"/"+m[2]+"/"+m[1]:iso;
+  }
+  if(keys.length){
+    try{var d=JSON.parse(localStorage.getItem(CLE_FL)||"{}");if(d.tour&&DATA[d.tour])tourSel.value=d.tour;}catch(e){}
+    tourSel.addEventListener("change",function(){bbIn.value="";fillLevels();render();});
+    levelSel.addEventListener("change",function(){bbIn.value="";render();});
+    regIn.addEventListener("input",render);
+    bbIn.addEventListener("input",function(){
+      var v=val("flBB");if(!v){render();return;}
+      var t=DATA[tourSel.value];if(!t)return;
+      for(var i=0;i<t.rows.length;i++){if(t.rows[i].bb===v){levelSel.value=t.rows[i].level;render();return;}}
+      $("flAlerte").textContent="Aucun niveau avec une grosse blinde de "+formatNombre(v,0)+" dans ce tournoi.";
+    });
+    fillLevels();render();
+  }
+})();
+</script>
+<script>(function(){var nav=document.querySelector('.nav');if(!nav)return;function pad(){var fx=getComputedStyle(nav).position==='fixed';var h=nav.offsetHeight||64;document.body.style.paddingTop=fx?(h+'px'):'0px';document.documentElement.style.scrollPaddingTop=fx?((h+8)+'px'):'';}pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);})();</script>
+<script>(function(){var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});})();</script>
+</body></html>
