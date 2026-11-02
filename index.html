@@ -1113,7 +1113,7 @@ var IMKEY="immoPlan",IM=null; /* échéances de la page Opération immo (immobil
 function $(id){return document.getElementById(id);}
 var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
 function immoUpcoming(){if(!IM||!Array.isArray(IM.tasks))return [];var lim=new Date();lim.setDate(lim.getDate()+7);var l=iso(lim);
-return IM.tasks.filter(function(t){return t&&t.id&&ISO_RE.test(t.end||"")&&t.status!=="done"&&t.remind!==false&&t.end<=l;}).sort(function(a,b){return a.end<b.end?-1:(a.end>b.end?1:(a.id<b.id?-1:1));});}
+return IM.tasks.filter(function(t){return t&&t.id&&ISO_RE.test(t.end||"")&&t.status!=="done"&&t.remind===true&&t.end<=l;}).sort(function(a,b){return a.end<b.end?-1:(a.end>b.end?1:(a.id<b.id?-1:1));});}
 /* cocher « Fait » : on relit le plan juste avant d'écrire, pour ne pas écraser ce que la page Immo a pu changer entre-temps */
 async function markImmoDone(id){if(!uid)return;var plan=null;try{var raw=await kvGet(IMKEY);if(raw)plan=JSON.parse(raw);}catch(e){plan=null;}
 if(!plan||!Array.isArray(plan.tasks))plan=IM;if(!plan||!Array.isArray(plan.tasks))return;var tdy=iso(new Date());

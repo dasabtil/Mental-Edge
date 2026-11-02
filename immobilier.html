@@ -223,7 +223,7 @@ h1,h2,h3{font-family:"Playfair Display",serif;font-weight:600;letter-spacing:.2p
   </div>
   <div class="fld"><label for="tCat">Chantier</label><select id="tCat"></select></div>
   <div class="fld"><label>Statut</label><div class="seg" id="tStatus"><button type="button" data-v="todo">À faire</button><button type="button" data-v="doing">En cours</button><button type="button" data-v="done">Fait</button></div></div>
-  <label class="chk"><input type="checkbox" id="tRemind" checked><span>Rappel sur la page principale<small>Remonte dans « À faire » 7 jours avant l&rsquo;échéance</small></span></label>
+  <label class="chk"><input type="checkbox" id="tRemind"><span>Rappel sur la page principale<small>Remonte dans « À faire » 7 jours avant l&rsquo;échéance</small></span></label>
   <div class="fld"><label for="tNote">Note</label><textarea id="tNote" placeholder="Contact, pièce à fournir, détail utile…"></textarea></div>
   <div class="sbtns"><button type="button" class="del" id="tDel">Supprimer</button><button type="button" class="btn" id="tCancel">Annuler</button><button type="button" class="btn pri" id="tSave">Enregistrer</button></div>
 </div></div>
@@ -291,7 +291,7 @@ var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
 function normalize(p){if(!p||typeof p!=="object")p={};p.v=1;p.tasks=Array.isArray(p.tasks)?p.tasks:[];p.milestones=Array.isArray(p.milestones)?p.milestones:[];
  p.tasks=p.tasks.filter(function(t){return t&&t.id&&(ISO_RE.test(t.start||"")||ISO_RE.test(t.end||""));}).map(function(t){
   if(!ISO_RE.test(t.start||""))t.start=t.end;if(!ISO_RE.test(t.end||""))t.end=t.start;
-  if(t.end<t.start){var s=t.start;t.start=t.end;t.end=s;}if(!CATS[t.cat])t.cat="autre";if(["todo","doing","done"].indexOf(t.status)<0)t.status="todo";if(t.remind!==false)t.remind=true;return t;});
+  if(t.end<t.start){var s=t.start;t.start=t.end;t.end=s;}if(!CATS[t.cat])t.cat="autre";if(["todo","doing","done"].indexOf(t.status)<0)t.status="todo";if(t.remind!==true)t.remind=false;return t;});
  p.milestones=p.milestones.filter(function(m){return m&&m.id&&ISO_RE.test(m.date||"");});return p;}
 /* lecture stricte : undefined = erreur (réseau, RLS), null = pas de ligne */
 async function kvGetStrict(k){try{var r=await window.__sb.from("kv").select("v").eq("k",k).maybeSingle();if(!r||r.error)return undefined;return (r.data&&r.data.v)?r.data.v:null;}catch(e){return undefined;}}
@@ -424,7 +424,7 @@ function renderAll(first){renderLegend();renderGantt();renderLists();if(first)fi
 /* ---- éditeurs ---- */
 var editing=null,editingNew=false,editStatus="todo";
 function openTask(t){editing=t;editingNew=!findTask(t.id);$("mTaskTitle").textContent=editingNew?"Nouvelle tâche":"Tâche";
- $("tLabel").value=t.label||"";$("tStart").value=t.start;$("tEnd").value=t.end;$("tCat").value=t.cat||"autre";$("tRemind").checked=t.remind!==false;$("tNote").value=t.note||"";
+ $("tLabel").value=t.label||"";$("tStart").value=t.start;$("tEnd").value=t.end;$("tCat").value=t.cat||"autre";$("tRemind").checked=t.remind===true;$("tNote").value=t.note||"";
  setStatus(t.status||"todo");$("tDel").style.display=editingNew?"none":"";$("mTask").classList.add("show");setTimeout(function(){$("tLabel").focus();},50);}
 function setStatus(s){editStatus=s;$("tStatus").querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.v===s);});}
 function closeTask(){$("mTask").classList.remove("show");editing=null;}
@@ -443,7 +443,7 @@ function delMs(){if(!editingMs||editingMsNew)return;if(!confirm("Supprimer ce ja
 
 /* ---- câblage ---- */
 (function(){var sel=$("tCat");Object.keys(CATS).forEach(function(k){var o=document.createElement("option");o.value=k;o.textContent=CATS[k].l;sel.appendChild(o);});})();
-$("btnAddTask").addEventListener("click",function(){if(!canEdit())return;var t=todayIso();openTask({id:uuid("t"),label:"",start:t,end:addIso(t,2),cat:"autre",status:"todo",remind:true,note:""});});
+$("btnAddTask").addEventListener("click",function(){if(!canEdit())return;var t=todayIso();openTask({id:uuid("t"),label:"",start:t,end:addIso(t,2),cat:"autre",status:"todo",remind:false,note:""});});
 $("btnAddMs").addEventListener("click",function(){if(!canEdit())return;openMs({id:uuid("m"),label:"",date:todayIso()});});
 $("btnToday").addEventListener("click",scrollToToday);
 $("btnFit").addEventListener("click",fitAll);
