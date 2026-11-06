@@ -95,6 +95,35 @@ table.niv tr.cur td{background:var(--tint1);font-weight:600;color:var(--accent)}
 table.niv tr.itm td{border-top:2px solid var(--accent-bright)}
 table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-size:11px}
 .meta{font-size:12px;color:var(--muted2);margin-top:10px;line-height:1.5}
+/* training : comptage de combos */
+.rubrique{max-width:380px;margin:18px auto -14px;color:var(--muted2);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.cb-range{font-family:"Space Grotesk",serif;font-weight:600;font-size:17px;color:var(--accent)}
+.cb-cartes{display:flex;justify-content:center;gap:6px;margin:12px 0 4px}
+.cb-carte{display:inline-flex;align-items:baseline;justify-content:center;gap:1px;min-width:46px;padding:9px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-family:"Space Grotesk",serif;font-weight:700;font-size:24px;line-height:1}
+.cb-carte i{font-style:normal;font-size:19px}
+.cb-s0{color:var(--text)}.cb-s1{color:#c8402f}.cb-s2{color:#2f7fd0}.cb-s3{color:#2f8f4e}
+.cb-heros{margin-top:8px;font-size:13px;color:var(--muted)}
+.cb-heros .cb-carte{min-width:36px;padding:5px 3px;font-size:18px;margin-left:4px}
+.cb-heros .cb-carte i{font-size:15px}
+.cb-mainlbl{color:var(--muted2)}
+.cb-q{margin-top:12px;font-size:16px;font-weight:600;color:var(--text)}
+.cb-saisie{display:flex;gap:10px;align-items:stretch;margin-bottom:10px}
+.cb-saisie input{flex:1}
+.cb-btn{appearance:none;cursor:pointer;border:1px solid var(--accent-bright);background:var(--accent-bright);color:var(--on-accent);font:inherit;font-weight:600;font-size:15px;border-radius:11px;padding:10px 16px;white-space:nowrap}
+.cb-liens{display:flex;justify-content:space-between;margin-top:10px}
+.cb-lien{appearance:none;cursor:pointer;background:transparent;border:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;padding:4px 0}
+.cb-verdict{font-family:"Space Grotesk",serif;font-weight:700;font-size:20px;margin:4px 0 2px}
+.cb-ok{color:var(--green)}.cb-ko{color:var(--accent)}
+.cb-temps{font-family:"Inter",sans-serif;font-weight:400;font-size:13px;color:var(--muted2)}
+.cb-ta{font-size:13px;color:var(--muted);margin-top:4px}
+table.cb-detail{width:100%;border-collapse:collapse;font-size:13px}
+table.cb-detail td{padding:6px 8px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left}
+table.cb-detail td:first-child{white-space:nowrap;color:var(--muted)}
+table.cb-detail td.cb-n{font-weight:700;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.cb-grille{display:grid;grid-template-columns:repeat(13,1fr);gap:1px;margin-top:10px;font-size:9.5px;font-variant-numeric:tabular-nums}
+.cb-grille span{text-align:center;padding:4px 0;border-radius:3px;background:var(--surface2);color:var(--muted2)}
+.cb-grille span.in{background:var(--accent-bright);color:var(--on-accent);font-weight:600}
+@media(max-width:420px){.cb-carte{min-width:40px;font-size:21px}.cb-grille{font-size:8px}}
 </style>
 </head><body>
 <div id="mobMenu" class="mobmenu"><div class="mobmenu-in" id="mobMenuIn"></div></div><div class="nav"><div class="nav-in">
@@ -110,6 +139,10 @@ table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-s
 <div class="outils">
   <button type="button" id="outilField" class="actif">Field restant</button>
   <button type="button" id="outilBounty">Bounty en BB</button>
+</div>
+<p class="rubrique">Training</p>
+<div class="outils">
+  <button type="button" id="outilCombos">Comptage de combos</button>
 </div>
 
 <!-- ===== Field restant ===== -->
@@ -205,6 +238,47 @@ table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-s
 </div>
 </div>
 
+<!-- ===== Training : comptage de combos ===== -->
+<div id="secCombos" class="outil">
+<div class="calc large">
+  <p class="kicker">Comptage de combos &middot; river</p>
+
+  <div class="duo">
+    <div class="champ">
+      <label for="cbRange">Range</label>
+      <select id="cbRange"></select>
+    </div>
+    <div class="champ">
+      <label for="cbType">Question</label>
+      <select id="cbType">
+        <option value="mix">M&eacute;lange</option>
+        <option value="cat">Par type de main</option>
+        <option value="beat">Contre ta main</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="rescard">
+    <div id="cbRangeLbl" class="cb-range"></div>
+    <div id="cbBoard" class="cb-cartes"></div>
+    <div id="cbHero" class="cb-heros"></div>
+    <div id="cbQ" class="cb-q"></div>
+  </div>
+
+  <div class="cb-saisie">
+    <input type="number" id="cbAns" inputmode="numeric" min="0" step="1" placeholder="Nombre de combos" aria-label="Nombre de combos">
+    <button type="button" id="cbOk" class="cb-btn">Valider</button>
+  </div>
+  <div id="cbFeedback"></div>
+  <div class="cb-liens">
+    <button type="button" id="cbVoir" class="cb-lien">Voir la range</button>
+    <button type="button" id="cbPasser" class="cb-lien">Passer ce spot</button>
+  </div>
+  <div id="cbGrid"></div>
+  <div class="meta" id="cbStats"></div>
+</div>
+</div>
+
 </div>
 
 <script src="assets/field-left-data.js"></script>
@@ -217,16 +291,18 @@ table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-s
 
   /* ---------- sélecteur d'outil ---------- */
   var CLE_OUTIL="calcOutil";
+  var OUTILS={field:["outilField","secField"],bounty:["outilBounty","secBounty"],combos:["outilCombos","secCombos"]};
   function setOutil(nom){
-    var field=(nom!=="bounty");
-    $("outilField").classList.toggle("actif",field);
-    $("outilBounty").classList.toggle("actif",!field);
-    $("secField").classList.toggle("actif",field);
-    $("secBounty").classList.toggle("actif",!field);
-    try{localStorage.setItem(CLE_OUTIL,field?"field":"bounty");}catch(e){}
+    if(!OUTILS[nom])nom="field";
+    Object.keys(OUTILS).forEach(function(k){
+      $(OUTILS[k][0]).classList.toggle("actif",k===nom);
+      $(OUTILS[k][1]).classList.toggle("actif",k===nom);
+    });
+    try{localStorage.setItem(CLE_OUTIL,nom);}catch(e){}
   }
   $("outilField").addEventListener("click",function(){setOutil("field");});
   $("outilBounty").addEventListener("click",function(){setOutil("bounty");});
+  $("outilCombos").addEventListener("click",function(){setOutil("combos");});
   try{setOutil(localStorage.getItem(CLE_OUTIL)||"field");}catch(e){setOutil("field");}
 
   /* ---------- Bounty en BB (inchangé) ---------- */
@@ -413,6 +489,9 @@ table.niv td.late,table.niv span.late{color:var(--muted2);font-weight:400;font-s
   }
 })();
 </script>
+<script src="assets/combos-ranges.js?v=20261106b"></script>
+<script src="assets/combos-trainer.js?v=20261106b"></script>
+<script>if(window.ComboTrainer)window.ComboTrainer.init();</script>
 <script>(function(){var nav=document.querySelector('.nav');if(!nav)return;function pad(){var fx=getComputedStyle(nav).position==='fixed';var h=nav.offsetHeight||64;document.body.style.paddingTop=fx?(h+'px'):'0px';document.documentElement.style.scrollPaddingTop=fx?((h+8)+'px'):'';}pad();window.addEventListener('resize',pad);window.addEventListener('load',pad);})();</script>
 <script>(function(){var mm=document.getElementById("mobMenu"),inn=document.getElementById("mobMenuIn"),b=document.getElementById("menuBtn"),nl=document.querySelector(".navlinks");if(nl&&inn){inn.innerHTML=nl.innerHTML;inn.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){if(mm)mm.classList.remove("show");});});}if(b&&mm)b.addEventListener("click",function(){mm.classList.toggle("show");});if(mm)mm.addEventListener("click",function(e){if(e.target===mm)mm.classList.remove("show");});})();</script>
 </body></html>
