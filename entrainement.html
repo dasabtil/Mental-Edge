@@ -630,7 +630,7 @@ const WEEKS=[
  /* S18 (02-08/11), bilan du 02/11 (binôme, version contradicteur) : S17 faite à 4 séances sur 5 (A et B le même jour, C, D), aucun signal rapporté, 1er RDL fait → séance A gelée (2e exposition RDL, pont et goblet inchangés) ; +1 kg là où la règle est remplie : développé assis 15, rowing et pull-over 20, développé debout et incliné 14 (D9 = seul changement dos). Pied : étape 1 maintenue (un seul jour de relevé). Rapports : travail\2026-11-02-routine-sport-*.md */
  {name:"Semaine 18 · Charges en hausse",rule:"La semaine est bouclée avec A, B et C ; D et E si tu en as envie. Deux séances le même jour : permis, les deux comptent. Pas le temps : Ouverture à 3 respirations et 2 séries par exercice. Nouvelles charges déjà dans les cases. Séance A identique à la semaine dernière. Padel : pas encore, étape 1 sur 5, il manque un 2e jour de relevé à deux pieds (en séance A). Cheville qui se dérobe, pied qui gonfle d'un coup ou fait mal la nuit : Dr Vide."},
  /* S19 (09-15/11), bilan du 09/11 (binôme, version contradicteur) : S18 faite à 3 séances sur 5 (A, B, C), 2e exposition RDL complète sans signal déclaré → séance A à charges identiques (dernière séance : goblet 17/15/12, pont 15/14, règle non remplie ; condition « oui de Damien » du 02/11 non remplie), RDL 6 kg une 3e semaine, D9 14 = seul changement dos. +1 kg A2 (16), B1/E1 (21) ; oiseau 5 kg fixes en 15-20. Pied : étape 2 (C12 en séance A). A7 retiré de B (vide 3 fois sur 3). Date padel retirée de l'app (estimation dans le journal santé). Rapports : travail\2026-11-09-routine-sport-*.md */
- {name:"Semaine 19 · Étape 2 du pied",rule:"La semaine est bouclée avec A, B et C ; D et E si tu en as envie. Deux séances le même jour : permis. Pas le temps : Ouverture à 3 respirations et 2 séries par exercice. Nouvelles charges déjà dans les cases (développé assis 16 kg, rowing 21 kg). Séance A : mêmes charges, et le relevé de talon passe sur un pied, gauche d'abord (lis la note). Plus de relevé en séance B. Padel : étape 2 sur 5. Cheville qui se dérobe, pied qui gonfle d'un coup ou fait mal la nuit : Dr Vide."},
+ {name:"Semaine 19 · Étape 2 du pied",rule:"La semaine est bouclée avec A, B et C ; D et E si tu en as envie. Deux séances le même jour : permis. Pas le temps : Ouverture à 3 respirations et 2 séries par exercice. Nouvelles charges déjà dans les cases (développé assis 16 kg, rowing 21 kg). Séance A : mêmes charges, et le relevé de talon passe sur un pied, gauche d'abord (lis la note) ; en bas de la séance, une question sur ton pied. Plus de relevé en séance B. Padel : étape 2 sur 5. Cheville qui se dérobe, pied qui gonfle d'un coup ou fait mal la nuit : Dr Vide."},
  /* Garde-fou : si la mise à jour du lundi glisse, le bandeau n'affiche pas « Bloc terminé ». */
  {name:"Semaine 20",rule:"Si tu lis ceci, la mise à jour du lundi 16/11 n'est pas encore passée : refais la semaine 19 telle quelle, mêmes consignes et mêmes charges."}
 ];
@@ -685,7 +685,7 @@ const PROGRAM=[
     C14 (S16) = relevé à deux pieds, id neuf (même exercice que A7). C12 (relevé 1 pied) suspendu en S16,
     id conservé. C10 (assis-debout) reste le repli genou du goblet, C7 (abduction) hors séance.
     C3 (bulgare) : pas avant 2 semaines propres de goblet. Ids C6/C8/C9/C11 non réutilisés, C13 réservé aux petits sauts. */
- {id:"C",title:"Jambes",day:"Mardi",subtitle:"Jambes, elle ne saute pas",dur:30,sessNote:"Seulement si le genou droit part en dedans, gonfle ou se dérobe : le goblet est remplacé par l'assis-debout (assis sur le canapé, lève-toi sans les mains, redescends lentement jusqu'à effleurer l'assise ; mêmes séries, note les reps dans les cases du goblet avec 0 kg), et pas de padel tant que ça dure.",exercises:[
+ {id:"C",title:"Jambes",day:"Mardi",subtitle:"Jambes, elle ne saute pas",dur:30,check:{id:"pied",label:"Ton pied gauche, après cette séance",note:"Pas de mesure, pas d'examen : juste ton impression. Il est un peu plus gonflé que le droit depuis l'entorse, c'est normal et ça ne dit rien de la guérison. Deux séances A de suite « plus gonflé » ou « douloureux » : on revient au relevé à deux pieds.",options:[["habitude","Comme d'habitude"],["gonfle","Plus gonflé que d'habitude"],["douleur","Douloureux"]]},sessNote:"Seulement si le genou droit part en dedans, gonfle ou se dérobe : le goblet est remplacé par l'assis-debout (assis sur le canapé, lève-toi sans les mains, redescends lentement jusqu'à effleurer l'assise ; mêmes séries, note les reps dans les cases du goblet avec 0 kg), et pas de padel tant que ça dure.",exercises:[
   {id:"C4",name:"Proprioception (équilibre 1 jambe)",sets:4,target:"30 s (D, G, D, G)",weight:null,wl:"",type:"time",timeSec:30,setNotes:["droite","gauche","droite","gauche"],note:"Yeux OUVERTS. DROITE d'abord, genou souple, près d'un mur : doigts au mur si tu vacilles, le chrono continue ; si l'autre pied touche le sol, la série est finie, note les secondes tenues. Droite puis gauche sans pause, 30 s de repos, et encore une fois."},
   /* C14 (deux pieds, S16-S18) retiré du tableau en S19, id conservé. C12 (un pied) réactivé en S19 : étape 2 du retour au padel. */
   {id:"C12",name:"Relevé de talon 1 pied",sets:4,target:"12 reps, pas plus",weight:null,wl:"Poids du corps, sol plat",type:"reps",setNotes:["gauche","droite","gauche","droite"],note:"Seulement si ton pied gauche ne te fait rien aujourd'hui, ni au réveil ni en marchant ; sinon saute-le. Sur un pied, main au mur : monte sur la pointe, tiens 1 s, redescends en 2 s. Ici le pied GAUCHE passe en premier, puis le droit sans pause, 60 s de repos, et encore une fois. 12 reps, pas plus, même facile. RIR : tape 4+. Mal au pied gauche, pendant ou le lendemain : tu arrêtes et tu l'écris à Jarvis."},
@@ -754,6 +754,9 @@ const GLOSSARY={
 };
 const TKEY="training_logs";
 let trLogs=[]; let trCur=null; let trEntries={}; let trConfirmDel=null; let histAll=false;
+/* S19 (09/11/2026) : question de fin de séance (séance A, id C) : état du pied gauche. Stockée dans le log de la séance
+   sous la clé `check` ({pied:"habitude"|"gonfle"|"douleur"}), lue par la routine du lundi. Aucune autre clé de stockage. */
+let trCheck=null;
 function weekIdx(d){return Math.floor((d-BLOCK_START)/(7*24*3600*1000));}
 function trFmt(iso){const d=new Date(iso);return jours[d.getDay()].slice(0,3)+" "+d.getDate()+" "+moisS[d.getMonth()];}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
@@ -839,7 +842,8 @@ function openSession(id){
  /* Brouillon de cette séance encore valable : on reprend les chiffres déjà tapés (exercice par exercice,
     un exercice retiré du programme entre-temps est ignoré). */
  const d=draftRead();let resumed=false;
- if(d&&d.sessionId===id){trCur.exercises.forEach(ex=>{const a=d.entries[ex.id];if(Array.isArray(a)&&a.length){trEntries[ex.id]=a.slice(0,6);resumed=true;}});}
+ trCheck=null;
+ if(d&&d.sessionId===id){trCur.exercises.forEach(ex=>{const a=d.entries[ex.id];if(Array.isArray(a)&&a.length){trEntries[ex.id]=a.slice(0,6);resumed=true;}});if(d.check&&typeof d.check==="object")trCheck=d.check;}
  renderSession(deload,last);
  if(resumed)toast("Saisie en cours retrouvée, rien n'est perdu");
  $("#trHome").style.display="none";$("#trSession").style.display="";
@@ -896,6 +900,12 @@ function renderSession(deload,last){
      (décalage vers la droite qui s'aggravait à chaque exercice, débordement sur mobile). */
   h+='</div></div></div>';
  });
+ /* Question de fin de séance (ex. pied gauche en séance A). Un seul choix, réponse de la dernière fois affichée. */
+ if(trCur.check){const c=trCur.check;const cur=(trCheck&&trCheck[c.id])||"";const lc=(last&&last.check&&last.check[c.id])?(c.options.find(o=>o[0]===last.check[c.id])||[])[1]:null;
+  h+='<div class="tr-ex"><div class="tr-exname" style="cursor:default">'+esc(c.label)+'</div>';
+  if(c.note)h+='<div class="tr-note">'+esc(c.note)+'</div>';
+  if(lc)h+='<div class="tr-last">Dernière fois : '+esc(lc)+'</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+c.options.map(o=>'<button class="tr-btn" data-check="'+esc(o[0])+'"'+(cur===o[0]?' style="background:var(--green);color:#fff;border-color:var(--green)"':'')+'>'+esc(o[1])+'</button>').join("")+'</div></div>';}
  h+='<button class="tr-finish" data-act="finish">Terminer et enregistrer la séance</button>';
  $("#trSession").innerHTML=h;
 }
@@ -915,7 +925,9 @@ function renderHistory(){
   Object.values(l.entries||{}).forEach(a=>{if(Array.isArray(a))a.forEach(x=>{if((x.reps&&x.reps!=="")||(x.sec&&x.sec!==""))sets++;});});
   const wkl=(l.weekIndex>=0&&l.weekIndex<WEEKS.length)?("S"+(l.weekIndex+1)):"hors bloc";
   const del=(trConfirmDel===l.id)?'<button class="tr-btn warn" data-delok="'+l.id+'">Confirmer ?</button>':'<button class="tr-btn" data-del="'+l.id+'" style="color:var(--muted)">suppr.</button>';
-  return '<div class="tr-histrow"><div><div class="hd"><span class="sid">'+lab(l.sessionId)+'</span> '+(s?esc(s.title):"")+'</div><div class="hm">'+trFmt(l.date)+' · '+sets+' séries · '+wkl+'</div></div>'+del+'</div>';
+  /* Réponse de fin de séance (ex. pied) : affichée en clair si la séance en a une et que l'option existe encore. */
+  let ck="";if(l.check&&s&&s.check&&l.check[s.check.id]){const o=s.check.options.find(x=>x[0]===l.check[s.check.id]);if(o)ck=' · pied : '+esc(o[1].toLowerCase());}
+  return '<div class="tr-histrow"><div><div class="hd"><span class="sid">'+lab(l.sessionId)+'</span> '+(s?esc(s.title):"")+'</div><div class="hm">'+trFmt(l.date)+' · '+sets+' séries · '+wkl+ck+'</div></div>'+del+'</div>';
  }).join("");
  if(sorted.length>5)h+='<button class="tr-btn" data-histall="1">'+(histAll?'Réduire':'Tout afficher ('+sorted.length+')')+'</button>';
  el.innerHTML=h;
@@ -1061,7 +1073,7 @@ function draftRead(){try{const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||"nu
  /* Séance déjà enregistrée après le brouillon (autre appareil, ou envoi différé) : le brouillon est périmé. */
  if(trLogs.some(l=>l.sessionId===d.sessionId&&l.id>=d.at)){localStorage.removeItem(DRAFT_KEY);return null;}
  return d;}catch(e){return null;}}
-function draftSave(){try{if(!trCur)return;localStorage.setItem(DRAFT_KEY,JSON.stringify({sessionId:trCur.id,entries:trEntries,at:Date.now()}));}catch(e){}}
+function draftSave(){try{if(!trCur)return;localStorage.setItem(DRAFT_KEY,JSON.stringify({sessionId:trCur.id,entries:trEntries,check:trCheck||undefined,at:Date.now()}));}catch(e){}}
 function draftClear(){try{localStorage.removeItem(DRAFT_KEY);}catch(e){}}
 /* ---- Events ---- */
 document.addEventListener("input",e=>{
@@ -1071,8 +1083,10 @@ document.addEventListener("input",e=>{
  t.value=v;trEntries[t.dataset.ex][+t.dataset.i][t.dataset.f]=v;draftSave();
 });
 document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-gloss],[data-open],[data-act],[data-add],[data-rem],[data-timer],[data-del],[data-delok],[data-histall],#trGlossX");
+ const b=e.target.closest("[data-gloss],[data-open],[data-act],[data-add],[data-rem],[data-timer],[data-del],[data-delok],[data-histall],[data-check],#trGlossX");
  if(!b)return;
+ if(b.dataset.check){if(!trCur||!trCur.check)return;trCheck=trCheck||{};trCheck[trCur.check.id]=(trCheck[trCur.check.id]===b.dataset.check)?"":b.dataset.check;if(!trCheck[trCur.check.id])delete trCheck[trCur.check.id];draftSave();
+  b.parentNode.querySelectorAll("[data-check]").forEach(x=>{const on=trCheck&&trCheck[trCur.check.id]===x.dataset.check;x.style.background=on?"var(--green)":"";x.style.color=on?"#fff":"";x.style.borderColor=on?"var(--green)":"";});return;}
  if(b.id==="trGlossX"){$("#trGloss").classList.remove("show");return;}
  if(b.dataset.gloss){openGloss(b.dataset.gloss);return;}
  if(b.dataset.open){openSession(b.dataset.open);return;}
@@ -1089,7 +1103,10 @@ document.addEventListener("click",async e=>{
      parce qu'un champ avait le focus) n'est pas écrasée. Hors ligne, la lecture échoue et on garde la liste locale. */
   try{if(cloud&&cloud.uid){const rr=await window.__sb.from("kv").select("v").eq("k",TKEY).maybeSingle();
    if(rr&&rr.data&&rr.data.v){const m=JSON.parse(mergeTrainingLogs(rr.data.v,JSON.stringify({logs:trLogs})));if(Array.isArray(m.logs))trLogs=m.logs;}}}catch(e){}
-  trLogs.push({id:Date.now(),date:new Date().toISOString(),weekIndex:weekIdx(new Date()),sessionId:trCur.id,entries:trEntries});
+  if(trCur.check&&!(trCheck&&trCheck[trCur.check.id])){toast("Réponds à la question en bas : "+trCur.check.label);return;}
+  const nl={id:Date.now(),date:new Date().toISOString(),weekIndex:weekIdx(new Date()),sessionId:trCur.id,entries:trEntries};
+  if(trCheck&&Object.keys(trCheck).length)nl.check=trCheck;
+  trLogs.push(nl);
   const ok=await trSave();
   draftClear();
   const hab=await checkSportHabit();
